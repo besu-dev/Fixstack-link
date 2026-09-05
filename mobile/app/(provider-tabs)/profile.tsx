@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -9,30 +9,93 @@ import {
   StyleSheet,
   StatusBar,
   Switch,
-  Alert,
+  ActivityIndicator,
+  RefreshControl,
+  Modal,
 } from "react-native";
-import { Feather, Ionicons, FontAwesome5 } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
+import apiClient from "../../src/api/client";
+
+interface UserProfile {
+  _id: string;
+  fullName: string;
+  phone: string;
+  profession: string;
+  subcity: string;
+  experience: string;
+  skills: string[];
+  connectsBalance: number;
+  rating: number;
+  isVerified: boolean;
+  isAvailable: boolean;
+  isFeatured: boolean;
+  avatarUrl?: string;
+}
 
 export default function ProviderProfileScreen() {
   const router = useRouter();
+
+  const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [isAvailable, setIsAvailable] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
 
-  const handleLogout = () => {
-    Alert.alert(
-      "Log Out",
-      "Are you sure you want to log out of FixLink Provider?",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Log Out",
-          style: "destructive",
-          onPress: () => router.replace("/screen/login"),
-        },
-      ],
-    );
+  const fetchProfile = useCallback(async () => {
+    try {
+      const res = await apiClient.get("/auth/me");
+      setProfile(res.data);
+      setIsAvailable(res.data.isAvailable ?? true);
+      await SecureStore.setItemAsync("user_data", JSON.stringify(res.data));
+    } catch {
+      const cached = await SecureStore.getItemAsync("user_data");
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        setProfile(parsed);
+        setIsAvailable(parsed.isAvailable ?? true);
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchProfile();
   };
+
+  const handleToggleAvailability = async (value: boolean) => {
+    setIsAvailable(value);
+    try {
+      await apiClient.put("/auth/availability", { isAvailable: value });
+    } catch {
+      setIsAvailable(!value);
+    }
+  };
+
+  const confirmLogout = async () => {
+    setLogoutModalVisible(false);
+    await SecureStore.deleteItemAsync("user_token");
+    await SecureStore.deleteItemAsync("user_role");
+    await SecureStore.deleteItemAsync("user_data");
+    router.replace("/screen/login");
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#0052CC" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -52,45 +115,66 @@ export default function ProviderProfileScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#0052CC"]}
+          />
+        }
       >
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.avatarWrapper}>
             <Image
               source={{
-                uri: "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=300",
+                uri:
+                  profile?.avatarUrl ||
+                  "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=300",
               }}
               style={styles.avatar}
             />
-            <TouchableOpacity style={styles.cameraBadge}>
+            <TouchableOpacity style={styles.cameraBadge} activeOpacity={0.8}>
               <Feather name="camera" size={12} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
 
-          <Text style={styles.userName}>Maskot Kota</Text>
+          <Text style={styles.userName}>{profile?.fullName || "Provider"}</Text>
           <Text style={styles.userProfession}>
-            Master Plumber & Pump Technician
+            {profile?.profession || "General Maintenance"} •{" "}
+            {profile?.experience || "1-3 yrs"}
           </Text>
 
           {/* Rating & Location Tag */}
           <View style={styles.metaBadgeRow}>
             <View style={styles.ratingBadge}>
               <Ionicons name="star" size={13} color="#F59E0B" />
-              <Text style={styles.ratingText}>4.9 (84 reviews)</Text>
+              <Text style={styles.ratingText}>
+                {profile?.rating ? profile.rating.toFixed(1) : "5.0"}
+              </Text>
             </View>
             <View style={styles.locationBadge}>
               <Feather name="map-pin" size={12} color="#64748B" />
               <Text style={styles.locationText}>
-                Bole & Kirkos, Addis Ababa
+                {profile?.subcity || "Bole"}, Addis Ababa
               </Text>
             </View>
           </View>
 
           {/* Verification Badge */}
-          <View style={styles.verificationBadge}>
-            <Ionicons name="shield-checkmark" size={14} color="#16A34A" />
-            <Text style={styles.verificationText}>Verified FixLink Pro</Text>
-          </View>
+          {profile?.isVerified ? (
+            <View style={styles.verificationBadge}>
+              <Ionicons name="shield-checkmark" size={14} color="#16A34A" />
+              <Text style={styles.verificationText}>Verified FixLink Pro</Text>
+            </View>
+          ) : (
+            <View style={styles.pendingBadge}>
+              <Ionicons name="time-outline" size={14} color="#B45309" />
+              <Text style={styles.pendingText}>
+                Verification Pending Review
+              </Text>
+            </View>
+          )}
         </View>
 
         {/* Availability Toggle */}
@@ -115,45 +199,59 @@ export default function ProviderProfileScreen() {
           </View>
           <Switch
             value={isAvailable}
-            onValueChange={setIsAvailable}
+            onValueChange={handleToggleAvailability}
             trackColor={{ false: "#CBD5E1", true: "#0052CC" }}
             thumbColor="#FFFFFF"
           />
         </View>
 
-        {/* Performance Metrics */}
+        {/* Performance & Connects Row */}
         <View style={styles.statsCard}>
+          <TouchableOpacity
+            style={styles.statItem}
+            onPress={() => router.push("/screen/buy-connects" as any)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.statNumberConnects}>
+              {profile?.connectsBalance ?? 5}
+            </Text>
+            <Text style={styles.statLabel} numberOfLines={1}>
+              Connects
+            </Text>
+          </TouchableOpacity>
+          <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>128</Text>
-            <Text style={styles.statLabel}>Completed</Text>
+            <Text style={styles.statNumber}>100%</Text>
+            <Text style={styles.statLabel} numberOfLines={1}>
+              Success
+            </Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>98%</Text>
-            <Text style={styles.statLabel}>Job Success</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>18,400</Text>
-            <Text style={styles.statLabel}>ETB (This Mo.)</Text>
+            <Text style={styles.statNumber}>
+              {profile?.isFeatured ? "Featured" : "Standard"}
+            </Text>
+            <Text style={styles.statLabel} numberOfLines={1}>
+              Account Tier
+            </Text>
           </View>
         </View>
 
         {/* Business & Earnings */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>Business & Earnings</Text>
+          <Text style={styles.sectionHeader}>Business & Connects</Text>
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => router.push("/screen/provider/wallet" as any)}
+            onPress={() => router.push("/screen/buy-connects" as any)}
           >
             <View style={[styles.menuIconBox, { backgroundColor: "#EFF6FF" }]}>
               <Ionicons name="wallet-outline" size={18} color="#0052CC" />
             </View>
             <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Payouts & Wallet</Text>
+              <Text style={styles.menuTitle}>Recharge Connects (Telebirr)</Text>
               <Text style={styles.menuSubtitle}>
-                Telebirr / CBE / Awash payouts
+                Current Balance: {profile?.connectsBalance ?? 0} Connects
               </Text>
             </View>
             <Feather name="chevron-right" size={18} color="#94A3B8" />
@@ -161,33 +259,17 @@ export default function ProviderProfileScreen() {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() =>
-              router.push("/screen/provider/service-offerings" as any)
-            }
+            onPress={() => router.push("/screen/buy-connects" as any)}
           >
             <View style={[styles.menuIconBox, { backgroundColor: "#FEF3C7" }]}>
-              <Feather name="tool" size={18} color="#D97706" />
+              <Ionicons name="star-outline" size={18} color="#D97706" />
             </View>
             <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>My Skills & Rates</Text>
+              <Text style={styles.menuTitle}>7-Day Top Featured Status</Text>
               <Text style={styles.menuSubtitle}>
-                Tanker pumps, pipe leakage, rates
-              </Text>
-            </View>
-            <Feather name="chevron-right" size={18} color="#94A3B8" />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push("/screen/provider/service-areas" as any)}
-          >
-            <View style={[styles.menuIconBox, { backgroundColor: "#F0FDF4" }]}>
-              <Feather name="map" size={18} color="#16A34A" />
-            </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Service Zones (Addis Ababa)</Text>
-              <Text style={styles.menuSubtitle}>
-                Bole, Kirkos, Yeka, Nifas Silk
+                {profile?.isFeatured
+                  ? "Active Top Placement"
+                  : "Upgrade for 150 ETB"}
               </Text>
             </View>
             <Feather name="chevron-right" size={18} color="#94A3B8" />
@@ -205,7 +287,7 @@ export default function ProviderProfileScreen() {
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuTitle}>Job Alert Notifications</Text>
               <Text style={styles.menuSubtitle}>
-                Instant notification for nearby requests
+                Instant alerts for nearby job postings
               </Text>
             </View>
             <Switch
@@ -218,7 +300,7 @@ export default function ProviderProfileScreen() {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => router.push("/screen/select-role")}
+            onPress={() => router.replace("/(customer-tabs)/services" as any)}
           >
             <View style={[styles.menuIconBox, { backgroundColor: "#E0F2FE" }]}>
               <Feather name="refresh-cw" size={18} color="#0284C7" />
@@ -231,34 +313,59 @@ export default function ProviderProfileScreen() {
             </View>
             <Feather name="chevron-right" size={18} color="#94A3B8" />
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push("/provider/support" as any)}
-          >
-            <View style={[styles.menuIconBox, { backgroundColor: "#F1F5F9" }]}>
-              <Feather name="help-circle" size={18} color="#475569" />
-            </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Provider Help Center</Text>
-              <Text style={styles.menuSubtitle}>
-                Safety, dispute resolution, guidelines
-              </Text>
-            </View>
-            <Feather name="chevron-right" size={18} color="#94A3B8" />
-          </TouchableOpacity>
         </View>
 
         {/* Logout Button */}
         <TouchableOpacity
           style={styles.logoutBtn}
-          onPress={handleLogout}
+          onPress={() => setLogoutModalVisible(true)}
           activeOpacity={0.8}
         >
           <Feather name="log-out" size={18} color="#EF4444" />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Styled Bottom Sheet Modal for Log Out */}
+      <Modal
+        visible={logoutModalVisible}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setLogoutModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setLogoutModalVisible(false)}
+        >
+          <View
+            style={styles.modalSheet}
+            onStartShouldSetResponder={() => true}
+          >
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Sign Out</Text>
+            <Text style={styles.modalMessage}>
+              Are you sure you want to log out your account?
+            </Text>
+
+            <TouchableOpacity
+              style={styles.modalConfirmBtn}
+              onPress={confirmLogout}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.modalConfirmText}>Log Out</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.modalCancelBtn}
+              onPress={() => setLogoutModalVisible(false)}
+              activeOpacity={0.85}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -267,6 +374,12 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: "#F8FAFC",
+  },
+  centerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
   },
   header: {
     flexDirection: "row",
@@ -295,7 +408,7 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 14,
-    paddingBottom: 110, // Safe clearance above ProviderCustomNavBar
+    paddingBottom: 110,
   },
   profileCard: {
     alignItems: "center",
@@ -383,6 +496,23 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#16A34A",
   },
+  pendingBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#FEF3C7",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 14,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: "#FDE68A",
+  },
+  pendingText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: "#B45309",
+  },
   availabilityBox: {
     flexDirection: "row",
     alignItems: "center",
@@ -421,10 +551,11 @@ const styles = StyleSheet.create({
   statsCard: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-around",
+    justifyContent: "space-between",
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     paddingVertical: 14,
+    paddingHorizontal: 8,
     marginBottom: 20,
     borderWidth: 1,
     borderColor: "#E2E8F0",
@@ -432,21 +563,28 @@ const styles = StyleSheet.create({
   statItem: {
     alignItems: "center",
     flex: 1,
+    justifyContent: "center",
+  },
+  statNumberConnects: {
+    fontSize: 17,
+    fontWeight: "800",
+    color: "#16A34A",
   },
   statNumber: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: "800",
     color: "#0052CC",
   },
   statLabel: {
     fontSize: 11,
     color: "#64748B",
-    marginTop: 2,
+    marginTop: 3,
     fontWeight: "600",
+    textAlign: "center",
   },
   statDivider: {
     width: 1,
-    height: 24,
+    height: 28,
     backgroundColor: "#E2E8F0",
   },
   section: {
@@ -509,5 +647,68 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: "#EF4444",
+  },
+
+  // Modal styling
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
+    justifyContent: "flex-end",
+  },
+  modalSheet: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 32,
+    alignItems: "center",
+  },
+  modalHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#CBD5E1",
+    marginBottom: 16,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "#0F172A",
+    marginBottom: 6,
+  },
+  modalMessage: {
+    fontSize: 13,
+    color: "#64748B",
+    textAlign: "center",
+    marginBottom: 20,
+    lineHeight: 18,
+  },
+  modalConfirmBtn: {
+    width: "100%",
+    height: 46,
+    backgroundColor: "#EF4444",
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 10,
+  },
+  modalConfirmText: {
+    color: "#FFFFFF",
+    fontSize: 15,
+    fontWeight: "700",
+  },
+  modalCancelBtn: {
+    width: "100%",
+    height: 46,
+    backgroundColor: "#F1F5F9",
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalCancelText: {
+    color: "#475569",
+    fontSize: 14,
+    fontWeight: "700",
   },
 });

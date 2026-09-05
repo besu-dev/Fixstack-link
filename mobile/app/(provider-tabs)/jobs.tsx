@@ -18,6 +18,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import apiClient from "../../src/api/client";
+import BuyConnectsModal from "../../components/BuyConnectsModal";
 
 interface Job {
   _id: string;
@@ -58,13 +59,32 @@ export default function ProviderJobsScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
+  // Connects & Wallet State
+  const [connectsBalance, setConnectsBalance] = useState<number>(0);
+  const [showWalletModal, setShowWalletModal] = useState<boolean>(false);
+
   // Proposal / Bid Modal State
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedJob, setSelectedJob] = useState<Job | null>(null);
   const [bidPrice, setBidPrice] = useState("");
   const [bidDuration, setBidDuration] = useState("1-2 hours");
   const [bidNote, setBidNote] = useState("");
+  const [isBoosted, setIsBoosted] = useState(false);
   const [submittingBid, setSubmittingBid] = useState(false);
+
+  // Dynamic Connects Rule:
+  // <= 1000 ETB costs 2 Connects, > 1000 ETB costs 4 Connects; Boost adds +5
+  const baseConnects = Number(bidPrice) > 1000 ? 4 : 2;
+  const totalRequiredConnects = baseConnects + (isBoosted ? 5 : 0);
+
+  const fetchWallet = useCallback(async () => {
+    try {
+      const res = await apiClient.get("/wallet/balance");
+      setConnectsBalance(res.data.connectsBalance || 0);
+    } catch (err: any) {
+      console.error("Failed to load technician wallet:", err.message);
+    }
+  }, []);
 
   const fetchJobs = useCallback(async () => {
     try {
@@ -80,18 +100,21 @@ export default function ProviderJobsScreen() {
 
   useEffect(() => {
     fetchJobs();
-  }, [fetchJobs]);
+    fetchWallet();
+  }, [fetchJobs, fetchWallet]);
 
   const onRefresh = () => {
     setRefreshing(true);
     fetchJobs();
+    fetchWallet();
   };
 
   const openBidModal = (job: Job) => {
     setSelectedJob(job);
-    setBidPrice(job.budget.toString());
+    setBidPrice(job.budget ? job.budget.toString() : "");
     setBidDuration("1-2 hours");
     setBidNote("");
+    setIsBoosted(false);
     setModalVisible(true);
   };
 
@@ -102,6 +125,13 @@ export default function ProviderJobsScreen() {
       return;
     }
 
+    // Local connects balance guard
+    if (connectsBalance < totalRequiredConnects) {
+      setModalVisible(false);
+      setShowWalletModal(true);
+      return;
+    }
+
     setSubmittingBid(true);
     try {
       await apiClient.post("/bids", {
@@ -109,19 +139,29 @@ export default function ProviderJobsScreen() {
         price: Number(bidPrice),
         estimatedDuration: bidDuration,
         note: bidNote.trim() || "Ready with all required tools and equipment.",
+        isBoosted,
       });
 
+      setConnectsBalance((prev) => prev - totalRequiredConnects);
       setModalVisible(false);
+
       Alert.alert(
         "Proposal Sent! 🚀",
-        `Your bid of ${bidPrice} ETB was delivered to ${selectedJob.customer?.fullName || "the customer"}.`,
+        `Your bid of ${bidPrice} ETB was submitted (${totalRequiredConnects} connects used).${
+          isBoosted ? " Proposal is boosted to top placement." : ""
+        }`,
       );
     } catch (err: any) {
-      Alert.alert(
-        "Bid Failed",
-        err.response?.data?.message ||
-          "Could not submit bid. Please try again.",
-      );
+      if (err.response?.status === 402) {
+        setModalVisible(false);
+        setShowWalletModal(true);
+      } else {
+        Alert.alert(
+          "Bid Failed",
+          err.response?.data?.message ||
+            "Could not submit bid. Please try again.",
+        );
+      }
     } finally {
       setSubmittingBid(false);
     }
@@ -164,18 +204,24 @@ export default function ProviderJobsScreen() {
 
       {/* Screen Header */}
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerTitleWrap}>
           <Text style={styles.headerTitle}>Available Jobs</Text>
           <Text style={styles.headerSubtitle}>
             Discover work requests near your service zone
           </Text>
         </View>
+
+        {/* Connects Balance Pill */}
         <TouchableOpacity
-          style={styles.filterBtn}
-          onPress={onRefresh}
-          activeOpacity={0.7}
+          style={styles.connectsPill}
+          onPress={() => setShowWalletModal(true)}
+          activeOpacity={0.8}
         >
-          <Feather name="refresh-cw" size={18} color="#0052CC" />
+          <Feather name="zap" size={13} color="#0052CC" />
+          <Text style={styles.connectsPillText}>
+            {connectsBalance} Connects
+          </Text>
+          <Feather name="plus-circle" size={13} color="#0052CC" />
         </TouchableOpacity>
       </View>
 
@@ -453,9 +499,47 @@ export default function ProviderJobsScreen() {
               textAlignVertical="top"
             />
 
-            {/* Modal Actions */}
+            {/* Proposal Boost Toggle Box */}
             <TouchableOpacity
-              style={styles.sendBidBtn}
+              style={[styles.boostBox, isBoosted && styles.boostBoxActive]}
+              onPress={() => setIsBoosted(!isBoosted)}
+              activeOpacity={0.8}
+            >
+              <Feather
+                name={isBoosted ? "check-square" : "square"}
+                size={20}
+                color={isBoosted ? "#0052CC" : "#64748B"}
+              />
+              <View style={styles.boostContent}>
+                <View style={styles.boostTitleRow}>
+                  <Text style={styles.boostTitle}>⚡ Boost Proposal</Text>
+                  <Text style={styles.boostBadge}>+5 Connects</Text>
+                </View>
+                <Text style={styles.boostSubtitle}>
+                  Pins your proposal directly to the top when the client reviews
+                  quotes.
+                </Text>
+              </View>
+            </TouchableOpacity>
+
+            {/* Connect Deduction Info Pill */}
+            <View style={styles.deductionSummary}>
+              <Feather name="info" size={13} color="#64748B" />
+              <Text style={styles.deductionText}>
+                Cost:{" "}
+                <Text style={styles.boldText}>
+                  {totalRequiredConnects} Connects
+                </Text>{" "}
+                ({baseConnects} base{isBoosted ? " + 5 boost" : ""}).
+              </Text>
+            </View>
+
+            {/* Modal Action Button */}
+            <TouchableOpacity
+              style={[
+                styles.sendBidBtn,
+                submittingBid && styles.sendBidBtnDisabled,
+              ]}
               onPress={handleSubmitBid}
               disabled={submittingBid}
               activeOpacity={0.85}
@@ -463,12 +547,22 @@ export default function ProviderJobsScreen() {
               {submittingBid ? (
                 <ActivityIndicator color="#FFFFFF" />
               ) : (
-                <Text style={styles.sendBidBtnText}>Send Proposal</Text>
+                <Text style={styles.sendBidBtnText}>
+                  Send Proposal ({totalRequiredConnects} Connects)
+                </Text>
               )}
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Buy Connects Wallet Modal */}
+      <BuyConnectsModal
+        visible={showWalletModal}
+        onClose={() => setShowWalletModal(false)}
+        currentBalance={connectsBalance}
+        onSuccess={(newBal) => setConnectsBalance(newBal)}
+      />
     </SafeAreaView>
   );
 }
@@ -487,6 +581,10 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
     backgroundColor: "#FFFFFF",
   },
+  headerTitleWrap: {
+    flex: 1,
+    paddingRight: 10,
+  },
   headerTitle: {
     fontSize: 22,
     fontWeight: "800",
@@ -497,13 +595,21 @@ const styles = StyleSheet.create({
     color: "#64748B",
     marginTop: 2,
   },
-  filterBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "#EFF6FF",
+  connectsPill: {
+    flexDirection: "row",
     alignItems: "center",
-    justifyContent: "center",
+    gap: 5,
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  connectsPillText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#0052CC",
   },
   searchWrapper: {
     paddingHorizontal: 20,
@@ -768,7 +874,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
   },
   modalTextArea: {
-    height: 76,
+    height: 70,
     paddingTop: 10,
   },
   durationRow: {
@@ -796,13 +902,73 @@ const styles = StyleSheet.create({
   durationTextActive: {
     color: "#0052CC",
   },
+  boostBox: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1.5,
+    borderColor: "#E2E8F0",
+    borderRadius: 12,
+    padding: 12,
+    marginTop: 14,
+    gap: 10,
+  },
+  boostBoxActive: {
+    borderColor: "#0052CC",
+    backgroundColor: "#EFF6FF",
+  },
+  boostContent: {
+    flex: 1,
+  },
+  boostTitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  boostTitle: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  boostBadge: {
+    fontSize: 11,
+    fontWeight: "800",
+    color: "#0052CC",
+  },
+  boostSubtitle: {
+    fontSize: 11,
+    color: "#64748B",
+    marginTop: 2,
+    lineHeight: 15,
+  },
+  deductionSummary: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#F1F5F9",
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 12,
+  },
+  deductionText: {
+    fontSize: 12,
+    color: "#64748B",
+    flex: 1,
+  },
+  boldText: {
+    fontWeight: "700",
+    color: "#0F172A",
+  },
   sendBidBtn: {
     height: 48,
     backgroundColor: "#0052CC",
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 22,
+    marginTop: 18,
+  },
+  sendBidBtnDisabled: {
+    backgroundColor: "#94A3B8",
   },
   sendBidBtnText: {
     color: "#FFFFFF",

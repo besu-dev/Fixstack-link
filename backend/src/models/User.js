@@ -13,14 +13,31 @@ const userSchema = new mongoose.Schema(
     },
     profession: { type: String, default: "" },
     subcity: { type: String, default: "Bole" },
-    serviceRadius: { type: String, default: "15 km" },
+
+    // Replaced serviceRadius with experience
+    experience: { type: String, default: "1 - 3 years" },
     skills: [{ type: String }],
-    // Verification documents
+
     kebeleIdUrl: { type: String, default: "" },
     tradeCertUrl: { type: String, default: "" },
     isVerified: { type: Boolean, default: false },
     isAvailable: { type: Boolean, default: true },
     rating: { type: Number, default: 5.0 },
+
+    connectsBalance: {
+      type: Number,
+      default: 5,
+      min: 0,
+    },
+
+    isFeatured: {
+      type: Boolean,
+      default: false,
+    },
+    featuredUntil: {
+      type: Date,
+      default: null,
+    },
   },
   { timestamps: true },
 );

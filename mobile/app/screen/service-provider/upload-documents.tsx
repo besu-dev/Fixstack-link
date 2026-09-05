@@ -9,8 +9,8 @@ import {
   StatusBar,
   Alert,
   ActivityIndicator,
+  Modal,
 } from "react-native";
-import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
@@ -32,69 +32,84 @@ export default function UploadDocumentsScreen() {
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const pickKebeleId = async () => {
-    Alert.alert("Upload Kebele ID", "Choose source", [
-      {
-        text: "Take Photo",
-        onPress: async () => {
-          const { status } = await ImagePicker.requestCameraPermissionsAsync();
-          if (status !== "granted") {
-            Alert.alert("Permission needed", "Camera access is required.");
-            return;
-          }
-          const result = await ImagePicker.launchCameraAsync({
-            quality: 0.8,
-            allowsEditing: true,
-          });
-          if (!result.canceled && result.assets[0]) {
-            const asset = result.assets[0];
-            setKebeleDoc({
-              uri: asset.uri,
-              name: "kebele_id.jpg",
-              type: "image/jpeg",
-            });
-          }
-        },
-      },
-      {
-        text: "Choose from Gallery",
-        onPress: async () => {
-          const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
-            quality: 0.8,
-            allowsEditing: true,
-          });
-          if (!result.canceled && result.assets[0]) {
-            const asset = result.assets[0];
-            setKebeleDoc({
-              uri: asset.uri,
-              name: asset.fileName || "kebele_id.jpg",
-              type: asset.mimeType || "image/jpeg",
-            });
-          }
-        },
-      },
-      { text: "Cancel", style: "cancel" },
-    ]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [activeDocType, setActiveDocType] = useState<"kebele" | "tradeCert">(
+    "kebele",
+  );
+
+  const openPickerModal = (type: "kebele" | "tradeCert") => {
+    setActiveDocType(type);
+    setModalVisible(true);
   };
 
-  const pickTradeCert = async () => {
+  const handlePickImage = async (mode: "camera" | "gallery") => {
+    setModalVisible(false);
+
+    let result;
+    if (mode === "camera") {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission needed", "Camera access is required.");
+        return;
+      }
+      result = await ImagePicker.launchCameraAsync({
+        quality: 0.8,
+        allowsEditing: true,
+      });
+    } else {
+      const { status } =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Permission needed", "Gallery access is required.");
+        return;
+      }
+      result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        quality: 0.8,
+        allowsEditing: true,
+      });
+    }
+
+    if (!result.canceled && result.assets?.[0]) {
+      const asset = result.assets[0];
+      const selectedFile: AttachedDoc = {
+        uri: asset.uri,
+        name: asset.fileName || `${activeDocType}_upload.jpg`,
+        type: asset.mimeType || "image/jpeg",
+      };
+
+      if (activeDocType === "kebele") {
+        setKebeleDoc(selectedFile);
+      } else {
+        setCertDoc(selectedFile);
+      }
+    }
+  };
+
+  const handlePickDocument = async () => {
+    setModalVisible(false);
     try {
       const res = await DocumentPicker.getDocumentAsync({
         type: ["application/pdf", "image/*"],
         copyToCacheDirectory: true,
       });
 
-      if (!res.canceled && res.assets && res.assets[0]) {
+      if (!res.canceled && res.assets?.[0]) {
         const file = res.assets[0];
-        setCertDoc({
+        const selectedFile: AttachedDoc = {
           uri: file.uri,
           name: file.name,
           type: file.mimeType || "application/octet-stream",
-        });
+        };
+
+        if (activeDocType === "kebele") {
+          setKebeleDoc(selectedFile);
+        } else {
+          setCertDoc(selectedFile);
+        }
       }
     } catch {
-      Alert.alert("Error", "Could not attach file.");
+      Alert.alert("Error", "Could not attach document.");
     }
   };
 
@@ -114,32 +129,38 @@ export default function UploadDocumentsScreen() {
     setLoading(true);
     try {
       const fullName =
-        `${params.firstName || ""} ${params.lastName || ""}`.trim();
+        `${params.firstName || ""} ${params.lastName || ""}`.trim() ||
+        (params.fullName as string) ||
+        "Service Provider";
       const rawPhone = (params.phone as string) || "";
       const cleanPhone = rawPhone.replace(/[\s\-()]/g, "");
       const cleanEmail = (params.email as string)?.trim().toLowerCase();
 
-      // Submit as FormData to allow file attachments
       const formData = new FormData();
-      formData.append("fullName", fullName || "Service Provider");
+      formData.append("fullName", fullName);
       formData.append("phone", cleanPhone);
-      formData.append("password", params.password as string);
+      formData.append("password", (params.password as string) || "");
       formData.append("role", "provider");
       formData.append(
         "profession",
-        (params.service as string) || "General Technician",
+        (params.profession as string) ||
+          (params.service as string) ||
+          "General Maintenance",
       );
-      formData.append("subcity", (params.location as string) || "Bole");
       formData.append(
-        "serviceRadius",
-        (params.serviceRadius as string) || "15 km",
+        "subcity",
+        (params.location as string) || (params.subcity as string) || "Bole",
       );
+      formData.append(
+        "experience",
+        (params.experience as string) || "1 - 3 years",
+      );
+      formData.append("skills", (params.skills as string) || "[]");
 
       if (cleanEmail) {
         formData.append("email", cleanEmail);
       }
 
-      // Attach file
       formData.append("kebeleId", {
         uri: kebeleDoc.uri,
         name: kebeleDoc.name,
@@ -197,20 +218,10 @@ export default function UploadDocumentsScreen() {
           onPress={() => router.back()}
           activeOpacity={0.7}
         >
-          <Feather name="chevron-left" size={24} color="#0F172A" />
           <Text style={styles.backText}>Back</Text>
         </TouchableOpacity>
 
         <View style={styles.brandHeader}>
-          <View style={styles.logoMark}>
-            <View style={styles.orangeArc} />
-            <FontAwesome5
-              name="wrench"
-              size={26}
-              color="#0052CC"
-              style={styles.wrenchIcon}
-            />
-          </View>
           <Text style={styles.brandName}>FixLink</Text>
           <Text style={styles.pageTitle}>Verification Documents</Text>
           <Text style={styles.subtitleText}>
@@ -223,21 +234,24 @@ export default function UploadDocumentsScreen() {
           1. Kebele ID / National Digital ID *
         </Text>
         <TouchableOpacity
-          style={[styles.uploadBox, kebeleDoc && styles.uploadBoxDone]}
-          onPress={pickKebeleId}
+          style={[styles.uploadBox, kebeleDoc ? styles.uploadBoxDone : null]}
+          onPress={() => openPickerModal("kebele")}
           activeOpacity={0.8}
         >
-          <Feather
-            name={kebeleDoc ? "check-circle" : "upload-cloud"}
-            size={28}
-            color={kebeleDoc ? "#16A34A" : "#0052CC"}
-          />
-          <Text style={styles.uploadTitle} numberOfLines={1}>
-            {kebeleDoc ? kebeleDoc.name : "Tap to browse or take photo"}
-          </Text>
-          <Text style={styles.uploadMeta}>
-            {kebeleDoc ? "File ready to upload" : "PNG, JPG or PDF (Max 5MB)"}
-          </Text>
+          {kebeleDoc ? (
+            <View style={styles.uploadedState}>
+              <Text style={styles.doneBadge}>✓ Attached</Text>
+              <Text style={styles.uploadTitle} numberOfLines={1}>
+                {kebeleDoc.name}
+              </Text>
+              <Text style={styles.changeText}>Tap to change file</Text>
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.uploadActionText}>Tap to upload ID</Text>
+              <Text style={styles.uploadMeta}>PNG, JPG or PDF (Max 5MB)</Text>
+            </View>
+          )}
         </TouchableOpacity>
 
         {/* Trade Certificate Box */}
@@ -245,32 +259,37 @@ export default function UploadDocumentsScreen() {
           2. TVET / Trade Certificate (Optional)
         </Text>
         <TouchableOpacity
-          style={[styles.uploadBox, certDoc && styles.uploadBoxDone]}
-          onPress={pickTradeCert}
+          style={[styles.uploadBox, certDoc ? styles.uploadBoxDone : null]}
+          onPress={() => openPickerModal("tradeCert")}
           activeOpacity={0.8}
         >
-          <Feather
-            name={certDoc ? "check-circle" : "file-text"}
-            size={28}
-            color={certDoc ? "#16A34A" : "#64748B"}
-          />
-          <Text style={styles.uploadTitle} numberOfLines={1}>
-            {certDoc ? certDoc.name : "Tap to upload trade license"}
-          </Text>
-          <Text style={styles.uploadMeta}>
-            {certDoc
-              ? "Certificate selected"
-              : "Boosts profile ranking in bids"}
-          </Text>
+          {certDoc ? (
+            <View style={styles.uploadedState}>
+              <Text style={styles.doneBadge}>✓ Attached</Text>
+              <Text style={styles.uploadTitle} numberOfLines={1}>
+                {certDoc.name}
+              </Text>
+              <Text style={styles.changeText}>Tap to change file</Text>
+            </View>
+          ) : (
+            <View style={styles.emptyState}>
+              <Text style={styles.uploadActionText}>
+                Tap to upload trade license
+              </Text>
+              <Text style={styles.uploadMeta}>
+                Boosts profile ranking in bids
+              </Text>
+            </View>
+          )}
         </TouchableOpacity>
 
         <View style={styles.checkboxRow}>
           <TouchableOpacity
             onPress={() => setAgreed(!agreed)}
-            style={[styles.checkbox, agreed && styles.checkboxChecked]}
+            style={[styles.checkbox, agreed ? styles.checkboxChecked : null]}
             activeOpacity={0.8}
           >
-            {agreed && <Feather name="check" size={12} color="#FFFFFF" />}
+            {agreed ? <Text style={styles.checkText}>✓</Text> : null}
           </TouchableOpacity>
           <Text style={styles.agreementText}>
             I confirm that the submitted identification belongs to me and all
@@ -279,7 +298,10 @@ export default function UploadDocumentsScreen() {
         </View>
 
         <TouchableOpacity
-          style={styles.submitButton}
+          style={[
+            styles.submitButton,
+            loading ? styles.submitButtonDisabled : null,
+          ]}
           onPress={handleFinalSubmit}
           disabled={loading}
           activeOpacity={0.85}
@@ -291,47 +313,92 @@ export default function UploadDocumentsScreen() {
           )}
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Upload Bottom Sheet Modal */}
+      <Modal
+        visible={modalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setModalVisible(false)}
+        >
+          <View
+            style={styles.modalSheet}
+            onStartShouldSetResponder={() => true}
+          >
+            <View style={styles.sheetHandle} />
+
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>
+                {activeDocType === "kebele"
+                  ? "Attach Kebele / ID"
+                  : "Attach Certificate"}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                style={styles.closeBtn}
+              >
+                <Text style={styles.closeBtnText}>Cancel</Text>
+              </TouchableOpacity>
+            </View>
+
+            <TouchableOpacity
+              style={styles.sheetAction}
+              onPress={() => handlePickImage("camera")}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.actionTitle}>Take Photo</Text>
+              <Text style={styles.actionSub}>
+                Capture document using camera
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.sheetAction}
+              onPress={() => handlePickImage("gallery")}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.actionTitle}>Choose from Gallery</Text>
+              <Text style={styles.actionSub}>
+                Select photo from device gallery
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.sheetAction}
+              onPress={handlePickDocument}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.actionTitle}>Select PDF or File</Text>
+              <Text style={styles.actionSub}>Browse files and documents</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#FFFFFF" },
-  scrollContainer: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 36 },
-  backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
-    marginBottom: 8,
-  },
-  backText: { fontSize: 16, fontWeight: "700", color: "#0F172A" },
+  scrollContainer: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 },
+  backButton: { paddingVertical: 6, marginBottom: 8 },
+  backText: { fontSize: 15, fontWeight: "700", color: "#2563EB" },
   brandHeader: { alignItems: "center", marginBottom: 24 },
-  logoMark: {
-    width: 58,
-    height: 58,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  orangeArc: {
-    position: "absolute",
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 4,
-    borderColor: "#F97316",
-  },
-  wrenchIcon: { transform: [{ rotate: "-30deg" }] },
   brandName: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: "800",
     color: "#002B49",
-    marginTop: 4,
   },
   pageTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "700",
     color: "#2563EB",
-    marginTop: 6,
+    marginTop: 4,
   },
   subtitleText: {
     fontSize: 13,
@@ -348,7 +415,7 @@ const styles = StyleSheet.create({
   },
   fieldSpacing: { marginTop: 16 },
   uploadBox: {
-    height: 110,
+    minHeight: 110,
     borderWidth: 1.5,
     borderStyle: "dashed",
     borderColor: "#CBD5E1",
@@ -356,21 +423,35 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
     alignItems: "center",
     justifyContent: "center",
-    padding: 12,
+    padding: 16,
   },
   uploadBoxDone: {
     borderColor: "#16A34A",
     backgroundColor: "#F0FDF4",
     borderStyle: "solid",
   },
+  emptyState: { alignItems: "center" },
+  uploadActionText: { fontSize: 14, fontWeight: "700", color: "#2563EB" },
+  uploadMeta: { fontSize: 11, color: "#94A3B8", marginTop: 4 },
+  uploadedState: { alignItems: "center" },
+  doneBadge: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#16A34A",
+    backgroundColor: "#DCFCE7",
+    paddingHorizontal: 10,
+    paddingVertical: 3,
+    borderRadius: 12,
+    marginBottom: 6,
+  },
   uploadTitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "700",
     color: "#1E293B",
-    marginTop: 8,
     paddingHorizontal: 10,
+    textAlign: "center",
   },
-  uploadMeta: { fontSize: 11, color: "#94A3B8", marginTop: 2 },
+  changeText: { fontSize: 11, color: "#64748B", marginTop: 4 },
   checkboxRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -378,15 +459,24 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 4,
     borderWidth: 1.5,
     borderColor: "#CBD5E1",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#FFFFFF",
   },
-  checkboxChecked: { backgroundColor: "#2563EB", borderColor: "#2563EB" },
+  checkboxChecked: {
+    backgroundColor: "#2563EB",
+    borderColor: "#2563EB",
+  },
+  checkText: {
+    color: "#FFFFFF",
+    fontSize: 13,
+    fontWeight: "800",
+  },
   agreementText: { flex: 1, fontSize: 12, color: "#475569", lineHeight: 18 },
   submitButton: {
     height: 48,
@@ -396,10 +486,53 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     marginTop: 26,
     elevation: 2,
-    shadowColor: "#2563EB",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
   },
-  submitButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
+  submitButtonDisabled: { opacity: 0.7 },
+  submitButtonText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
+
+  // Modal / Bottom Sheet
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
+    justifyContent: "flex-end",
+  },
+  modalSheet: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 36,
+  },
+  sheetHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#CBD5E1",
+    alignSelf: "center",
+    marginBottom: 14,
+  },
+  sheetHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  sheetTitle: { fontSize: 16, fontWeight: "800", color: "#0F172A" },
+  closeBtn: { paddingVertical: 4, paddingHorizontal: 8 },
+  closeBtnText: { fontSize: 13, fontWeight: "700", color: "#64748B" },
+  sheetAction: {
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    backgroundColor: "#F8FAFC",
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  actionTitle: { fontSize: 15, fontWeight: "700", color: "#0F172A" },
+  actionSub: { fontSize: 12, color: "#64748B", marginTop: 2 },
 });

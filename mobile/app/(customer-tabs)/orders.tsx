@@ -2,38 +2,39 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
-  TextInput,
+  FlatList,
   TouchableOpacity,
   SafeAreaView,
-  FlatList,
   StyleSheet,
   StatusBar,
-  Alert,
-  ActivityIndicator,
-  RefreshControl,
   Modal,
+  ActivityIndicator,
+  Alert,
+  RefreshControl,
   ScrollView,
-  Linking,
 } from "react-native";
-import { Feather, FontAwesome5 } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import apiClient from "../../src/api/client";
 
-interface Provider {
+interface ProviderDetails {
   _id: string;
   fullName: string;
-  phone: string;
-  profession: string;
-  rating: number;
+  phone?: string;
+  profession?: string;
+  rating?: number;
+  isVerified?: boolean;
 }
 
-interface Bid {
+interface BidItem {
   _id: string;
-  provider: Provider;
+  job: string;
+  provider: ProviderDetails;
   price: number;
   estimatedDuration: string;
-  note: string;
+  note?: string;
   status: "pending" | "accepted" | "rejected";
+  isBoosted: boolean;
   createdAt: string;
 }
 
@@ -46,39 +47,32 @@ interface CustomerJob {
   budget: number;
   urgency: string;
   status: "open" | "assigned" | "completed" | "cancelled";
-  assignedProvider?: Provider;
   createdAt: string;
+  assignedProvider?: ProviderDetails;
 }
 
 export default function CustomerOrdersScreen() {
   const router = useRouter();
 
+  // Screen State
   const [jobs, setJobs] = useState<CustomerJob[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState<"active" | "history">("active");
 
-  // Bids Modal State
+  // Proposals Review Modal State
   const [bidsModalVisible, setBidsModalVisible] = useState(false);
   const [selectedJob, setSelectedJob] = useState<CustomerJob | null>(null);
-  const [jobBids, setJobBids] = useState<Bid[]>([]);
+  const [jobBids, setJobBids] = useState<BidItem[]>([]);
   const [loadingBids, setLoadingBids] = useState(false);
-
-  // Review & Completion Modal State
-  const [reviewModalVisible, setReviewModalVisible] = useState(false);
-  const [jobToReview, setJobToReview] = useState<CustomerJob | null>(null);
-  const [starRating, setStarRating] = useState(5);
-  const [reviewComment, setReviewComment] = useState("");
-  const [submittingReview, setSubmittingReview] = useState(false);
+  const [acceptingBidId, setAcceptingBidId] = useState<string | null>(null);
 
   const fetchMyJobs = useCallback(async () => {
     try {
-      const response = await apiClient.get("/jobs/my-jobs");
-      setJobs(response.data);
+      const res = await apiClient.get("/jobs/my-jobs");
+      setJobs(res.data);
     } catch (err: any) {
-      console.error(
-        "Error fetching my jobs:",
-        err?.response?.data || err.message,
-      );
+      console.error("Failed to fetch customer orders:", err.message);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -94,60 +88,70 @@ export default function CustomerOrdersScreen() {
     fetchMyJobs();
   };
 
-  const handleOpenBids = async (job: CustomerJob) => {
+  // Open proposals review sheet
+  const handleOpenProposals = async (job: CustomerJob) => {
     setSelectedJob(job);
     setBidsModalVisible(true);
     setLoadingBids(true);
     try {
+      // Backend automatically delivers boosted proposals first (.sort({ isBoosted: -1, createdAt: 1 }))
       const res = await apiClient.get(`/bids/job/${job._id}`);
       setJobBids(res.data);
     } catch (err: any) {
-      Alert.alert("Error", "Could not load proposals for this request.");
+      Alert.alert(
+        "Error",
+        err.response?.data?.message || "Could not load quotes.",
+      );
     } finally {
       setLoadingBids(false);
     }
   };
 
-  const handleAcceptBid = (bid: Bid) => {
+  // Accept Quote Handler
+  const handleAcceptBid = async (bid: BidItem) => {
     Alert.alert(
-      "Confirm Provider",
-      `Hire ${bid.provider.fullName} for ${bid.price} ETB?`,
+      "Hire Technician",
+      `Accept quote of ${bid.price} ETB from ${bid.provider.fullName}? This will assign the job.`,
       [
         { text: "Cancel", style: "cancel" },
         {
           text: "Confirm & Hire",
+          style: "default",
           onPress: async () => {
+            setAcceptingBidId(bid._id);
             try {
               await apiClient.patch(`/bids/${bid._id}/accept`);
+              setBidsModalVisible(false);
+
               Alert.alert(
-                "Provider Assigned! 🎉",
-                `You have hired ${bid.provider.fullName}. You can now chat or call them directly.`,
+                "Technician Hired! 🎉",
+                `${bid.provider.fullName} is now assigned to your job. You can coordinate details in chat.`,
                 [
                   {
                     text: "Open Chat",
-                    onPress: () => {
-                      if (selectedJob) {
-                        router.push({
-                          pathname: "/(customer-tabs)/message",
-                          params: {
-                            jobId: selectedJob._id,
-                            recipientName: bid.provider.fullName,
-                            receiverId: bid.provider._id,
-                          },
-                        });
-                      }
-                    },
+                    onPress: () =>
+                      router.push({
+                        pathname: "/(customer-tabs)/message",
+                        params: {
+                          jobId: bid.job,
+                          recipientName: bid.provider.fullName,
+                          receiverId: bid.provider._id,
+                          recipientPhone: bid.provider.phone,
+                        },
+                      }),
                   },
-                  { text: "Later" },
+                  { text: "Done", style: "cancel" },
                 ],
               );
-              setBidsModalVisible(false);
+
               fetchMyJobs();
             } catch (err: any) {
               Alert.alert(
-                "Action Failed",
-                err?.response?.data?.message || "Could not accept bid.",
+                "Failed to Accept",
+                err.response?.data?.message || "Could not accept quote.",
               );
+            } finally {
+              setAcceptingBidId(null);
             }
           },
         },
@@ -155,54 +159,13 @@ export default function CustomerOrdersScreen() {
     );
   };
 
-  const openReviewModal = (job: CustomerJob) => {
-    setJobToReview(job);
-    setStarRating(5);
-    setReviewComment("");
-    setReviewModalVisible(true);
-  };
-
-  const handleSubmitReview = async () => {
-    if (!jobToReview) return;
-    setSubmittingReview(true);
-    try {
-      // 1. Mark job as complete
-      await apiClient.patch(`/jobs/${jobToReview._id}/complete`);
-
-      // 2. Submit rating and feedback
-      await apiClient.post(`/jobs/${jobToReview._id}/review`, {
-        rating: starRating,
-        comment: reviewComment.trim(),
-      });
-
-      setReviewModalVisible(false);
-      Alert.alert(
-        "Job Completed! 🌟",
-        "Thank you for rating and reviewing your technician.",
-      );
-      fetchMyJobs();
-    } catch (err: any) {
-      Alert.alert(
-        "Submission Failed",
-        err?.response?.data?.message || "Could not complete review.",
-      );
-    } finally {
-      setSubmittingReview(false);
+  // Filter Active vs Completed
+  const filteredJobs = jobs.filter((job) => {
+    if (activeTab === "active") {
+      return job.status === "open" || job.status === "assigned";
     }
-  };
-
-  const getStatusBadge = (status: CustomerJob["status"]) => {
-    switch (status) {
-      case "open":
-        return { bg: "#EFF6FF", text: "#0052CC", label: "Open for Bids" };
-      case "assigned":
-        return { bg: "#FEF3C7", text: "#D97706", label: "Technician Assigned" };
-      case "completed":
-        return { bg: "#DCFCE7", text: "#16A34A", label: "Completed" };
-      default:
-        return { bg: "#F1F5F9", text: "#64748B", label: status };
-    }
-  };
+    return job.status === "completed" || job.status === "cancelled";
+  });
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -210,28 +173,55 @@ export default function CustomerOrdersScreen() {
 
       {/* Screen Header */}
       <View style={styles.header}>
-        <View>
-          <Text style={styles.headerTitle}>My Service Requests</Text>
-          <Text style={styles.headerSubtitle}>
-            Track bids and active technicians
+        <Text style={styles.headerTitle}>My Orders</Text>
+        <Text style={styles.headerSubtitle}>
+          Manage your maintenance requests and quotes
+        </Text>
+      </View>
+
+      {/* Segmented Filter */}
+      <View style={styles.tabBar}>
+        <TouchableOpacity
+          style={[styles.tabBtn, activeTab === "active" && styles.tabBtnActive]}
+          onPress={() => setActiveTab("active")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "active" && styles.tabTextActive,
+            ]}
+          >
+            Active Requests
           </Text>
-        </View>
-        <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh}>
-          <Feather name="refresh-cw" size={18} color="#0052CC" />
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.tabBtn,
+            activeTab === "history" && styles.tabBtnActive,
+          ]}
+          onPress={() => setActiveTab("history")}
+        >
+          <Text
+            style={[
+              styles.tabText,
+              activeTab === "history" && styles.tabTextActive,
+            ]}
+          >
+            History & Completed
+          </Text>
         </TouchableOpacity>
       </View>
 
       {loading ? (
         <View style={styles.centerContainer}>
           <ActivityIndicator size="large" color="#0052CC" />
-          <Text style={styles.loadingText}>Loading requests...</Text>
+          <Text style={styles.loadingText}>Fetching orders...</Text>
         </View>
       ) : (
         <FlatList
-          data={jobs}
+          data={filteredJobs}
           keyExtractor={(item) => item._id}
           contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
@@ -240,58 +230,59 @@ export default function CustomerOrdersScreen() {
             />
           }
           renderItem={({ item }) => {
-            const badge = getStatusBadge(item.status);
+            const isAssigned = item.status === "assigned";
+
             return (
-              <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <View
-                    style={[styles.statusBadge, { backgroundColor: badge.bg }]}
-                  >
-                    <Text
-                      style={[styles.statusBadgeText, { color: badge.text }]}
+              <View style={styles.orderCard}>
+                <View style={styles.orderCardHeader}>
+                  <View style={styles.pillRow}>
+                    <View style={styles.categoryPill}>
+                      <Text style={styles.categoryPillText}>
+                        {item.category}
+                      </Text>
+                    </View>
+                    <View
+                      style={[
+                        styles.statusPill,
+                        isAssigned ? styles.statusAssigned : styles.statusOpen,
+                      ]}
                     >
-                      {badge.label}
-                    </Text>
+                      <Text
+                        style={[
+                          styles.statusText,
+                          isAssigned
+                            ? styles.statusTextAssigned
+                            : styles.statusTextOpen,
+                        ]}
+                      >
+                        {item.status.toUpperCase()}
+                      </Text>
+                    </View>
                   </View>
                   <Text style={styles.budgetAmount}>{item.budget} ETB</Text>
                 </View>
 
-                <Text style={styles.cardTitle}>{item.title}</Text>
-                <Text style={styles.cardDesc} numberOfLines={2}>
+                <Text style={styles.jobTitle}>{item.title}</Text>
+                <Text style={styles.jobDescription} numberOfLines={2}>
                   {item.description}
                 </Text>
 
-                <View style={styles.metaDivider} />
-
-                <View style={styles.metaRow}>
-                  <View style={styles.metaItem}>
-                    <Feather name="map-pin" size={13} color="#64748B" />
-                    <Text style={styles.metaText}>{item.subcity}</Text>
-                  </View>
-                  <View style={styles.metaItem}>
-                    <Feather name="tag" size={13} color="#0052CC" />
-                    <Text style={[styles.metaText, { color: "#0052CC" }]}>
-                      {item.category}
-                    </Text>
-                  </View>
+                <View style={styles.locationRow}>
+                  <Feather name="map-pin" size={12} color="#64748B" />
+                  <Text style={styles.locationText}>{item.subcity}</Text>
                 </View>
 
-                {/* Assigned Provider Block */}
-                {item.status === "assigned" && item.assignedProvider && (
-                  <View style={styles.assignedBox}>
-                    <View style={styles.assignedInfo}>
-                      <Text style={styles.assignedName}>
-                        {item.assignedProvider.fullName}
-                      </Text>
-                      <Text style={styles.assignedTrade}>
-                        {item.assignedProvider.profession || "Technician"} • ⭐{" "}
-                        {item.assignedProvider.rating?.toFixed(1) || "5.0"}
-                      </Text>
-                    </View>
-
-                    <View style={styles.actionButtonRow}>
+                <View style={styles.cardFooter}>
+                  {isAssigned && item.assignedProvider ? (
+                    <View style={styles.assignedContainer}>
+                      <View style={styles.providerInfo}>
+                        <Feather name="tool" size={14} color="#0052CC" />
+                        <Text style={styles.assignedProName}>
+                          {item.assignedProvider.fullName}
+                        </Text>
+                      </View>
                       <TouchableOpacity
-                        style={styles.chatBtn}
+                        style={styles.chatProBtn}
                         onPress={() =>
                           router.push({
                             pathname: "/(customer-tabs)/message",
@@ -299,90 +290,63 @@ export default function CustomerOrdersScreen() {
                               jobId: item._id,
                               recipientName: item.assignedProvider?.fullName,
                               receiverId: item.assignedProvider?._id,
+                              recipientPhone: item.assignedProvider?.phone,
                             },
                           })
                         }
-                        activeOpacity={0.8}
                       >
                         <Feather
                           name="message-square"
-                          size={14}
+                          size={13}
                           color="#FFFFFF"
                         />
-                        <Text style={styles.btnText}>Chat</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.callBtn}
-                        onPress={() =>
-                          Linking.openURL(`tel:${item.assignedProvider?.phone}`)
-                        }
-                        activeOpacity={0.8}
-                      >
-                        <Feather name="phone" size={14} color="#FFFFFF" />
-                        <Text style={styles.btnText}>Call</Text>
-                      </TouchableOpacity>
-
-                      <TouchableOpacity
-                        style={styles.doneBtn}
-                        onPress={() => openReviewModal(item)}
-                        activeOpacity={0.8}
-                      >
-                        <Feather name="check-circle" size={14} color="#FFFFFF" />
-                        <Text style={styles.btnText}>Finish & Rate</Text>
+                        <Text style={styles.chatProBtnText}>Chat Pro</Text>
                       </TouchableOpacity>
                     </View>
-                  </View>
-                )}
-
-                {item.status === "completed" && (
-                  <View style={styles.completedNotice}>
-                    <Feather name="check-circle" size={16} color="#16A34A" />
-                    <Text style={styles.completedNoticeText}>
-                      Service fulfilled and reviewed
-                    </Text>
-                  </View>
-                )}
-
-                {item.status === "open" && (
-                  <TouchableOpacity
-                    style={styles.viewBidsBtn}
-                    onPress={() => handleOpenBids(item)}
-                    activeOpacity={0.85}
-                  >
-                    <Text style={styles.viewBidsBtnText}>View Proposals</Text>
-                    <Feather name="chevron-right" size={16} color="#0052CC" />
-                  </TouchableOpacity>
-                )}
+                  ) : (
+                    <TouchableOpacity
+                      style={styles.viewQuotesBtn}
+                      onPress={() => handleOpenProposals(item)}
+                      activeOpacity={0.85}
+                    >
+                      <Feather name="file-text" size={14} color="#0052CC" />
+                      <Text style={styles.viewQuotesBtnText}>
+                        View Quotes & Proposals
+                      </Text>
+                      <Feather name="chevron-right" size={16} color="#0052CC" />
+                    </TouchableOpacity>
+                  )}
+                </View>
               </View>
             );
           }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Feather name="clipboard" size={48} color="#CBD5E1" />
-              <Text style={styles.emptyTitle}>No service requests yet</Text>
+              <Feather name="clipboard" size={44} color="#CBD5E1" />
+              <Text style={styles.emptyTitle}>No orders in this category</Text>
               <Text style={styles.emptySubtitle}>
-                Requests you publish will show up here along with technician
-                proposals.
+                Jobs you publish from the Post tab will appear here.
               </Text>
             </View>
           }
         />
       )}
 
-      {/* Bids Review Modal */}
+      {/* Proposals Bottom Sheet Modal */}
       <Modal
         visible={bidsModalVisible}
         transparent
         animationType="slide"
         onRequestClose={() => setBidsModalVisible(false)}
       >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalSheet}>
             <View style={styles.modalHeader}>
               <View>
                 <Text style={styles.modalTitle}>Technician Proposals</Text>
-                <Text style={styles.modalSub}>{selectedJob?.title}</Text>
+                <Text style={styles.modalSubtitle} numberOfLines={1}>
+                  {selectedJob?.title}
+                </Text>
               </View>
               <TouchableOpacity
                 onPress={() => setBidsModalVisible(false)}
@@ -393,129 +357,129 @@ export default function CustomerOrdersScreen() {
             </View>
 
             {loadingBids ? (
-              <View style={styles.modalLoading}>
-                <ActivityIndicator color="#0052CC" />
+              <View style={styles.centerContainer}>
+                <ActivityIndicator size="large" color="#0052CC" />
+                <Text style={styles.loadingText}>Loading quotes...</Text>
+              </View>
+            ) : jobBids.length === 0 ? (
+              <View style={styles.emptyModalBox}>
+                <Feather name="users" size={38} color="#CBD5E1" />
+                <Text style={styles.emptyTitle}>No Quotes Yet</Text>
+                <Text style={styles.emptySubtitle}>
+                  Certified technicians are reviewing your job request.
+                  Proposals will show here automatically.
+                </Text>
               </View>
             ) : (
-              <ScrollView showsVerticalScrollIndicator={false}>
-                {jobBids.length === 0 ? (
-                  <View style={styles.emptyBids}>
-                    <Feather name="clock" size={32} color="#94A3B8" />
-                    <Text style={styles.emptyBidsText}>
-                      No technicians have submitted a quote yet. Check back
-                      soon.
-                    </Text>
-                  </View>
-                ) : (
-                  jobBids.map((bid) => (
-                    <View key={bid._id} style={styles.bidCard}>
-                      <View style={styles.bidCardHeader}>
-                        <View>
-                          <Text style={styles.providerName}>
-                            {bid.provider.fullName}
-                          </Text>
-                          <Text style={styles.providerProfession}>
-                            {bid.provider.profession || "Certified Pro"} • ⭐{" "}
-                            {bid.provider.rating?.toFixed(1) || "5.0"}
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.proposalsList}
+              >
+                {jobBids.map((bid) => {
+                  const isAccepted = bid.status === "accepted";
+
+                  return (
+                    <View
+                      key={bid._id}
+                      style={[
+                        styles.bidCard,
+                        bid.isBoosted && styles.bidCardBoosted,
+                      ]}
+                    >
+                      {/* Priority Boost Banner */}
+                      {bid.isBoosted && (
+                        <View style={styles.boostedTag}>
+                          <Feather name="zap" size={11} color="#FFFFFF" />
+                          <Text style={styles.boostedTagText}>
+                            TOP SPONSORED PROPOSAL
                           </Text>
                         </View>
-                        <Text style={styles.bidPrice}>{bid.price} ETB</Text>
+                      )}
+
+                      <View style={styles.bidHeader}>
+                        <View style={styles.providerDetails}>
+                          <View style={styles.avatar}>
+                            <Feather name="tool" size={18} color="#0052CC" />
+                          </View>
+                          <View>
+                            <View style={styles.nameRow}>
+                              <Text style={styles.proName}>
+                                {bid.provider.fullName}
+                              </Text>
+                              {bid.provider.isVerified && (
+                                <Feather
+                                  name="check-circle"
+                                  size={13}
+                                  color="#16A34A"
+                                />
+                              )}
+                            </View>
+                            <Text style={styles.proMeta}>
+                              ⭐ {bid.provider.rating || 5.0} •{" "}
+                              {bid.provider.profession || "Technician"}
+                            </Text>
+                          </View>
+                        </View>
+
+                        <View style={styles.quoteBox}>
+                          <Text style={styles.quotePrice}>{bid.price} ETB</Text>
+                          <Text style={styles.quoteDuration}>
+                            {bid.estimatedDuration}
+                          </Text>
+                        </View>
                       </View>
 
                       {bid.note ? (
                         <Text style={styles.bidNote}>"{bid.note}"</Text>
                       ) : null}
 
-                      <View style={styles.bidFooter}>
-                        <Text style={styles.bidDuration}>
-                          ⏱ Est. Duration: {bid.estimatedDuration}
-                        </Text>
+                      {/* Card Action Buttons */}
+                      <View style={styles.bidActions}>
                         <TouchableOpacity
-                          style={styles.acceptBtn}
-                          onPress={() => handleAcceptBid(bid)}
+                          style={styles.chatActionBtn}
+                          onPress={() => {
+                            setBidsModalVisible(false);
+                            router.push({
+                              pathname: "/(customer-tabs)/message",
+                              params: {
+                                jobId: bid.job,
+                                recipientName: bid.provider.fullName,
+                                receiverId: bid.provider._id,
+                                recipientPhone: bid.provider.phone,
+                              },
+                            });
+                          }}
                         >
-                          <Text style={styles.acceptBtnText}>
-                            Accept & Hire
-                          </Text>
+                          <Feather
+                            name="message-circle"
+                            size={15}
+                            color="#0052CC"
+                          />
+                          <Text style={styles.chatActionText}>Chat</Text>
+                        </TouchableOpacity>
+
+                        <TouchableOpacity
+                          style={[
+                            styles.acceptActionBtn,
+                            isAccepted && styles.acceptActionBtnDisabled,
+                          ]}
+                          onPress={() => handleAcceptBid(bid)}
+                          disabled={isAccepted || acceptingBidId === bid._id}
+                        >
+                          {acceptingBidId === bid._id ? (
+                            <ActivityIndicator size="small" color="#FFFFFF" />
+                          ) : (
+                            <Text style={styles.acceptActionText}>
+                              {isAccepted ? "Hired" : "Accept & Hire"}
+                            </Text>
+                          )}
                         </TouchableOpacity>
                       </View>
                     </View>
-                  ))
-                )}
+                  );
+                })}
               </ScrollView>
             )}
-          </View>
-        </View>
-      </Modal>
-
-      {/* Review & Completion Modal */}
-      <Modal
-        visible={reviewModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setReviewModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <View>
-                <Text style={styles.modalTitle}>Rate Technician</Text>
-                <Text style={styles.modalSub}>
-                  {jobToReview?.assignedProvider?.fullName}
-                </Text>
-              </View>
-              <TouchableOpacity
-                onPress={() => setReviewModalVisible(false)}
-                style={styles.closeBtn}
-              >
-                <Feather name="x" size={20} color="#64748B" />
-              </TouchableOpacity>
-            </View>
-
-            {/* Interactive Stars */}
-            <View style={styles.starRow}>
-              {[1, 2, 3, 4, 5].map((star) => (
-                <TouchableOpacity
-                  key={star}
-                  onPress={() => setStarRating(star)}
-                  activeOpacity={0.7}
-                >
-                  <FontAwesome5
-                    name="star"
-                    solid={star <= starRating}
-                    size={32}
-                    color={star <= starRating ? "#F59E0B" : "#CBD5E1"}
-                  />
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <Text style={styles.modalLabel}>Leave Feedback (Optional)</Text>
-            <TextInput
-              style={styles.reviewInput}
-              placeholder="Was the work done cleanly, on time, and accurately?"
-              placeholderTextColor="#94A3B8"
-              multiline
-              numberOfLines={3}
-              value={reviewComment}
-              onChangeText={setReviewComment}
-              textAlignVertical="top"
-            />
-
-            <TouchableOpacity
-              style={styles.submitReviewBtn}
-              onPress={handleSubmitReview}
-              disabled={submittingReview}
-              activeOpacity={0.85}
-            >
-              {submittingReview ? (
-                <ActivityIndicator color="#FFFFFF" />
-              ) : (
-                <Text style={styles.submitReviewBtnText}>
-                  Complete Job & Submit Review
-                </Text>
-              )}
-            </TouchableOpacity>
           </View>
         </View>
       </Modal>
@@ -526,126 +490,120 @@ export default function CustomerOrdersScreen() {
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#F8FAFC" },
   header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
     paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 10,
+    paddingTop: 16,
+    paddingBottom: 12,
     backgroundColor: "#FFFFFF",
   },
   headerTitle: { fontSize: 22, fontWeight: "800", color: "#0F172A" },
   headerSubtitle: { fontSize: 12, color: "#64748B", marginTop: 2 },
-  refreshBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    backgroundColor: "#EFF6FF",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  centerContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  loadingText: { marginTop: 10, fontSize: 13, color: "#64748B" },
-  listContent: { padding: 20, paddingBottom: 100 },
-  card: {
+  tabBar: {
+    flexDirection: "row",
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+    gap: 8,
+  },
+  tabBtn: {
+    flex: 1,
+    paddingVertical: 9,
+    alignItems: "center",
+    borderRadius: 8,
+    backgroundColor: "#F1F5F9",
+  },
+  tabBtnActive: { backgroundColor: "#0052CC" },
+  tabText: { fontSize: 13, fontWeight: "700", color: "#64748B" },
+  tabTextActive: { color: "#FFFFFF" },
+  listContent: { padding: 16, paddingBottom: 100 },
+  orderCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 14,
     padding: 16,
-    marginBottom: 14,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    elevation: 2,
   },
-  cardHeader: {
+  orderCardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 10,
   },
-  statusBadge: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 },
-  statusBadgeText: { fontSize: 11, fontWeight: "700" },
+  pillRow: { flexDirection: "row", gap: 6 },
+  categoryPill: {
+    backgroundColor: "#F1F5F9",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  categoryPillText: { fontSize: 11, fontWeight: "700", color: "#475569" },
+  statusPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  statusOpen: { backgroundColor: "#EFF6FF" },
+  statusAssigned: { backgroundColor: "#DCFCE7" },
+  statusText: { fontSize: 10, fontWeight: "800" },
+  statusTextOpen: { color: "#0052CC" },
+  statusTextAssigned: { color: "#16A34A" },
   budgetAmount: { fontSize: 15, fontWeight: "800", color: "#0F172A" },
-  cardTitle: { fontSize: 16, fontWeight: "700", color: "#0F172A" },
-  cardDesc: { fontSize: 13, color: "#64748B", marginTop: 4, lineHeight: 18 },
-  metaDivider: { height: 1, backgroundColor: "#F1F5F9", marginVertical: 10 },
-  metaRow: { flexDirection: "row", justifyContent: "space-between" },
-  metaItem: { flexDirection: "row", alignItems: "center", gap: 5 },
-  metaText: { fontSize: 12, color: "#475569" },
-  viewBidsBtn: {
-    marginTop: 12,
-    height: 40,
-    borderRadius: 8,
+  jobTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#0F172A",
+    marginBottom: 6,
+  },
+  jobDescription: {
+    fontSize: 13,
+    color: "#64748B",
+    lineHeight: 18,
+    marginBottom: 10,
+  },
+  locationRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    marginBottom: 12,
+  },
+  locationText: { fontSize: 12, color: "#64748B" },
+  cardFooter: { borderTopWidth: 1, borderTopColor: "#F1F5F9", paddingTop: 10 },
+  viewQuotesBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     backgroundColor: "#EFF6FF",
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-  },
-  viewBidsBtnText: { fontSize: 13, fontWeight: "700", color: "#0052CC" },
-  assignedBox: {
-    marginTop: 12,
-    backgroundColor: "#F0FDF4",
-    borderRadius: 10,
-    padding: 12,
-    flexDirection: "column",
-    gap: 10,
-    borderWidth: 1,
-    borderColor: "#BBF7D0",
-  },
-  assignedInfo: { width: "100%" },
-  assignedName: { fontSize: 15, fontWeight: "700", color: "#166534" },
-  assignedTrade: { fontSize: 12, color: "#15803D", marginTop: 2 },
-  actionButtonRow: {
-    flexDirection: "row",
-    gap: 8,
-    alignSelf: "flex-end",
-  },
-  chatBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#0052CC",
+    paddingVertical: 10,
     paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 6,
-    gap: 5,
+    borderRadius: 8,
   },
-  callBtn: {
+  viewQuotesBtnText: { fontSize: 13, fontWeight: "700", color: "#0052CC" },
+  assignedContainer: {
     flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#0284C7",
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 6,
-    gap: 5,
   },
-  doneBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#16A34A",
-    paddingHorizontal: 12,
-    paddingVertical: 7,
-    borderRadius: 6,
-    gap: 5,
-  },
-  btnText: { color: "#FFFFFF", fontSize: 12, fontWeight: "700" },
-  completedNotice: {
-    marginTop: 12,
+  providerInfo: { flexDirection: "row", alignItems: "center", gap: 6 },
+  assignedProName: { fontSize: 13, fontWeight: "700", color: "#0F172A" },
+  chatProBtn: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    backgroundColor: "#F0FDF4",
-    padding: 10,
+    backgroundColor: "#0052CC",
+    paddingHorizontal: 14,
+    paddingVertical: 8,
     borderRadius: 8,
   },
-  completedNoticeText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#166534",
+  chatProBtnText: { color: "#FFFFFF", fontSize: 12, fontWeight: "700" },
+  centerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 60,
   },
+  loadingText: { marginTop: 10, fontSize: 13, color: "#64748B" },
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 80,
+    paddingTop: 80,
   },
   emptyTitle: {
     fontSize: 16,
@@ -658,109 +616,113 @@ const styles = StyleSheet.create({
     color: "#94A3B8",
     textAlign: "center",
     marginTop: 4,
-    paddingHorizontal: 30,
   },
-  modalOverlay: {
+  modalBackdrop: {
     flex: 1,
     backgroundColor: "rgba(15, 23, 42, 0.5)",
     justifyContent: "flex-end",
   },
-  modalContent: {
+  modalSheet: {
     backgroundColor: "#FFFFFF",
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    padding: 20,
-    maxHeight: "80%",
+    paddingHorizontal: 20,
+    paddingTop: 18,
+    paddingBottom: 36,
+    maxHeight: "85%",
   },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
+    alignItems: "center",
     marginBottom: 16,
   },
   modalTitle: { fontSize: 18, fontWeight: "800", color: "#0F172A" },
-  modalSub: { fontSize: 12, color: "#64748B", marginTop: 2, maxWidth: 260 },
-  closeBtn: { padding: 4 },
-  modalLoading: { paddingVertical: 40, alignItems: "center" },
-  emptyBids: { paddingVertical: 40, alignItems: "center", gap: 8 },
-  emptyBidsText: {
-    fontSize: 13,
+  modalSubtitle: {
+    fontSize: 12,
     color: "#64748B",
-    textAlign: "center",
-    paddingHorizontal: 20,
+    marginTop: 2,
+    maxWidth: 260,
   },
+  closeBtn: { padding: 4 },
+  emptyModalBox: { alignItems: "center", paddingVertical: 40 },
+  proposalsList: { paddingBottom: 20 },
   bidCard: {
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF",
     borderRadius: 12,
-    padding: 14,
-    marginBottom: 12,
     borderWidth: 1,
     borderColor: "#E2E8F0",
+    padding: 14,
+    marginBottom: 12,
   },
-  bidCardHeader: {
+  bidCardBoosted: {
+    borderColor: "#0052CC",
+    backgroundColor: "#FBFDFF",
+  },
+  boostedTag: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    alignItems: "center",
+    gap: 4,
+    backgroundColor: "#0052CC",
+    alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 4,
+    marginBottom: 10,
   },
-  providerName: { fontSize: 15, fontWeight: "700", color: "#0F172A" },
-  providerProfession: { fontSize: 12, color: "#64748B", marginTop: 2 },
-  bidPrice: { fontSize: 16, fontWeight: "800", color: "#0052CC" },
+  boostedTagText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 0.5,
+  },
+  bidHeader: { flexDirection: "row", justifyContent: "space-between" },
+  providerDetails: { flexDirection: "row", gap: 10 },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  nameRow: { flexDirection: "row", alignItems: "center", gap: 5 },
+  proName: { fontSize: 14, fontWeight: "700", color: "#0F172A" },
+  proMeta: { fontSize: 11, color: "#64748B", marginTop: 2 },
+  quoteBox: { alignItems: "flex-end" },
+  quotePrice: { fontSize: 16, fontWeight: "800", color: "#0052CC" },
+  quoteDuration: { fontSize: 11, color: "#64748B", marginTop: 1 },
   bidNote: {
-    fontSize: 12,
+    fontSize: 13,
     color: "#334155",
     fontStyle: "italic",
-    marginTop: 8,
-  },
-  bidFooter: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginTop: 12,
-    paddingTop: 10,
-    borderTopWidth: 1,
-    borderTopColor: "#E2E8F0",
-  },
-  bidDuration: { fontSize: 11, color: "#64748B", fontWeight: "600" },
-  acceptBtn: {
-    backgroundColor: "#0052CC",
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-    borderRadius: 6,
-  },
-  acceptBtnText: { color: "#FFFFFF", fontSize: 12, fontWeight: "700" },
-  starRow: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 12,
-    marginVertical: 18,
-  },
-  modalLabel: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: "#1E293B",
-    marginBottom: 8,
-  },
-  reviewInput: {
-    height: 80,
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
-    borderRadius: 10,
-    padding: 12,
     backgroundColor: "#F8FAFC",
-    fontSize: 14,
-    color: "#0F172A",
+    padding: 10,
+    borderRadius: 8,
+    marginVertical: 10,
   },
-  submitReviewBtn: {
-    marginTop: 18,
-    height: 48,
-    backgroundColor: "#16A34A",
-    borderRadius: 24,
+  bidActions: { flexDirection: "row", gap: 10, marginTop: 10 },
+  chatActionBtn: {
+    flex: 1,
+    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
+    gap: 6,
+    height: 38,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    backgroundColor: "#EFF6FF",
   },
-  submitReviewBtnText: {
-    color: "#FFFFFF",
-    fontSize: 15,
-    fontWeight: "700",
+  chatActionText: { fontSize: 13, fontWeight: "700", color: "#0052CC" },
+  acceptActionBtn: {
+    flex: 1.5,
+    alignItems: "center",
+    justifyContent: "center",
+    height: 38,
+    borderRadius: 8,
+    backgroundColor: "#0052CC",
   },
+  acceptActionBtnDisabled: { backgroundColor: "#16A34A" },
+  acceptActionText: { color: "#FFFFFF", fontSize: 13, fontWeight: "700" },
 });

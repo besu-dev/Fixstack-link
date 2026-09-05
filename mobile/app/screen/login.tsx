@@ -105,7 +105,7 @@ export default function LoginScreen() {
             <Text style={styles.label}>Phone Number or Email</Text>
             <TextInput
               style={styles.input}
-              placeholder="e.g. 0911223344 or name@example.com"
+              placeholder="phone number or email"
               placeholderTextColor="#94A3B8"
               value={identifier}
               onChangeText={setIdentifier}

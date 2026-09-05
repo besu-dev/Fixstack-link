@@ -1,8 +1,9 @@
 import Job from "../models/Job.js";
 import User from "../models/User.js";
 import Review from "../models/Review.js";
+import WalletTransaction from "../models/WalletTransaction.js";
 
-// @desc    Create a new job request
+// @desc    Create a new job request with connects deduction (0 cash fee)
 // @route   POST /api/jobs
 // @access  Private (Customer)
 export const createJob = async (req, res) => {
@@ -17,13 +18,34 @@ export const createJob = async (req, res) => {
       urgency,
     } = req.body;
 
-    // Normalize Windows backslashes (\) to forward slashes (/) for URLs
+    // 1. Calculate required connects: 3 base connects + 5 for Emergency boost
+    const requiredConnects = urgency === "Emergency" ? 8 : 3;
+
+    // 2. Check balance with fallback to 0
+    const customer = await User.findById(req.user._id);
+    if (!customer) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const currentBalance = customer.connectsBalance || 0;
+    if (currentBalance < requiredConnects) {
+      return res.status(402).json({
+        message: `Insufficient connects. Posting this job requires ${requiredConnects} connects (${
+          urgency === "Emergency" ? "3 base + 5 emergency boost" : "3 base"
+        }). Your current balance is ${currentBalance}.`,
+        requiredConnects,
+        currentBalance,
+      });
+    }
+
+    // 3. Normalize file paths (converts Windows \ to URL-friendly /)
     const photoUrls = req.files
       ? req.files.map((file) => file.path.replace(/\\/g, "/"))
       : [];
 
+    // 4. Create the job record
     const newJob = await Job.create({
-      customer: req.user._id,
+      customer: customer._id,
       category,
       title,
       description,
@@ -34,7 +56,28 @@ export const createJob = async (req, res) => {
       photos: photoUrls,
     });
 
-    res.status(201).json(newJob);
+    // 5. Atomic balance deduction
+    const updatedUser = await User.findByIdAndUpdate(
+      customer._id,
+      { $inc: { connectsBalance: -requiredConnects } },
+      { new: true },
+    );
+
+    // 6. Record transaction ledger entry
+    await WalletTransaction.create({
+      user: customer._id,
+      type: "job_post_deduction",
+      amountETB: 0,
+      connects: -requiredConnects,
+      paymentMethod: "wallet_deduction",
+      status: "completed",
+    });
+
+    res.status(201).json({
+      job: newJob,
+      remainingConnects: updatedUser.connectsBalance,
+      deductedConnects: requiredConnects,
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -51,9 +94,10 @@ export const getJobs = async (req, res) => {
     if (category) filter.category = category;
     if (subcity) filter.subcity = subcity;
 
+    // Emergency jobs appear first, followed by newest
     const jobs = await Job.find(filter)
       .populate("customer", "fullName phone")
-      .sort({ createdAt: -1 });
+      .sort({ urgency: -1, createdAt: -1 });
 
     res.status(200).json(jobs);
   } catch (error) {
@@ -67,7 +111,10 @@ export const getJobs = async (req, res) => {
 export const getMyJobs = async (req, res) => {
   try {
     const jobs = await Job.find({ customer: req.user._id })
-      .populate("assignedProvider", "fullName phone profession rating")
+      .populate(
+        "assignedProvider",
+        "fullName phone profession rating isFeatured",
+      )
       .sort({ createdAt: -1 });
 
     res.status(200).json(jobs);
@@ -83,7 +130,10 @@ export const getJobById = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id)
       .populate("customer", "fullName phone")
-      .populate("assignedProvider", "fullName phone profession rating");
+      .populate(
+        "assignedProvider",
+        "fullName phone profession rating isFeatured",
+      );
 
     if (!job) {
       return res.status(404).json({ message: "Job not found" });
@@ -174,7 +224,6 @@ export const getProviderTasks = async (req, res) => {
       .sort({ updatedAt: -1 })
       .lean();
 
-    // Look up reviews for completed tasks
     const taskIds = tasks.map((t) => t._id);
     const reviews = await Review.find({ job: { $in: taskIds } }).lean();
 

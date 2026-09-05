@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   View,
   Text,
@@ -16,6 +16,7 @@ import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
 import apiClient from "../../src/api/client";
+import BuyConnectsModal from "../../components/BuyConnectsModal";
 
 const CATEGORIES = [
   "Plumbing",
@@ -35,8 +36,31 @@ export default function PostJobScreen() {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [budget, setBudget] = useState("");
+  const [urgency, setUrgency] = useState<"Today" | "Emergency" | "Flexible">(
+    "Today",
+  );
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Connects & Wallet State
+  const [connectsBalance, setConnectsBalance] = useState<number>(0);
+  const [showWalletModal, setShowWalletModal] = useState(false);
+
+  // 3 Base Connects, +5 extra for Emergency
+  const connectsRequired = urgency === "Emergency" ? 8 : 3;
+
+  const fetchWalletBalance = useCallback(async () => {
+    try {
+      const res = await apiClient.get("/wallet/balance");
+      setConnectsBalance(res.data.connectsBalance || 0);
+    } catch (err) {
+      console.error("Wallet balance error:", err);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchWalletBalance();
+  }, [fetchWalletBalance]);
 
   const handlePickImage = async () => {
     if (images.length >= 3) {
@@ -85,6 +109,12 @@ export default function PostJobScreen() {
       return;
     }
 
+    // Client-side connects check
+    if (connectsBalance < connectsRequired) {
+      setShowWalletModal(true);
+      return;
+    }
+
     setLoading(true);
     try {
       const formData = new FormData();
@@ -93,7 +123,7 @@ export default function PostJobScreen() {
       formData.append("description", description.trim());
       formData.append("subcity", location.trim());
       formData.append("budget", budget.trim());
-      formData.append("urgency", "Today");
+      formData.append("urgency", urgency);
 
       images.forEach((uri, index) => {
         const filename = uri.split("/").pop() || `issue_photo_${index}.jpg`;
@@ -109,22 +139,28 @@ export default function PostJobScreen() {
         transformRequest: (data) => data,
       });
 
+      setConnectsBalance((prev) => prev - connectsRequired);
+
       Alert.alert(
         "Task Published! 🎉",
-        "Your service request has been broadcasted to verified technicians nearby.",
+        `Broadcasted to certified technicians. (${connectsRequired} Connects used)`,
         [
           {
-            text: "View Home",
-            onPress: () => router.replace("/(customer-tabs)/home"),
+            text: "View Orders",
+            onPress: () => router.replace("/(customer-tabs)/orders"),
           },
         ],
       );
     } catch (err: any) {
-      Alert.alert(
-        "Failed to Post",
-        err.response?.data?.message ||
-          "Could not publish your job request. Try again.",
-      );
+      if (err.response?.status === 402) {
+        setShowWalletModal(true);
+      } else {
+        Alert.alert(
+          "Failed to Post",
+          err.response?.data?.message ||
+            "Could not publish your job request. Try again.",
+        );
+      }
     } finally {
       setLoading(false);
     }
@@ -132,13 +168,29 @@ export default function PostJobScreen() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
+      {/* Screen Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Post a Service Request</Text>
-        <Text style={styles.headerSubtitle}>
-          Get competitive quotes from certified technicians in minutes
-        </Text>
+        <View style={styles.headerTitleWrap}>
+          <Text style={styles.headerTitle}>Post a Service Request</Text>
+          <Text style={styles.headerSubtitle}>
+            Broadcast to certified technicians in minutes
+          </Text>
+        </View>
+
+        {/* Connects Balance Card */}
+        <TouchableOpacity
+          style={styles.connectsPill}
+          onPress={() => setShowWalletModal(true)}
+          activeOpacity={0.8}
+        >
+          <Feather name="zap" size={13} color="#0052CC" />
+          <Text style={styles.connectsPillText}>
+            {connectsBalance} Connects
+          </Text>
+          <Feather name="plus-circle" size={13} color="#0052CC" />
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -198,6 +250,38 @@ export default function PostJobScreen() {
           textAlignVertical="top"
         />
 
+        {/* Urgency Selection */}
+        <Text style={styles.label}>Priority / Urgency</Text>
+        <View style={styles.urgencyRow}>
+          {(["Flexible", "Today", "Emergency"] as const).map((level) => {
+            const isSelected = urgency === level;
+            const isEmergency = level === "Emergency";
+            return (
+              <TouchableOpacity
+                key={level}
+                style={[
+                  styles.urgencyPill,
+                  isSelected && styles.urgencyPillActive,
+                  isEmergency && styles.urgencyEmergency,
+                  isEmergency && isSelected && styles.urgencyEmergencyActive,
+                ]}
+                onPress={() => setUrgency(level)}
+                activeOpacity={0.8}
+              >
+                <Text
+                  style={[
+                    styles.urgencyText,
+                    isSelected && styles.urgencyTextActive,
+                    isEmergency && !isSelected && styles.urgencyEmergencyText,
+                  ]}
+                >
+                  {isEmergency ? "🚨 Emergency (+5)" : level}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+
         <View style={styles.row}>
           <View style={styles.halfCol}>
             <Text style={styles.label}>Location / Subcity</Text>
@@ -249,6 +333,18 @@ export default function PostJobScreen() {
           )}
         </View>
 
+        {/* Cost Summary Notice */}
+        <View style={styles.costSummary}>
+          <Feather name="info" size={14} color="#64748B" />
+          <Text style={styles.costSummaryText}>
+            Publishing this task will deduct{" "}
+            <Text style={styles.costHighlight}>
+              {connectsRequired} Connects
+            </Text>{" "}
+            from your virtual wallet.
+          </Text>
+        </View>
+
         <TouchableOpacity
           style={styles.postBtn}
           onPress={handlePostTask}
@@ -258,10 +354,20 @@ export default function PostJobScreen() {
           {loading ? (
             <ActivityIndicator color="#FFFFFF" />
           ) : (
-            <Text style={styles.postBtnText}>Publish Job Request</Text>
+            <Text style={styles.postBtnText}>
+              Publish Job Request ({connectsRequired} Connects)
+            </Text>
           )}
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Buy Connects Modal */}
+      <BuyConnectsModal
+        visible={showWalletModal}
+        onClose={() => setShowWalletModal(false)}
+        currentBalance={connectsBalance}
+        onSuccess={(newBalance) => setConnectsBalance(newBalance)}
+      />
     </SafeAreaView>
   );
 }
@@ -272,12 +378,19 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
   },
   header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     paddingHorizontal: 20,
     paddingTop: 16,
-    paddingBottom: 12,
+    paddingBottom: 14,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
+  },
+  headerTitleWrap: {
+    flex: 1,
+    paddingRight: 10,
   },
   headerTitle: {
     fontSize: 20,
@@ -285,9 +398,25 @@ const styles = StyleSheet.create({
     color: "#0F172A",
   },
   headerSubtitle: {
-    fontSize: 13,
+    fontSize: 12,
     color: "#64748B",
-    marginTop: 4,
+    marginTop: 2,
+  },
+  connectsPill: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 5,
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  connectsPillText: {
+    fontSize: 12,
+    fontWeight: "800",
+    color: "#0052CC",
   },
   scrollContainer: {
     paddingHorizontal: 20,
@@ -295,11 +424,12 @@ const styles = StyleSheet.create({
     paddingBottom: 110,
   },
   label: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 13,
+    fontWeight: "700",
     color: "#1E293B",
     marginTop: 14,
     marginBottom: 8,
+    textTransform: "uppercase",
   },
   input: {
     height: 48,
@@ -338,6 +468,42 @@ const styles = StyleSheet.create({
     color: "#475569",
   },
   categoryTextActive: {
+    color: "#FFFFFF",
+  },
+  urgencyRow: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  urgencyPill: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
+  },
+  urgencyPillActive: {
+    backgroundColor: "#0052CC",
+    borderColor: "#0052CC",
+  },
+  urgencyEmergency: {
+    borderColor: "#FECACA",
+    backgroundColor: "#FEF2F2",
+  },
+  urgencyEmergencyActive: {
+    backgroundColor: "#EF4444",
+    borderColor: "#EF4444",
+  },
+  urgencyEmergencyText: {
+    color: "#DC2626",
+  },
+  urgencyText: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#475569",
+  },
+  urgencyTextActive: {
     color: "#FFFFFF",
   },
   row: {
@@ -389,22 +555,36 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
+  costSummary: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    backgroundColor: "#F1F5F9",
+    borderRadius: 8,
+    padding: 10,
+    marginTop: 16,
+  },
+  costSummaryText: {
+    fontSize: 12,
+    color: "#64748B",
+    flex: 1,
+  },
+  costHighlight: {
+    fontWeight: "700",
+    color: "#0F172A",
+  },
   postBtn: {
     height: 50,
     backgroundColor: "#0052CC",
-    borderRadius: 25,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 28,
-    elevation: 3,
-    shadowColor: "#0052CC",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.25,
-    shadowRadius: 6,
+    marginTop: 20,
+    elevation: 2,
   },
   postBtnText: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
   },
 });

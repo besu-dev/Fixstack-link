@@ -191,7 +191,7 @@ export default function ServicesScreen() {
 
   const handleSelect = (name: string) => {
     router.push({
-      pathname: "/service-providers",
+      pathname: "../screen/service-providers",
       params: { category: name },
     } as any);
   };
@@ -212,7 +212,7 @@ export default function ServicesScreen() {
         <Text style={styles.headerTitle}>Services</Text>
       </View>
 
-      {/* Search Input */}
+    
       <View style={styles.searchWrapper}>
         <View style={styles.searchBar}>
           <Feather

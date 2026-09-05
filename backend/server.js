@@ -10,6 +10,7 @@ import authRoutes from "./src/routes/authRoutes.js";
 import jobRoutes from "./src/routes/jobRoutes.js";
 import bidRoutes from "./src/routes/bidRoutes.js";
 import messageRoutes from "./src/routes/messageRoutes.js";
+import walletRoutes from "./src/routes/walletRoutes.js"; 
 import Message from "./src/models/Message.js";
 
 dotenv.config();
@@ -44,6 +45,7 @@ app.use("/api/auth", authRoutes);
 app.use("/api/jobs", jobRoutes);
 app.use("/api/bids", bidRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/wallet", walletRoutes); // 2. Mount wallet endpoints
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "FixLink API running smoothly" });

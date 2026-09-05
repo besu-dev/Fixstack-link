@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -10,22 +10,53 @@ import {
   StyleSheet,
   StatusBar,
   Alert,
+  ActivityIndicator,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
+import * as SecureStore from "expo-secure-store";
+import apiClient from "../../../src/api/client";
 
 export default function EditProfileScreen() {
   const router = useRouter();
 
-  const [avatarUri, setAvatarUri] = useState(
-    "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=300",
-  );
-  const [firstName, setFirstName] = useState("Alex");
-  const [lastName, setLastName] = useState("Tefera");
-  const [email, setEmail] = useState("alex.tefera@gmail.com");
-  const [phoneNumber, setPhoneNumber] = useState("+251 91 234 5678");
-  const [address, setAddress] = useState("Bole Sub-city, Addis Ababa");
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [fullName, setFullName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [address, setAddress] = useState("");
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+
+  // Load existing profile from cache or backend
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const res = await apiClient.get("/auth/me");
+        const user = res.data;
+        setFullName(user.fullName || "");
+        setEmail(user.email || "");
+        setPhoneNumber(user.phone || "");
+        setAddress(user.subcity || "");
+        if (user.avatarUrl) setAvatarUri(user.avatarUrl);
+      } catch {
+        const cached = await SecureStore.getItemAsync("user_data");
+        if (cached) {
+          const user = JSON.parse(cached);
+          setFullName(user.fullName || "");
+          setEmail(user.email || "");
+          setPhoneNumber(user.phone || "");
+          setAddress(user.subcity || "");
+          if (user.avatarUrl) setAvatarUri(user.avatarUrl);
+        }
+      } finally {
+        setInitialLoading(false);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   const handlePickAvatar = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -50,24 +81,69 @@ export default function EditProfileScreen() {
     }
   };
 
-  const handleSave = () => {
-    if (!firstName.trim() || !lastName.trim() || !email.trim()) {
-      Alert.alert("Missing Fields", "Please complete all required fields.");
+  const handleSave = async () => {
+    if (!fullName.trim()) {
+      Alert.alert("Missing Field", "Please provide your full name.");
       return;
     }
 
-    Alert.alert("Profile Updated", "Your profile details have been saved.", [
-      {
-        text: "OK",
-        onPress: () => router.back(),
-      },
-    ]);
+    setSaving(true);
+    try {
+      const formData = new FormData();
+      formData.append("fullName", fullName.trim());
+      formData.append("phone", phoneNumber.trim());
+      formData.append("subcity", address.trim());
+
+      if (avatarUri && !avatarUri.startsWith("http")) {
+        const filename = avatarUri.split("/").pop() || "avatar.jpg";
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : "image/jpeg";
+
+        formData.append("avatar", {
+          uri: avatarUri,
+          name: filename,
+          type,
+        } as any);
+      }
+
+      const res = await apiClient.put("/auth/profile", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+
+      // Update local storage so ProfileScreen reflects changes immediately
+      if (res.data?.user) {
+        await SecureStore.setItemAsync(
+          "user_data",
+          JSON.stringify(res.data.user),
+        );
+      }
+
+      Alert.alert("Success", "Your profile has been updated.", [
+        { text: "OK", onPress: () => router.back() },
+      ]);
+    } catch (err: any) {
+      Alert.alert(
+        "Update Failed",
+        err.response?.data?.message || "Could not save profile changes.",
+      );
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (initialLoading) {
+    return (
+      <SafeAreaView style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#0052CC" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
@@ -85,9 +161,17 @@ export default function EditProfileScreen() {
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
       >
+        {/* Avatar Section */}
         <View style={styles.avatarSection}>
           <View style={styles.avatarWrapper}>
-            <Image source={require("../../../assets/images/Furniture.jpg")} style={styles.avatar} />
+            <Image
+              source={
+                avatarUri
+                  ? { uri: avatarUri }
+                  : require("../../../assets/images/Furniture.jpg")
+              }
+              style={styles.avatar}
+            />
             <TouchableOpacity
               style={styles.cameraBadge}
               onPress={handlePickAvatar}
@@ -96,40 +180,27 @@ export default function EditProfileScreen() {
               <Feather name="camera" size={14} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.changePhotoText}>Change Profile Picture</Text>
+          <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
+            <Text style={styles.changePhotoText}>Change Profile Picture</Text>
+          </TouchableOpacity>
         </View>
 
+        {/* Form Fields */}
         <View style={styles.form}>
-          <View style={styles.nameRow}>
-            <View style={styles.halfCol}>
-              <Text style={styles.label}>First Name</Text>
-              <TextInput
-                style={styles.input}
-                value={firstName}
-                onChangeText={setFirstName}
-                placeholder="First Name"
-                placeholderTextColor="#94A3B8"
-              />
-            </View>
-            <View style={styles.halfCol}>
-              <Text style={styles.label}>Last Name</Text>
-              <TextInput
-                style={styles.input}
-                value={lastName}
-                onChangeText={setLastName}
-                placeholder="Last Name"
-                placeholderTextColor="#94A3B8"
-              />
-            </View>
-          </View>
-
-          <Text style={styles.label}>Email Address</Text>
+          <Text style={styles.label}>Full Name</Text>
           <TextInput
             style={styles.input}
+            value={fullName}
+            onChangeText={setFullName}
+            placeholder="e.g. Alex Tefera"
+            placeholderTextColor="#94A3B8"
+          />
+
+          <Text style={styles.label}>Email Address (Read-Only)</Text>
+          <TextInput
+            style={[styles.input, styles.readOnlyInput]}
             value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
+            editable={false}
             placeholder="Email Address"
             placeholderTextColor="#94A3B8"
           />
@@ -144,21 +215,27 @@ export default function EditProfileScreen() {
             placeholderTextColor="#94A3B8"
           />
 
-          <Text style={styles.label}>Home Address / City</Text>
+          <Text style={styles.label}>Home Address / Subcity</Text>
           <TextInput
             style={styles.input}
             value={address}
             onChangeText={setAddress}
-            placeholder="e.g., Bole, Addis Ababa"
+            placeholder="e.g. Bole Sub-city, Addis Ababa"
             placeholderTextColor="#94A3B8"
           />
 
+          {/* Submit Button */}
           <TouchableOpacity
-            style={styles.saveBtn}
+            style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
             onPress={handleSave}
+            disabled={saving}
             activeOpacity={0.85}
           >
-            <Text style={styles.saveBtnText}>Save Changes</Text>
+            {saving ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.saveBtnText}>Save Changes</Text>
+            )}
           </TouchableOpacity>
         </View>
       </ScrollView>
@@ -169,6 +246,12 @@ export default function EditProfileScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  centerContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: "#FFFFFF",
   },
   header: {
@@ -232,13 +315,6 @@ const styles = StyleSheet.create({
   form: {
     width: "100%",
   },
-  nameRow: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  halfCol: {
-    flex: 1,
-  },
   label: {
     fontSize: 14,
     fontWeight: "600",
@@ -256,6 +332,10 @@ const styles = StyleSheet.create({
     color: "#0F172A",
     backgroundColor: "#FFFFFF",
   },
+  readOnlyInput: {
+    backgroundColor: "#F8FAFC",
+    color: "#64748B",
+  },
   saveBtn: {
     height: 50,
     backgroundColor: "#0052CC",
@@ -268,6 +348,9 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.25,
     shadowRadius: 6,
+  },
+  saveBtnDisabled: {
+    opacity: 0.7,
   },
   saveBtnText: {
     color: "#FFFFFF",

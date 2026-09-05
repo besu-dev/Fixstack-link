@@ -11,42 +11,115 @@ import {
   Alert,
   KeyboardAvoidingView,
   Platform,
+  Modal,
 } from "react-native";
-import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
+
+const SERVICE_TAXONOMY: Record<string, string[]> = {
+  "Plumbing & Water Systems": [
+    "Tanker Pump",
+    "Pipe Leak",
+    "Water Heater",
+    "Bathroom Fit",
+  ],
+  "Electrical & Power": [
+    "House Wiring",
+    "Generator",
+    "Solar System",
+    "Breaker Fix",
+  ],
+  "Appliances & Electronics": [
+    "Washing Machine",
+    "Refrigerator",
+    "TV & Satellite",
+    "Electric Stove",
+  ],
+  "Carpentry & Metalwork": [
+    "Compound Gate",
+    "Lock & Key",
+    "Furniture",
+    "Roof Sheet",
+  ],
+  "Finishing & Cleaning": [
+    "Wall Painting",
+    "Tile Repair",
+    "Deep Cleaning",
+    "Moving & Loading",
+  ],
+};
+
+const EXPERIENCE_LEVELS = [
+  "Less than 1 year",
+  "1 - 3 years",
+  "3 - 5 years",
+  "5 - 10 years",
+  "10+ years",
+];
 
 export default function ProviderSignupStep2Screen() {
   const router = useRouter();
   const params = useLocalSearchParams();
 
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [service, setService] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
+  const [selectedSubSkills, setSelectedSubSkills] = useState<string[]>([]);
   const [location, setLocation] = useState("");
-  const [serviceRadius, setServiceRadius] = useState("15 km");
+  const [experience, setExperience] = useState("");
+
+  const [categoryModalVisible, setCategoryModalVisible] = useState(false);
+  const [experienceModalVisible, setExperienceModalVisible] = useState(false);
+
+  const handleSelectCategory = (cat: string) => {
+    setSelectedCategory(cat);
+    setSelectedSubSkills([]);
+    setCategoryModalVisible(false);
+  };
+
+  const toggleSubSkill = (skill: string) => {
+    if (selectedSubSkills.includes(skill)) {
+      setSelectedSubSkills((prev) => prev.filter((s) => s !== skill));
+    } else {
+      setSelectedSubSkills((prev) => [...prev, skill]);
+    }
+  };
 
   const handleContinue = () => {
     if (!phoneNumber.trim()) {
       Alert.alert("Missing Field", "Please enter your phone number.");
       return;
     }
-    if (!service.trim()) {
-      Alert.alert("Missing Field", "Please select your primary service trade.");
+    if (!selectedCategory) {
+      Alert.alert("Missing Field", "Please choose your main service trade.");
+      return;
+    }
+    if (selectedSubSkills.length === 0) {
+      Alert.alert(
+        "Select Skills",
+        "Please choose at least one specific service specialization.",
+      );
       return;
     }
     if (!location.trim()) {
-      Alert.alert("Missing Field", "Please enter your primary base location.");
+      Alert.alert(
+        "Missing Field",
+        "Please enter your base location / subcity.",
+      );
+      return;
+    }
+    if (!experience) {
+      Alert.alert("Missing Field", "Please select your years of experience.");
       return;
     }
 
-    // Clean phone input and bundle all params to Step 3
     router.push({
       pathname: "/screen/service-provider/upload-documents",
       params: {
         ...params,
         phone: phoneNumber.trim().replace(/[\s\-()]/g, ""),
-        service,
+        profession: selectedCategory,
+        skills: JSON.stringify(selectedSubSkills),
         location: location.trim(),
-        serviceRadius,
+        experience,
       },
     } as any);
   };
@@ -68,20 +141,10 @@ export default function ProviderSignupStep2Screen() {
             onPress={() => router.back()}
             activeOpacity={0.7}
           >
-            <Feather name="chevron-left" size={24} color="#0F172A" />
             <Text style={styles.backText}>Back</Text>
           </TouchableOpacity>
 
           <View style={styles.brandHeader}>
-            <View style={styles.logoMark}>
-              <View style={styles.orangeArc} />
-              <FontAwesome5
-                name="wrench"
-                size={26}
-                color="#0052CC"
-                style={styles.wrenchIcon}
-              />
-            </View>
             <Text style={styles.brandName}>FixLink</Text>
             <Text style={styles.pageTitle}>Service Details (Step 2/3)</Text>
           </View>
@@ -98,51 +161,64 @@ export default function ProviderSignupStep2Screen() {
             />
 
             <Text style={[styles.label, styles.fieldSpacing]}>
-              Select Your service
+              Primary Trade / Category
             </Text>
             <TouchableOpacity
-              style={styles.dropdownBox}
+              style={[
+                styles.dropdownBox,
+                selectedCategory ? styles.dropdownBoxActive : null,
+              ]}
               activeOpacity={0.8}
-              onPress={() => {
-                Alert.alert("Select Service", "Choose your profession", [
-                  { text: "Plumbing", onPress: () => setService("Plumbing") },
-                  {
-                    text: "Electrical",
-                    onPress: () => setService("Electrical"),
-                  },
-                  {
-                    text: "Solar Technician",
-                    onPress: () => setService("Solar Technician"),
-                  },
-                  {
-                    text: "Air Conditioning",
-                    onPress: () => setService("Air Conditioning"),
-                  },
-                  {
-                    text: "Appliances & Mitad",
-                    onPress: () => setService("Appliances & Mitad"),
-                  },
-                  {
-                    text: "Gate & Metalwork",
-                    onPress: () => setService("Gate & Metalwork"),
-                  },
-                  { text: "Cancel", style: "cancel" },
-                ]);
-              }}
+              onPress={() => setCategoryModalVisible(true)}
             >
               <Text
                 style={[
                   styles.dropdownText,
-                  !service && styles.dropdownPlaceholder,
+                  !selectedCategory ? styles.dropdownPlaceholder : null,
                 ]}
+                numberOfLines={1}
               >
-                {service || "Select profession (e.g., Plumbing, Electrical)"}
+                {selectedCategory || "Select primary trade..."}
               </Text>
-              <Feather name="chevron-down" size={20} color="#64748B" />
+              <Text style={styles.dropdownIndicator}>▼</Text>
             </TouchableOpacity>
 
+            {selectedCategory ? (
+              <View style={styles.fieldSpacing}>
+                <View style={styles.subSkillHeader}>
+                  <Text style={styles.label}>Specific Services You Offer</Text>
+                  <Text style={styles.subLabel}>Tap to select multiple</Text>
+                </View>
+                <View style={styles.pillWrap}>
+                  {SERVICE_TAXONOMY[selectedCategory].map((subSkill) => {
+                    const isSelected = selectedSubSkills.includes(subSkill);
+                    return (
+                      <TouchableOpacity
+                        key={subSkill}
+                        style={[
+                          styles.skillPill,
+                          isSelected ? styles.skillPillActive : null,
+                        ]}
+                        onPress={() => toggleSubSkill(subSkill)}
+                        activeOpacity={0.8}
+                      >
+                        <Text
+                          style={[
+                            styles.skillPillText,
+                            isSelected ? styles.skillPillTextActive : null,
+                          ]}
+                        >
+                          {isSelected ? `✓ ${subSkill}` : `+ ${subSkill}`}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+            ) : null}
+
             <Text style={[styles.label, styles.fieldSpacing]}>
-              Base Location
+              Base Location / Subcity
             </Text>
             <TextInput
               style={styles.input}
@@ -153,33 +229,37 @@ export default function ProviderSignupStep2Screen() {
             />
 
             <Text style={[styles.label, styles.fieldSpacing]}>
-              Service Radius
+              Work Experience
             </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g., 15 km"
-              placeholderTextColor="#94A3B8"
-              value={serviceRadius}
-              onChangeText={setServiceRadius}
-            />
+            <TouchableOpacity
+              style={[
+                styles.dropdownBox,
+                experience ? styles.dropdownBoxActive : null,
+              ]}
+              activeOpacity={0.8}
+              onPress={() => setExperienceModalVisible(true)}
+            >
+              <Text
+                style={[
+                  styles.dropdownText,
+                  !experience ? styles.dropdownPlaceholder : null,
+                ]}
+                numberOfLines={1}
+              >
+                {experience || "Select years of experience..."}
+              </Text>
+              <Text style={styles.dropdownIndicator}>▼</Text>
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.registerButton}
               onPress={handleContinue}
               activeOpacity={0.85}
             >
-              <Text style={styles.registerButtonText}>Continue</Text>
+              <Text style={styles.registerButtonText}>
+                Continue to Documents
+              </Text>
             </TouchableOpacity>
-
-            <Text style={styles.dividerText}>other way to sign in</Text>
-            <View style={styles.socialContainer}>
-              <TouchableOpacity style={styles.socialButton} activeOpacity={0.8}>
-                <FontAwesome5 name="google" size={18} color="#EA4335" />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.socialButton} activeOpacity={0.8}>
-                <FontAwesome5 name="facebook-f" size={18} color="#1877F2" />
-              </TouchableOpacity>
-            </View>
 
             <View style={styles.footerRow}>
               <Text style={styles.footerText}>Already have an account? </Text>
@@ -193,6 +273,127 @@ export default function ProviderSignupStep2Screen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+
+      {/* Category Selection Modal */}
+      <Modal
+        visible={categoryModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setCategoryModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setCategoryModalVisible(false)}
+        >
+          <View
+            style={styles.modalSheet}
+            onStartShouldSetResponder={() => true}
+          >
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>Select Your Primary Trade</Text>
+              <TouchableOpacity
+                onPress={() => setCategoryModalVisible(false)}
+                style={styles.closeBtn}
+              >
+                <Text style={styles.closeBtnText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {Object.keys(SERVICE_TAXONOMY).map((cat) => {
+                const isSelected = selectedCategory === cat;
+                return (
+                  <TouchableOpacity
+                    key={cat}
+                    style={[
+                      styles.categoryOption,
+                      isSelected ? styles.categoryOptionSelected : null,
+                    ]}
+                    onPress={() => handleSelectCategory(cat)}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryOptionText,
+                        isSelected ? styles.categoryOptionTextActive : null,
+                      ]}
+                    >
+                      {cat}
+                    </Text>
+                    {isSelected ? (
+                      <Text style={styles.checkMark}>✓</Text>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
+
+      {/* Experience Selection Modal */}
+      <Modal
+        visible={experienceModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setExperienceModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setExperienceModalVisible(false)}
+        >
+          <View
+            style={styles.modalSheet}
+            onStartShouldSetResponder={() => true}
+          >
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeader}>
+              <Text style={styles.sheetTitle}>Select Experience Level</Text>
+              <TouchableOpacity
+                onPress={() => setExperienceModalVisible(false)}
+                style={styles.closeBtn}
+              >
+                <Text style={styles.closeBtnText}>Close</Text>
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false}>
+              {EXPERIENCE_LEVELS.map((level) => {
+                const isSelected = experience === level;
+                return (
+                  <TouchableOpacity
+                    key={level}
+                    style={[
+                      styles.categoryOption,
+                      isSelected ? styles.categoryOptionSelected : null,
+                    ]}
+                    onPress={() => {
+                      setExperience(level);
+                      setExperienceModalVisible(false);
+                    }}
+                    activeOpacity={0.7}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryOptionText,
+                        isSelected ? styles.categoryOptionTextActive : null,
+                      ]}
+                    >
+                      {level}
+                    </Text>
+                    {isSelected ? (
+                      <Text style={styles.checkMark}>✓</Text>
+                    ) : null}
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -208,60 +409,50 @@ const styles = StyleSheet.create({
   scrollContainer: {
     paddingHorizontal: 24,
     paddingTop: 16,
-    paddingBottom: 32,
+    paddingBottom: 40,
   },
   backButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 4,
+    paddingVertical: 6,
     marginBottom: 8,
   },
   backText: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
-    color: "#0F172A",
+    color: "#2563EB",
   },
   brandHeader: {
     alignItems: "center",
-    marginBottom: 24,
-  },
-  logoMark: {
-    width: 58,
-    height: 58,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  orangeArc: {
-    position: "absolute",
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 4,
-    borderColor: "#F97316",
-  },
-  wrenchIcon: {
-    transform: [{ rotate: "-30deg" }],
+    marginBottom: 20,
   },
   brandName: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: "800",
     color: "#002B49",
-    marginTop: 4,
   },
   pageTitle: {
-    fontSize: 22,
+    fontSize: 18,
     fontWeight: "700",
     color: "#2563EB",
-    marginTop: 8,
+    marginTop: 4,
   },
   form: {
     width: "100%",
   },
   label: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: 13,
+    fontWeight: "700",
     color: "#1E293B",
     marginBottom: 6,
+  },
+  subLabel: {
+    fontSize: 11,
+    color: "#64748B",
+    marginBottom: 6,
+  },
+  subSkillHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
   fieldSpacing: {
     marginTop: 14,
@@ -287,13 +478,48 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     backgroundColor: "#FFFFFF",
   },
+  dropdownBoxActive: {
+    borderColor: "#2563EB",
+    backgroundColor: "#F8FAFC",
+  },
   dropdownText: {
     fontSize: 14,
     color: "#0F172A",
-    flex: 1,
+    fontWeight: "500",
   },
   dropdownPlaceholder: {
     color: "#94A3B8",
+    fontWeight: "400",
+  },
+  dropdownIndicator: {
+    fontSize: 11,
+    color: "#64748B",
+  },
+  pillWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 4,
+  },
+  skillPill: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    backgroundColor: "#F8FAFC",
+  },
+  skillPillActive: {
+    backgroundColor: "#2563EB",
+    borderColor: "#2563EB",
+  },
+  skillPillText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#475569",
+  },
+  skillPillTextActive: {
+    color: "#FFFFFF",
   },
   registerButton: {
     height: 48,
@@ -301,45 +527,19 @@ const styles = StyleSheet.create({
     borderRadius: 24,
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 24,
+    marginTop: 26,
     elevation: 2,
-    shadowColor: "#2563EB",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
   },
   registerButtonText: {
     color: "#FFFFFF",
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: "700",
-  },
-  dividerText: {
-    textAlign: "center",
-    fontSize: 12,
-    color: "#64748B",
-    marginTop: 18,
-    marginBottom: 14,
-  },
-  socialContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
-    gap: 16,
-  },
-  socialButton: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFFFFF",
   },
   footerRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 22,
+    marginTop: 20,
   },
   footerText: {
     fontSize: 13,
@@ -348,6 +548,77 @@ const styles = StyleSheet.create({
   footerLink: {
     fontSize: 13,
     fontWeight: "700",
+    color: "#0052CC",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
+    justifyContent: "flex-end",
+  },
+  modalSheet: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 36,
+    maxHeight: "65%",
+  },
+  sheetHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: "#CBD5E1",
+    alignSelf: "center",
+    marginBottom: 14,
+  },
+  sheetHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
+  },
+  sheetTitle: {
+    fontSize: 16,
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  closeBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+  },
+  closeBtnText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#64748B",
+  },
+  categoryOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginBottom: 4,
+  },
+  categoryOptionSelected: {
+    backgroundColor: "#EFF6FF",
+  },
+  categoryOptionText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#334155",
+  },
+  categoryOptionTextActive: {
+    color: "#0052CC",
+    fontWeight: "700",
+  },
+  checkMark: {
+    fontSize: 15,
+    fontWeight: "800",
     color: "#0052CC",
   },
 });
