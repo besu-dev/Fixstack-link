@@ -19,6 +19,7 @@ import * as SecureStore from "expo-secure-store";
 import apiClient from "../../src/api/client";
 import BuyConnectsModal from "../../components/BuyConnectsModal";
 import { AppAlert } from "../../src/context/AlertContext";
+import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 interface CustomerData {
@@ -38,6 +39,7 @@ interface JobStats {
 
 export default function CustomerProfileScreen() {
   const router = useRouter();
+  const { unreadMessageCount } = useUnreadMessages();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [profile, setProfile] = useState<CustomerData | null>(null);
   const [stats, setStats] = useState<JobStats>({
@@ -293,6 +295,37 @@ export default function CustomerProfileScreen() {
                 Track open requests & technician quotes
               </Text>
             </View>
+            <Feather
+              name="chevron-right"
+              size={moderateScale(17)}
+              color="#94A3B8"
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push("/(customer-tabs)/message" as any)}
+          >
+            <View style={[styles.menuIconBox, { backgroundColor: "#EFF6FF" }]}>
+              <Feather
+                name="message-square"
+                size={moderateScale(17)}
+                color="#0052CC"
+              />
+            </View>
+            <View style={styles.menuTextCol}>
+              <Text style={styles.menuTitle}>Direct Messages</Text>
+              <Text style={styles.menuSubtitle}>
+                Chat with service technicians
+              </Text>
+            </View>
+            {unreadMessageCount > 0 && (
+              <View style={styles.profileBadge}>
+                <Text style={styles.profileBadgeText}>
+                  {unreadMessageCount > 99 ? "99+" : `${unreadMessageCount} new`}
+                </Text>
+              </View>
+            )}
             <Feather
               name="chevron-right"
               size={moderateScale(17)}
@@ -601,6 +634,18 @@ const styles = StyleSheet.create({
     fontSize: scaledFont(11),
     color: "#64748B",
     marginTop: scale(1),
+  },
+  profileBadge: {
+    backgroundColor: "#EF4444",
+    borderRadius: moderateScale(10),
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(2),
+    marginRight: scale(8),
+  },
+  profileBadgeText: {
+    color: "#FFFFFF",
+    fontSize: scaledFont(11),
+    fontWeight: "700",
   },
   logoutBtn: {
     flexDirection: "row",

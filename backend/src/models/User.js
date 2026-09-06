@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema(
     avatarUrl: { type: String, default: "" },
     isVerified: { type: Boolean, default: false },
     isAvailable: { type: Boolean, default: true },
+    notificationsEnabled: { type: Boolean, default: true },
     rating: { type: Number, default: 5.0 },
 
     connectsBalance: {

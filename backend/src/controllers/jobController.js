@@ -2,6 +2,67 @@ import Job from "../models/Job.js";
 import User from "../models/User.js";
 import Review from "../models/Review.js";
 import WalletTransaction from "../models/WalletTransaction.js";
+import Notification from "../models/Notification.js";
+
+/**
+ * Helper to match providers offering the relevant service or skills for a job
+ */
+export const findMatchingProviders = async (job) => {
+  // Query all providers with notifications enabled, excluding the customer who created the job
+  const providers = await User.find({
+    role: "provider",
+    _id: { $ne: job.customer },
+    notificationsEnabled: { $ne: false },
+  });
+
+  const categoryLower = (job.category || "").toLowerCase().trim();
+  const titleLower = (job.title || "").toLowerCase().trim();
+  const descLower = (job.description || "").toLowerCase().trim();
+
+  // Extract keywords from category (e.g., "Plumbing", "Electrical", "Solar", "Mitad", "Gate")
+  const categoryKeywords = categoryLower
+    .split(/[\s,&/]+/)
+    .map((w) => w.trim())
+    .filter((w) => w.length > 2);
+
+  return providers.filter((provider) => {
+    const profLower = (provider.profession || "").toLowerCase().trim();
+
+    // 1. General Maintenance covers all service requests, or if job is General Maintenance
+    if (profLower.includes("general") || categoryLower.includes("general")) {
+      return true;
+    }
+
+    // 2. Direct profession match or keyword overlap
+    if (
+      profLower.includes(categoryLower) ||
+      categoryLower.includes(profLower) ||
+      categoryKeywords.some((kw) => profLower.includes(kw))
+    ) {
+      return true;
+    }
+
+    // 3. Provider skills matching job category, title, description, or keywords
+    if (Array.isArray(provider.skills) && provider.skills.length > 0) {
+      const hasSkillMatch = provider.skills.some((skill) => {
+        const sLower = (skill || "").toLowerCase().trim();
+        if (!sLower) return false;
+        return (
+          categoryLower.includes(sLower) ||
+          sLower.includes(categoryLower) ||
+          titleLower.includes(sLower) ||
+          descLower.includes(sLower) ||
+          categoryKeywords.some((kw) => sLower.includes(kw))
+        );
+      });
+      if (hasSkillMatch) {
+        return true;
+      }
+    }
+
+    return false;
+  });
+};
 
 // @desc    Create a new job request with connects deduction (0 cash fee)
 // @route   POST /api/jobs
@@ -72,6 +133,44 @@ export const createJob = async (req, res) => {
       paymentMethod: "wallet_deduction",
       status: "completed",
     });
+
+    // 7. Automatically notify matching service providers
+    try {
+      const matchingProviders = await findMatchingProviders(newJob);
+
+      if (matchingProviders.length > 0) {
+        const locationString =
+          [newJob.subcity, newJob.specificLocation]
+            .filter(Boolean)
+            .join(" - ")
+            .trim() || newJob.subcity || "Addis Ababa";
+
+        const notificationsData = matchingProviders.map((provider) => ({
+          recipient: provider._id,
+          job: newJob._id,
+          type: "new_job_alert",
+          serviceName: newJob.category || "General Maintenance",
+          jobTitle: newJob.title,
+          location: locationString,
+          budget: newJob.budget,
+          urgency: newJob.urgency || "Today",
+          timePosted: "Just now",
+          read: false,
+        }));
+
+        const createdNotifications = await Notification.insertMany(notificationsData);
+
+        // Broadcast real-time Socket.io event if io is mounted
+        const io = req.app.get("io");
+        if (io) {
+          createdNotifications.forEach((notif) => {
+            io.to(`user_${notif.recipient}`).emit("new_job_notification", notif);
+          });
+        }
+      }
+    } catch (notifErr) {
+      console.error("Error creating job alert notifications:", notifErr);
+    }
 
     res.status(201).json({
       job: newJob,

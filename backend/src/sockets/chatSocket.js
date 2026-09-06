@@ -13,6 +13,15 @@ export const initChatSocket = (io) => {
   io.on("connection", (socket) => {
     console.log(`⚡ New client connected: ${socket.id}`);
 
+    // Register personal user room for direct job alerts and notifications
+    socket.on("register_user", (userId) => {
+      if (userId) {
+        const userRoom = `user_${userId}`;
+        socket.join(userRoom);
+        console.log(`Socket ${socket.id} joined personal alert room: ${userRoom}`);
+      }
+    });
+
     // 1. Join user-to-user direct conversation room
     socket.on("join_chat_room", ({ userId1, userId2, jobId }) => {
       if (userId1 && userId2) {
@@ -47,17 +56,24 @@ export const initChatSocket = (io) => {
           sender: senderId,
           receiver: receiverId,
           text: text.trim(),
+          read: false,
         });
 
         const populatedMessage = await newMessage.populate(
           "sender",
-          "fullName role"
+          "fullName role avatarUrl"
         );
 
         // Emit to direct pair room if receiverId exists
         if (receiverId) {
           const directRoom = getDirectRoomId(senderId, receiverId);
           io.to(directRoom).emit("receive_message", populatedMessage);
+
+          // Also emit to receiver's personal user room for badge / notifications
+          io.to(`user_${receiverId}`).emit(
+            "new_message_notification",
+            populatedMessage
+          );
         }
 
         // Also emit to the jobId room if provided
@@ -66,6 +82,22 @@ export const initChatSocket = (io) => {
         }
       } catch (error) {
         console.error("Socket error on send_message:", error.message);
+      }
+    });
+
+    // 3. Mark conversation messages as read
+    socket.on("mark_conversation_read", async ({ readerId, senderId }) => {
+      try {
+        if (readerId && senderId) {
+          await Message.updateMany(
+            { receiver: readerId, sender: senderId, read: false },
+            { read: true }
+          );
+          io.to(`user_${readerId}`).emit("messages_marked_read", { senderId });
+          io.to(`user_${senderId}`).emit("messages_marked_read", { readerId });
+        }
+      } catch (err) {
+        console.error("Socket error on mark_conversation_read:", err.message);
       }
     });
 

@@ -1,19 +1,19 @@
 import express from "express";
 import {
-  getMessagesByJob,
-  sendMessage,
+  getNotifications,
   getUnreadCount,
-  markConversationAsRead,
-} from "../controllers/messageController.js";
+  markAsRead,
+  markAllAsRead,
+} from "../controllers/notificationController.js";
 import { protect } from "../middleware/authMiddleware.js";
 
 const router = express.Router();
 
 router.use(protect);
 
+router.get("/", getNotifications);
 router.get("/unread-count", getUnreadCount);
-router.patch("/read/:senderId", markConversationAsRead);
-router.get("/:jobId", getMessagesByJob);
-router.post("/", sendMessage);
+router.patch("/read-all", markAllAsRead);
+router.patch("/:id/read", markAsRead);
 
 export default router;

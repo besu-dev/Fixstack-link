@@ -1,11 +1,12 @@
 import React from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { Feather } from "@expo/vector-icons";
 import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
+import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
 
 const PRIMARY_COLOR = "#0052CC";
 const SECONDARY_COLOR = "#FFFFFF";
@@ -35,9 +36,15 @@ interface TabButtonProps {
   routeName: string;
   isFocused: boolean;
   onPress: () => void;
+  badgeCount?: number;
 }
 
-function TabButton({ routeName, isFocused, onPress }: TabButtonProps) {
+function TabButton({
+  routeName,
+  isFocused,
+  onPress,
+  badgeCount,
+}: TabButtonProps) {
   const rTabItemViewStyle = useAnimatedStyle(() => ({
     transform: [{ scale: withTiming(isFocused ? 1 : 0) }],
     opacity: withTiming(isFocused ? 1 : 0),
@@ -57,6 +64,13 @@ function TabButton({ routeName, isFocused, onPress }: TabButtonProps) {
       <Animated.View style={rIconStyle}>
         {getIcon(routeName, isFocused ? PRIMARY_COLOR : SECONDARY_COLOR)}
       </Animated.View>
+      {badgeCount !== undefined && badgeCount > 0 && (
+        <View style={styles.badge}>
+          <Text style={styles.badgeText}>
+            {badgeCount > 9 ? "9+" : badgeCount}
+          </Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 }
@@ -66,6 +80,8 @@ export default function CustomNavBar({
   descriptors,
   navigation,
 }: BottomTabBarProps) {
+  const { unreadMessageCount } = useUnreadMessages();
+
   return (
     <View style={styles.container}>
       {state.routes.map((route, index) => {
@@ -93,6 +109,9 @@ export default function CustomNavBar({
             routeName={route.name}
             isFocused={isFocused}
             onPress={onPress}
+            badgeCount={
+              route.name === "message" ? unreadMessageCount : undefined
+            }
           />
         );
       })}
@@ -124,6 +143,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     width: TAB_ITEM_SIZE,
     height: TAB_ITEM_SIZE,
+    position: "relative",
   },
   tabItemView: {
     position: "absolute",
@@ -131,5 +151,24 @@ const styles = StyleSheet.create({
     height: TAB_ITEM_SIZE,
     borderRadius: TAB_ITEM_SIZE / 2,
     backgroundColor: SECONDARY_COLOR,
+  },
+  badge: {
+    position: "absolute",
+    top: 2,
+    right: 2,
+    backgroundColor: "#DC2626",
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    paddingHorizontal: 3,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: PRIMARY_COLOR,
+  },
+  badgeText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "800",
   },
 });

@@ -30,7 +30,54 @@ export const getMessagesByJob = async (req, res) => {
       .populate("sender", "fullName role")
       .sort({ createdAt: 1 });
 
+    // Mark messages received by the current user in this chat as read
+    if (receiverId && mongoose.Types.ObjectId.isValid(receiverId)) {
+      await Message.updateMany(
+        { receiver: req.user._id, sender: receiverId, read: false },
+        { read: true },
+      );
+    } else if (jobId && mongoose.Types.ObjectId.isValid(jobId)) {
+      await Message.updateMany(
+        { receiver: req.user._id, job: jobId, read: false },
+        { read: true },
+      );
+    }
+
     return res.status(200).json(messages);
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Get total count of unread messages for authenticated user
+// @route   GET /api/messages/unread-count
+// @access  Private
+export const getUnreadCount = async (req, res) => {
+  try {
+    const count = await Message.countDocuments({
+      receiver: req.user._id,
+      read: false,
+    });
+    return res.status(200).json({ count });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Mark all messages from a specific sender as read
+// @route   PATCH /api/messages/read/:senderId
+// @access  Private
+export const markConversationAsRead = async (req, res) => {
+  try {
+    const { senderId } = req.params;
+    if (senderId && mongoose.Types.ObjectId.isValid(senderId)) {
+      await Message.updateMany(
+        { receiver: req.user._id, sender: senderId, read: false },
+        { read: true },
+      );
+    }
+
+    return res.status(200).json({ success: true });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -54,6 +101,7 @@ export const sendMessage = async (req, res) => {
       sender: req.user._id,
       receiver: receiverId || undefined,
       text: text.trim(),
+      read: false,
     });
 
     const populated = await newMessage.populate("sender", "fullName role");

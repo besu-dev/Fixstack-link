@@ -11,14 +11,25 @@ import {
   ActivityIndicator,
   RefreshControl,
   Modal,
+  Platform,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { io, Socket } from "socket.io-client";
 import apiClient from "../../src/api/client";
+import notificationsApi from "../../src/api/notifications";
+import JobNotificationsModal from "../../components/provider/JobNotificationsModal";
 import { AppAlert } from "../../src/context/AlertContext";
+import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
+
+const SOCKET_URL = __DEV__
+  ? Platform.OS === "android"
+    ? "http://10.0.2.2:5000"
+    : "http://localhost:5000"
+  : "https://api.fixlink.et";
 
 interface UserProfile {
   _id: string;
@@ -33,11 +44,13 @@ interface UserProfile {
   isVerified: boolean;
   isAvailable: boolean;
   isFeatured: boolean;
+  notificationsEnabled?: boolean;
   avatarUrl?: string;
 }
 
 export default function ProviderProfileScreen() {
   const router = useRouter();
+  const { unreadMessageCount } = useUnreadMessages();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
@@ -45,12 +58,27 @@ export default function ProviderProfileScreen() {
   const [isAvailable, setIsAvailable] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
+  // Notification Modal & Unread Count State
+  const [notificationsModalVisible, setNotificationsModalVisible] =
+    useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const count = await notificationsApi.getUnreadCount();
+      setUnreadCount(count);
+    } catch {
+      // silent fallback
+    }
+  }, []);
+
   const fetchProfile = useCallback(async () => {
     try {
       const res = await apiClient.get("/auth/me");
       const user = res.data?.user || res.data;
       setProfile(user);
       setIsAvailable(user?.isAvailable ?? true);
+      setNotificationsEnabled(user?.notificationsEnabled ?? true);
       await SecureStore.setItemAsync("user_data", JSON.stringify(user));
     } catch {
       const cachedUser = await SecureStore.getItemAsync("user_data");
@@ -58,6 +86,7 @@ export default function ProviderProfileScreen() {
         const parsed = JSON.parse(cachedUser);
         setProfile(parsed);
         setIsAvailable(parsed?.isAvailable ?? true);
+        setNotificationsEnabled(parsed?.notificationsEnabled ?? true);
       }
     } finally {
       setLoading(false);
@@ -67,11 +96,38 @@ export default function ProviderProfileScreen() {
 
   useEffect(() => {
     fetchProfile();
-  }, [fetchProfile]);
+    fetchUnreadCount();
+  }, [fetchProfile, fetchUnreadCount]);
+
+  // Real-time socket listener for incoming new job notifications
+  useEffect(() => {
+    let socket: Socket | null = null;
+    if (profile?._id) {
+      socket = io(SOCKET_URL, {
+        transports: ["websocket"],
+        reconnection: true,
+      });
+
+      socket.on("connect", () => {
+        socket?.emit("register_user", profile._id);
+      });
+
+      socket.on("new_job_notification", () => {
+        setUnreadCount((prev) => prev + 1);
+      });
+    }
+
+    return () => {
+      if (socket) {
+        socket.disconnect();
+      }
+    };
+  }, [profile?._id]);
 
   const onRefresh = () => {
     setRefreshing(true);
     fetchProfile();
+    fetchUnreadCount();
   };
 
   const handleNavigateToEdit = () => {
@@ -85,6 +141,18 @@ export default function ProviderProfileScreen() {
       setProfile((prev) => (prev ? { ...prev, isAvailable: value } : prev));
     } catch {
       setIsAvailable(!value);
+    }
+  };
+
+  const handleToggleNotifications = async (value: boolean) => {
+    setNotificationsEnabled(value);
+    try {
+      await apiClient.put("/auth/profile", { notificationsEnabled: value });
+      setProfile((prev) =>
+        prev ? { ...prev, notificationsEnabled: value } : prev,
+      );
+    } catch {
+      setNotificationsEnabled(!value);
     }
   };
 
@@ -117,16 +185,33 @@ export default function ProviderProfileScreen() {
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Screen Header */}
+      {/* Screen Header with Job Notifications Alert 🔔 Button & Badge */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Provider Profile</Text>
-        <TouchableOpacity
-          style={styles.editBtn}
-          onPress={handleNavigateToEdit}
-          activeOpacity={0.8}
-        >
-          <Feather name="edit-3" size={moderateScale(16)} color="#0052CC" />
-        </TouchableOpacity>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.notificationHeaderBtn}
+            onPress={() => setNotificationsModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <Feather name="bell" size={moderateScale(18)} color="#0052CC" />
+            {unreadCount > 0 && (
+              <View style={styles.headerBadge}>
+                <Text style={styles.headerBadgeText}>
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.editBtn}
+            onPress={handleNavigateToEdit}
+            activeOpacity={0.8}
+          >
+            <Feather name="edit-3" size={moderateScale(16)} color="#0052CC" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -359,23 +444,64 @@ export default function ProviderProfileScreen() {
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>Preferences & Account</Text>
 
-          <View style={styles.menuItem}>
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push("/(provider-tabs)/message" as any)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.menuIconBox, { backgroundColor: "#EFF6FF" }]}>
+              <Feather
+                name="message-square"
+                size={moderateScale(17)}
+                color="#0052CC"
+              />
+            </View>
+            <View style={styles.menuTextContainer}>
+              <Text style={styles.menuTitle}>Client Messages</Text>
+              <Text style={styles.menuSubtitle}>
+                Direct chat with your active customers
+              </Text>
+            </View>
+            {unreadMessageCount > 0 && (
+              <View style={styles.menuBadge}>
+                <Text style={styles.menuBadgeText}>
+                  {unreadMessageCount > 99 ? "99+" : `${unreadMessageCount} new`}
+                </Text>
+              </View>
+            )}
+            <Feather
+              name="chevron-right"
+              size={moderateScale(17)}
+              color="#94A3B8"
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => setNotificationsModalVisible(true)}
+            activeOpacity={0.7}
+          >
             <View style={[styles.menuIconBox, { backgroundColor: "#F3E8FF" }]}>
               <Feather name="bell" size={moderateScale(17)} color="#7C3AED" />
             </View>
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuTitle}>Job Alert Notifications</Text>
               <Text style={styles.menuSubtitle}>
-                Instant alerts for nearby job postings
+                Instant alerts for matching job requests
               </Text>
             </View>
+            {unreadCount > 0 && (
+              <View style={styles.menuBadge}>
+                <Text style={styles.menuBadgeText}>{unreadCount} new</Text>
+              </View>
+            )}
             <Switch
               value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
+              onValueChange={handleToggleNotifications}
               trackColor={{ false: "#CBD5E1", true: "#0052CC" }}
               thumbColor="#FFFFFF"
             />
-          </View>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.menuItem}
@@ -412,6 +538,17 @@ export default function ProviderProfileScreen() {
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Job Notifications Modal */}
+      <JobNotificationsModal
+        visible={notificationsModalVisible}
+        onClose={() => {
+          setNotificationsModalVisible(false);
+          fetchUnreadCount();
+        }}
+        initialUnreadCount={unreadCount}
+        onUnreadCountChange={(cnt) => setUnreadCount(cnt)}
+      />
     </SafeAreaView>
   );
 }
@@ -443,6 +580,39 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#0F172A",
   },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(10),
+  },
+  notificationHeaderBtn: {
+    width: moderateScale(36),
+    height: moderateScale(36),
+    borderRadius: moderateScale(18),
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  headerBadge: {
+    position: "absolute",
+    top: -2,
+    right: -2,
+    backgroundColor: "#DC2626",
+    borderRadius: scale(8),
+    minWidth: scale(16),
+    height: scale(16),
+    paddingHorizontal: scale(3),
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "#FFFFFF",
+  },
+  headerBadgeText: {
+    color: "#FFFFFF",
+    fontSize: scaledFont(9),
+    fontWeight: "800",
+  },
   editBtn: {
     width: moderateScale(36),
     height: moderateScale(36),
@@ -450,6 +620,18 @@ const styles = StyleSheet.create({
     backgroundColor: "#EFF6FF",
     alignItems: "center",
     justifyContent: "center",
+  },
+  menuBadge: {
+    backgroundColor: "#DC2626",
+    borderRadius: scale(10),
+    paddingHorizontal: scale(6),
+    paddingVertical: scale(2),
+    marginRight: scale(6),
+  },
+  menuBadgeText: {
+    color: "#FFFFFF",
+    fontSize: scaledFont(10),
+    fontWeight: "700",
   },
   scrollContent: {
     paddingHorizontal: scale(20),

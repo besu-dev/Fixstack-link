@@ -13,14 +13,21 @@ import {
   RefreshControl,
   Linking,
   Image,
+  Keyboard,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { io, Socket } from "socket.io-client";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../src/api/client";
-import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
+import {
+  scale,
+  verticalScale,
+  moderateScale,
+  scaledFont,
+} from "../../src/utils/responsive";
+import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
 
 interface MessageItem {
   _id: string;
@@ -49,6 +56,7 @@ interface ProviderConversationItem {
   subcity: string;
   lastMessage?: string;
   lastMessageTime?: string;
+  unreadCount?: number;
 }
 
 const SOCKET_URL = __DEV__
@@ -59,6 +67,8 @@ const SOCKET_URL = __DEV__
 
 export default function ProviderMessageScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { markConversationRead } = useUnreadMessages();
   const { jobId, recipientName, receiverId, recipientPhone } =
     useLocalSearchParams<{
       jobId?: string;
@@ -72,6 +82,7 @@ export default function ProviderMessageScreen() {
   const [inputText, setInputText] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loadingChat, setLoadingChat] = useState(false);
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   // Inbox State
   const [conversations, setConversations] = useState<
@@ -81,6 +92,22 @@ export default function ProviderMessageScreen() {
 
   const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList>(null);
+
+  // Track keyboard visibility for dynamic input dock spacing
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      () => setIsKeyboardVisible(true),
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => setIsKeyboardVisible(false),
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   // 1. Get logged-in technician ID
   useEffect(() => {
@@ -127,7 +154,7 @@ export default function ProviderMessageScreen() {
 
       const convArray = Array.from(clientMap.values());
 
-      // Fetch last message preview
+      // Fetch last message preview and unread count
       const hydrated = await Promise.all(
         convArray.map(async (conv) => {
           try {
@@ -136,10 +163,17 @@ export default function ProviderMessageScreen() {
             );
             if (Array.isArray(msgRes.data) && msgRes.data.length > 0) {
               const latest = msgRes.data[msgRes.data.length - 1];
+              const unread = msgRes.data.filter(
+                (m: any) =>
+                  !m.read &&
+                  (m.sender?._id === conv.clientId ||
+                    m.sender === conv.clientId),
+              ).length;
               return {
                 ...conv,
                 lastMessage: latest.text,
                 lastMessageTime: latest.createdAt,
+                unreadCount: unread,
               };
             }
           } catch {
@@ -193,6 +227,11 @@ export default function ProviderMessageScreen() {
         const res = await apiClient.get(url);
         setMessages(Array.isArray(res.data) ? res.data : []);
 
+        // Clear unread count for this conversation
+        if (receiverId) {
+          markConversationRead(receiverId);
+        }
+
         socket = io(SOCKET_URL, {
           transports: ["websocket"],
           forceNew: true,
@@ -212,6 +251,9 @@ export default function ProviderMessageScreen() {
             if (prev.some((m) => m._id === newMsg._id)) return prev;
             return [...prev, newMsg];
           });
+          if (receiverId) {
+            markConversationRead(receiverId);
+          }
         });
       } catch (err: any) {
         console.error(
@@ -333,9 +375,26 @@ export default function ProviderMessageScreen() {
                     </Text>
                   </View>
 
-                  <Text style={styles.lastMsgText} numberOfLines={1}>
-                    {item.lastMessage}
-                  </Text>
+                  <View style={styles.msgPreviewRow}>
+                    <Text
+                      style={[
+                        styles.lastMsgText,
+                        (item.unreadCount ?? 0) > 0 && styles.lastMsgUnread,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {item.lastMessage}
+                    </Text>
+                    {(item.unreadCount ?? 0) > 0 && (
+                      <View style={styles.convUnreadBadge}>
+                        <Text style={styles.convUnreadText}>
+                          {(item.unreadCount ?? 0) > 99
+                            ? "99+"
+                            : item.unreadCount}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
 
                   <View style={styles.metaRow}>
                     <Text style={styles.badgeText}>{item.jobTitle}</Text>
@@ -418,13 +477,17 @@ export default function ProviderMessageScreen() {
       ) : (
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
           style={styles.flex}
         >
           <FlatList
             ref={flatListRef}
             data={messages}
             keyExtractor={(item) => item._id || Math.random().toString()}
-            contentContainerStyle={styles.messageList}
+            contentContainerStyle={[
+              styles.messageList,
+              { paddingBottom: verticalScale(16) },
+            ]}
             showsVerticalScrollIndicator={false}
             onContentSizeChange={() =>
               flatListRef.current?.scrollToEnd({ animated: true })
@@ -495,8 +558,17 @@ export default function ProviderMessageScreen() {
             }
           />
 
-          {/* Chat Input Dock */}
-          <View style={styles.inputBar}>
+          {/* Chat Input Dock - elevated above floating bottom navbar */}
+          <View
+            style={[
+              styles.inputBar,
+              {
+                paddingBottom: isKeyboardVisible
+                  ? Math.max(insets.bottom, scale(8))
+                  : verticalScale(92) + insets.bottom,
+              },
+            ]}
+          >
             <TextInput
               style={styles.textInput}
               placeholder="Write a message..."
@@ -702,11 +774,38 @@ const styles = StyleSheet.create({
   inputBar: {
     flexDirection: "row",
     alignItems: "center",
-    padding: scale(10),
+    paddingHorizontal: scale(12),
+    paddingTop: scale(10),
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: "#E2E8F0",
     gap: scale(8),
+  },
+  msgPreviewRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: scale(2),
+    marginBottom: scale(4),
+  },
+  lastMsgUnread: {
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  convUnreadBadge: {
+    backgroundColor: "#EF4444",
+    borderRadius: moderateScale(10),
+    paddingHorizontal: scale(6),
+    paddingVertical: scale(2),
+    minWidth: moderateScale(18),
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: scale(6),
+  },
+  convUnreadText: {
+    color: "#FFFFFF",
+    fontSize: scaledFont(10),
+    fontWeight: "700",
   },
   textInput: {
     flex: 1,

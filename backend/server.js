@@ -11,6 +11,7 @@ import jobRoutes from "./src/routes/jobRoutes.js";
 import bidRoutes from "./src/routes/bidRoutes.js";
 import messageRoutes from "./src/routes/messageRoutes.js";
 import walletRoutes from "./src/routes/walletRoutes.js"; 
+import notificationRoutes from "./src/routes/notificationRoutes.js";
 import { initChatSocket } from "./src/sockets/chatSocket.js";
 
 dotenv.config();
@@ -32,6 +33,9 @@ const io = new Server(server, {
   },
 });
 
+// Expose io instance to Express request handlers
+app.set("io", io);
+
 // Middlewares
 app.use(cors());
 app.use(express.json());
@@ -47,6 +51,7 @@ app.use("/api/jobs", jobRoutes);
 app.use("/api/bids", bidRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/wallet", walletRoutes); // 2. Mount wallet endpoints
+app.use("/api/notifications", notificationRoutes);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "FixLink API running smoothly" });

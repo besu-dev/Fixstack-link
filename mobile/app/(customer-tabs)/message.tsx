@@ -13,14 +13,21 @@ import {
   RefreshControl,
   Linking,
   Image,
+  Keyboard,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { io, Socket } from "socket.io-client";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../src/api/client";
-import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
+import {
+  scale,
+  verticalScale,
+  moderateScale,
+  scaledFont,
+} from "../../src/utils/responsive";
+import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
 
 interface MessageItem {
   _id: string;
@@ -51,6 +58,7 @@ interface ConversationItem {
   subcity: string;
   lastMessage?: string;
   lastMessageTime?: string;
+  unreadCount?: number;
 }
 
 // Replace with your actual LAN IP for physical device testing
@@ -62,6 +70,11 @@ const SOCKET_URL = __DEV__
 
 export default function CustomerMessageScreen() {
   const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const { markConversationRead, fetchUnreadCount: refreshGlobalUnread } =
+    useUnreadMessages();
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
   const { jobId, recipientName, receiverId, recipientPhone } =
     useLocalSearchParams<{
       jobId?: string;
@@ -80,6 +93,22 @@ export default function CustomerMessageScreen() {
 
   const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList>(null);
+
+  // Track keyboard visibility for dynamic bottom inset adjustments
+  useEffect(() => {
+    const showSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      () => setIsKeyboardVisible(true),
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      () => setIsKeyboardVisible(false),
+    );
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
 
   useEffect(() => {
     const fetchCurrentUser = async () => {
@@ -131,10 +160,17 @@ export default function CustomerMessageScreen() {
             );
             if (Array.isArray(msgRes.data) && msgRes.data.length > 0) {
               const latestMsg = msgRes.data[msgRes.data.length - 1];
+              const unread = msgRes.data.filter(
+                (m: any) =>
+                  !m.read &&
+                  (m.sender?._id === conv.providerId ||
+                    m.sender === conv.providerId),
+              ).length;
               return {
                 ...conv,
                 lastMessage: latestMsg.text,
                 lastMessageTime: latestMsg.createdAt,
+                unreadCount: unread,
               };
             }
           } catch {
@@ -186,6 +222,11 @@ export default function CustomerMessageScreen() {
         const res = await apiClient.get(url);
         setMessages(Array.isArray(res.data) ? res.data : []);
 
+        // Clear unread count for this conversation
+        if (receiverId) {
+          markConversationRead(receiverId);
+        }
+
         socket = io(SOCKET_URL, {
           transports: ["websocket"],
           forceNew: true,
@@ -205,6 +246,10 @@ export default function CustomerMessageScreen() {
             if (prev.some((m) => m._id === newMsg._id)) return prev;
             return [...prev, newMsg];
           });
+          // User is actively reading this conversation
+          if (receiverId) {
+            markConversationRead(receiverId);
+          }
         });
       } catch (err: any) {
         console.error("Chat setup error:", err?.response?.data || err.message);
@@ -326,9 +371,24 @@ export default function CustomerMessageScreen() {
                     </Text>
                   </View>
 
-                  <Text style={styles.lastMsgText} numberOfLines={1}>
-                    {item.lastMessage}
-                  </Text>
+                  <View style={styles.msgPreviewRow}>
+                    <Text
+                      style={[
+                        styles.lastMsgText,
+                        item.unreadCount ? styles.lastMsgUnread : null,
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {item.lastMessage}
+                    </Text>
+                    {item.unreadCount !== undefined && item.unreadCount > 0 && (
+                      <View style={styles.convUnreadBadge}>
+                        <Text style={styles.convUnreadText}>
+                          {item.unreadCount > 9 ? "9+" : item.unreadCount}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
 
                   <View style={styles.metaRow}>
                     <Text style={styles.badgeText}>{item.jobTitle}</Text>
@@ -400,13 +460,17 @@ export default function CustomerMessageScreen() {
       ) : (
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : undefined}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
           style={styles.flex}
         >
           <FlatList
             ref={flatListRef}
             data={messages}
             keyExtractor={(item) => item._id || Math.random().toString()}
-            contentContainerStyle={styles.messageList}
+            contentContainerStyle={[
+              styles.messageList,
+              { paddingBottom: verticalScale(16) },
+            ]}
             showsVerticalScrollIndicator={false}
             onContentSizeChange={() =>
               flatListRef.current?.scrollToEnd({ animated: true })
@@ -476,8 +540,17 @@ export default function CustomerMessageScreen() {
             }
           />
 
-          {/* Bottom Message Input Bar */}
-          <View style={styles.inputBar}>
+          {/* Bottom Message Input Bar - elevated above floating bottom navbar */}
+          <View
+            style={[
+              styles.inputBar,
+              {
+                paddingBottom: isKeyboardVisible
+                  ? Math.max(insets.bottom, scale(8))
+                  : verticalScale(88) + insets.bottom,
+              },
+            ]}
+          >
             <TextInput
               style={styles.textInput}
               placeholder="Write a message..."
@@ -617,11 +690,36 @@ const styles = StyleSheet.create({
   },
   chatName: { fontSize: scaledFont(15), fontWeight: "700", color: "#0F172A" },
   timeTag: { fontSize: scaledFont(11), color: "#94A3B8" },
+  msgPreviewRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: scale(2),
+    marginBottom: scale(4),
+  },
   lastMsgText: {
     fontSize: scaledFont(13),
     color: "#475569",
-    marginTop: scale(2),
-    marginBottom: scale(4),
+    flex: 1,
+  },
+  lastMsgUnread: {
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  convUnreadBadge: {
+    backgroundColor: "#DC2626",
+    borderRadius: scale(8),
+    minWidth: scale(16),
+    height: scale(16),
+    paddingHorizontal: scale(4),
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: scale(6),
+  },
+  convUnreadText: {
+    color: "#FFFFFF",
+    fontSize: scaledFont(9),
+    fontWeight: "800",
   },
   metaRow: { flexDirection: "row", alignItems: "center", gap: scale(6) },
   badgeText: { fontSize: scaledFont(11), fontWeight: "700", color: "#0052CC" },

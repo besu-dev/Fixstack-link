@@ -1,5 +1,5 @@
 import React from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import Feather from "@expo/vector-icons/Feather";
 import FontAwesome6 from "@expo/vector-icons/FontAwesome6";
@@ -9,6 +9,7 @@ import Animated, {
   FadeOut,
   LinearTransition,
 } from "react-native-reanimated";
+import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
 
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
@@ -21,6 +22,8 @@ const ProviderCustomNavBar: React.FC<BottomTabBarProps> = ({
   descriptors,
   navigation,
 }) => {
+  const { unreadMessageCount } = useUnreadMessages();
+
   return (
     <View style={styles.container}>
       {state.routes.map((route, index) => {
@@ -58,10 +61,19 @@ const ProviderCustomNavBar: React.FC<BottomTabBarProps> = ({
               { backgroundColor: isFocused ? SECONDARY_COLOR : "transparent" },
             ]}
           >
-            {getIconByRouteName(
-              route.name,
-              isFocused ? PRIMARY_COLOR : SECONDARY_COLOR,
-            )}
+            <View style={styles.iconWrapper}>
+              {getIconByRouteName(
+                route.name,
+                isFocused ? PRIMARY_COLOR : SECONDARY_COLOR,
+              )}
+              {route.name === "message" && unreadMessageCount > 0 && (
+                <View style={styles.badge}>
+                  <Text style={styles.badgeText}>
+                    {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
+                  </Text>
+                </View>
+              )}
+            </View>
             {isFocused && (
               <Animated.Text
                 entering={FadeIn.duration(200)}
@@ -120,11 +132,35 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 24,
   },
+  iconWrapper: {
+    position: "relative",
+    justifyContent: "center",
+    alignItems: "center",
+  },
   text: {
     color: PRIMARY_COLOR,
     marginLeft: 6,
     fontWeight: "700",
     fontSize: 12,
+  },
+  badge: {
+    position: "absolute",
+    top: -6,
+    right: -8,
+    backgroundColor: "#DC2626",
+    borderRadius: 8,
+    minWidth: 16,
+    height: 16,
+    paddingHorizontal: 3,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: PRIMARY_COLOR,
+  },
+  badgeText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "800",
   },
 });
 
