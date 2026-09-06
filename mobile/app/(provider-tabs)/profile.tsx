@@ -21,6 +21,7 @@ import { io, Socket } from "socket.io-client";
 import apiClient from "../../src/api/client";
 import notificationsApi from "../../src/api/notifications";
 import JobNotificationsModal from "../../components/provider/JobNotificationsModal";
+import BuyConnectsModal from "../../components/BuyConnectsModal";
 import { AppAlert } from "../../src/context/AlertContext";
 import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
@@ -48,20 +49,36 @@ interface UserProfile {
   avatarUrl?: string;
 }
 
+interface ProviderStats {
+  active: number;
+  completed: number;
+}
+
 export default function ProviderProfileScreen() {
   const router = useRouter();
   const { unreadMessageCount } = useUnreadMessages();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [stats, setStats] = useState<ProviderStats>({
+    active: 0,
+    completed: 0,
+  });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [isAvailable, setIsAvailable] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [buyModalVisible, setBuyModalVisible] = useState(false);
 
   // Notification Modal & Unread Count State
   const [notificationsModalVisible, setNotificationsModalVisible] =
     useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+
+  const handleConnectsUpdated = (newBalance: number) => {
+    setProfile((prev) =>
+      prev ? { ...prev, connectsBalance: newBalance } : prev,
+    );
+  };
 
   const fetchUnreadCount = useCallback(async () => {
     try {
@@ -80,6 +97,28 @@ export default function ProviderProfileScreen() {
       setIsAvailable(user?.isAvailable ?? true);
       setNotificationsEnabled(user?.notificationsEnabled ?? true);
       await SecureStore.setItemAsync("user_data", JSON.stringify(user));
+
+      // Fetch task metrics
+      try {
+        const tasksRes = await apiClient.get("/jobs/provider-tasks");
+        const tasks = Array.isArray(tasksRes.data)
+          ? tasksRes.data
+          : tasksRes.data?.tasks || [];
+
+        const activeCount = tasks.filter(
+          (t: any) => t.status === "assigned" || t.status === "open",
+        ).length;
+        const completedCount = tasks.filter(
+          (t: any) => t.status === "completed",
+        ).length;
+
+        setStats({
+          active: activeCount,
+          completed: completedCount,
+        });
+      } catch (taskErr) {
+        console.warn("Could not load provider task metrics:", taskErr);
+      }
     } catch {
       const cachedUser = await SecureStore.getItemAsync("user_data");
       if (cachedUser) {
@@ -323,36 +362,55 @@ export default function ProviderProfileScreen() {
           />
         </View>
 
-        {/* Performance & Connects Card */}
+        {/* Live Metrics: Active & Completed Jobs */}
         <View style={styles.statsCard}>
           <TouchableOpacity
             style={styles.statItem}
-            onPress={() => router.push("/screen/buy-connects" as any)}
+            onPress={() => router.push("/(provider-tabs)/tasks" as any)}
             activeOpacity={0.7}
           >
-            <Text style={styles.statNumberConnects}>
-              {profile?.connectsBalance ?? 5}
-            </Text>
+            <Text style={styles.statNumber}>{stats.active}</Text>
             <Text style={styles.statLabel} numberOfLines={1}>
-              Connects
+              Active Jobs
             </Text>
           </TouchableOpacity>
           <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>100%</Text>
+          <TouchableOpacity
+            style={styles.statItem}
+            onPress={() => router.push("/(provider-tabs)/tasks" as any)}
+            activeOpacity={0.7}
+          >
+            <Text style={styles.statNumber}>{stats.completed}</Text>
             <Text style={styles.statLabel} numberOfLines={1}>
-              Success
+              Completed Jobs
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Available Connect Balance Card */}
+        <View style={styles.walletCard}>
+          <View style={styles.walletDetails}>
+            <Text style={styles.walletLabel}>Available Balance</Text>
+            <Text style={styles.walletAmount}>
+              {profile?.connectsBalance ?? 0}{" "}
+              <Text style={styles.walletUnit}>Connects</Text>
+            </Text>
+            <Text style={styles.walletSub}>
+              Use credits to submit quotes and bid on jobs
             </Text>
           </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statItem}>
-            <Text style={styles.statNumber}>
-              {profile?.isFeatured ? "Featured" : "Standard"}
-            </Text>
-            <Text style={styles.statLabel} numberOfLines={1}>
-              Account Tier
-            </Text>
-          </View>
+          <TouchableOpacity
+            style={styles.rechargeBtn}
+            onPress={() => setBuyModalVisible(true)}
+            activeOpacity={0.85}
+          >
+            <Ionicons
+              name="wallet-outline"
+              size={moderateScale(15)}
+              color="#0052CC"
+            />
+            <Text style={styles.rechargeBtnText}>Add Funds</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Professional Profile Settings */}
@@ -391,7 +449,7 @@ export default function ProviderProfileScreen() {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => router.push("/screen/buy-connects" as any)}
+            onPress={() => setBuyModalVisible(true)}
           >
             <View style={[styles.menuIconBox, { backgroundColor: "#EFF6FF" }]}>
               <Ionicons
@@ -548,6 +606,14 @@ export default function ProviderProfileScreen() {
         }}
         initialUnreadCount={unreadCount}
         onUnreadCountChange={(cnt) => setUnreadCount(cnt)}
+      />
+
+      {/* Buy Connects Modal */}
+      <BuyConnectsModal
+        visible={buyModalVisible}
+        onClose={() => setBuyModalVisible(false)}
+        onSuccess={handleConnectsUpdated}
+        currentBalance={profile?.connectsBalance ?? 0}
       />
     </SafeAreaView>
   );
@@ -780,12 +846,11 @@ const styles = StyleSheet.create({
   statsCard: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
+    justifyContent: "space-around",
+    backgroundColor: "#F8FAFC",
     borderRadius: moderateScale(16),
     paddingVertical: scale(14),
-    paddingHorizontal: scale(8),
-    marginBottom: scale(18),
+    marginBottom: scale(14),
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
@@ -794,20 +859,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
   },
-  statNumberConnects: {
-    fontSize: scaledFont(17),
-    fontWeight: "800",
-    color: "#16A34A",
-  },
   statNumber: {
-    fontSize: scaledFont(16),
+    fontSize: scaledFont(18),
     fontWeight: "800",
     color: "#0052CC",
   },
   statLabel: {
-    fontSize: scaledFont(11),
+    fontSize: scaledFont(12),
     color: "#64748B",
-    marginTop: 3,
+    marginTop: scale(2),
     fontWeight: "600",
     textAlign: "center",
   },
@@ -815,6 +875,61 @@ const styles = StyleSheet.create({
     width: 1,
     height: scale(26),
     backgroundColor: "#E2E8F0",
+  },
+  walletCard: {
+    backgroundColor: "#0052CC",
+    borderRadius: moderateScale(16),
+    padding: scale(16),
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: scale(18),
+    elevation: 2,
+    shadowColor: "#0052CC",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+  },
+  walletDetails: {
+    flex: 1,
+    paddingRight: scale(10),
+  },
+  walletLabel: {
+    color: "#BFDBFE",
+    fontSize: scaledFont(11),
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  walletAmount: {
+    color: "#FFFFFF",
+    fontSize: scaledFont(24),
+    fontWeight: "800",
+    marginVertical: scale(2),
+  },
+  walletUnit: {
+    fontSize: scaledFont(13),
+    fontWeight: "600",
+    color: "#DBEAFE",
+  },
+  walletSub: {
+    color: "#E0E7FF",
+    fontSize: scaledFont(11),
+    marginTop: scale(2),
+  },
+  rechargeBtn: {
+    backgroundColor: "#FFFFFF",
+    paddingHorizontal: scale(14),
+    paddingVertical: scale(9),
+    borderRadius: moderateScale(10),
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(6),
+  },
+  rechargeBtnText: {
+    color: "#0052CC",
+    fontSize: scaledFont(12),
+    fontWeight: "800",
   },
   section: {
     backgroundColor: "#FFFFFF",

@@ -414,16 +414,6 @@ export default function ProviderJobsScreen() {
                     <Text style={styles.chatBtnText}>Chat</Text>
                   </TouchableOpacity>
 
-                  {/* View Scope Button */}
-                  <TouchableOpacity
-                    style={styles.detailsBtn}
-                    onPress={() =>
-                      router.push(`/provider/job-details/${item._id}` as any)
-                    }
-                  >
-                    <Text style={styles.detailsBtnText}>Scope</Text>
-                  </TouchableOpacity>
-
                   {/* Send Quote Button */}
                   <TouchableOpacity
                     style={styles.quoteBtn}
@@ -785,7 +775,7 @@ const styles = StyleSheet.create({
   },
   cardActions: {
     flexDirection: "row",
-    gap: scale(8),
+    gap: scale(10),
     marginTop: scale(10),
   },
   chatBtn: {
@@ -798,37 +788,22 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: scale(5),
+    gap: scale(6),
   },
   chatBtnText: {
     fontSize: scaledFont(12),
     fontWeight: "700",
     color: "#0052CC",
   },
-  detailsBtn: {
-    flex: 1,
-    height: scale(38),
-    borderRadius: moderateScale(8),
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#FFFFFF",
-  },
-  detailsBtnText: {
-    fontSize: scaledFont(12),
-    fontWeight: "700",
-    color: "#334155",
-  },
   quoteBtn: {
-    flex: 1.4,
+    flex: 1.6,
     height: scale(38),
     borderRadius: moderateScale(8),
     backgroundColor: "#0052CC",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: scale(5),
+    gap: scale(6),
   },
   quoteBtnText: {
     fontSize: scaledFont(12),

@@ -17,7 +17,7 @@ import apiClient from "../../src/api/client";
 import { Alert } from "../../src/context/AlertContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
-type TaskStatus = "In Progress" | "Upcoming" | "Completed";
+type TaskStatus = "In Progress" | "Completed";
 
 interface CustomerInfo {
   _id: string;
@@ -46,7 +46,7 @@ interface ProviderTask {
   updatedAt: string;
 }
 
-const TABS: TaskStatus[] = ["In Progress", "Upcoming", "Completed"];
+const TABS: TaskStatus[] = ["In Progress", "Completed"];
 
 export default function ProviderTasksScreen() {
   const router = useRouter();
@@ -110,10 +110,7 @@ export default function ProviderTasksScreen() {
   // Group backend jobs into tab states
   const filteredTasks = tasks.filter((task) => {
     if (activeTab === "In Progress") {
-      return task.status === "assigned" && task.urgency === "Emergency";
-    }
-    if (activeTab === "Upcoming") {
-      return task.status === "assigned" && task.urgency !== "Emergency";
+      return task.status === "assigned";
     }
     if (activeTab === "Completed") {
       return task.status === "completed";
@@ -121,17 +118,11 @@ export default function ProviderTasksScreen() {
     return false;
   });
 
-  const inProgressCount = tasks.filter(
-    (t) => t.status === "assigned" && t.urgency === "Emergency",
-  ).length;
-  const upcomingCount = tasks.filter(
-    (t) => t.status === "assigned" && t.urgency !== "Emergency",
-  ).length;
+  const inProgressCount = tasks.filter((t) => t.status === "assigned").length;
   const completedCount = tasks.filter((t) => t.status === "completed").length;
 
   const getTabCount = (tab: TaskStatus) => {
     if (tab === "In Progress") return inProgressCount;
-    if (tab === "Upcoming") return upcomingCount;
     return completedCount;
   };
 
@@ -410,14 +401,14 @@ const styles = StyleSheet.create({
   },
   tabItem: {
     flex: 1,
-    paddingVertical: scale(8),
+    paddingVertical: scale(9),
     borderRadius: moderateScale(10),
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#F1F5F9",
   },
   tabItemActive: { backgroundColor: "#0052CC" },
-  tabText: { fontSize: scaledFont(11), fontWeight: "700", color: "#64748B" },
+  tabText: { fontSize: scaledFont(12), fontWeight: "700", color: "#64748B" },
   tabTextActive: { color: "#FFFFFF" },
   centerContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingText: {
