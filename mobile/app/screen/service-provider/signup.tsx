@@ -4,16 +4,21 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   StatusBar,
-  Alert,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import { Alert } from "../../../src/context/AlertContext";
+import {
+  scale,
+  moderateScale,
+  scaledFont,
+} from "../../../src/utils/responsive";
 
 export default function ProviderSignupStep1() {
   const router = useRouter();
@@ -55,7 +60,7 @@ export default function ProviderSignupStep1() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -71,7 +76,11 @@ export default function ProviderSignupStep1() {
             onPress={() => router.replace("/screen/select-role")}
             activeOpacity={0.7}
           >
-            <Feather name="chevron-left" size={24} color="#0F172A" />
+            <Feather
+              name="chevron-left"
+              size={moderateScale(22)}
+              color="#0F172A"
+            />
             <Text style={styles.backText}>Back</Text>
           </TouchableOpacity>
 
@@ -80,7 +89,7 @@ export default function ProviderSignupStep1() {
               <View style={styles.orangeArc} />
               <FontAwesome5
                 name="wrench"
-                size={26}
+                size={moderateScale(24)}
                 color="#0052CC"
                 style={{ transform: [{ rotate: "-30deg" }] }}
               />
@@ -142,7 +151,7 @@ export default function ProviderSignupStep1() {
               >
                 <Feather
                   name={showPassword ? "eye" : "eye-off"}
-                  size={20}
+                  size={moderateScale(18)}
                   color="#64748B"
                 />
               </TouchableOpacity>
@@ -152,7 +161,7 @@ export default function ProviderSignupStep1() {
             <View style={styles.passwordWrapper}>
               <TextInput
                 style={styles.passwordInput}
-                placeholder="Enter your confirm password"
+                placeholder="Confirm your password"
                 placeholderTextColor="#94A3B8"
                 secureTextEntry={!showConfirmPassword}
                 value={confirmPassword}
@@ -165,7 +174,7 @@ export default function ProviderSignupStep1() {
               >
                 <Feather
                   name={showConfirmPassword ? "eye" : "eye-off"}
-                  size={20}
+                  size={moderateScale(18)}
                   color="#64748B"
                 />
               </TouchableOpacity>
@@ -193,90 +202,137 @@ export default function ProviderSignupStep1() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#FFFFFF" },
-  flex: { flex: 1 },
-  scrollContainer: { paddingHorizontal: 24, paddingTop: 28, paddingBottom: 32 },
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  flex: {
+    flex: 1,
+  },
+  scrollContainer: {
+    paddingHorizontal: scale(20),
+    paddingTop: scale(12),
+    paddingBottom: scale(36),
+  },
   backButton: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
-    marginBottom: 8,
+    gap: scale(4),
+    marginBottom: scale(6),
   },
-  backText: { fontSize: 16, fontWeight: "700", color: "#0F172A" },
-  brandHeader: { alignItems: "center", marginBottom: 24 },
+  backText: {
+    fontSize: scaledFont(15),
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  brandHeader: {
+    alignItems: "center",
+    marginBottom: scale(20),
+  },
   logoMark: {
-    width: 58,
-    height: 58,
+    width: moderateScale(54),
+    height: moderateScale(54),
     alignItems: "center",
     justifyContent: "center",
   },
   orangeArc: {
     position: "absolute",
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 4,
+    width: moderateScale(42),
+    height: moderateScale(42),
+    borderRadius: moderateScale(21),
+    borderWidth: 3.5,
     borderColor: "#F97316",
   },
   brandName: {
-    fontSize: 18,
+    fontSize: scaledFont(17),
     fontWeight: "800",
     color: "#002B49",
-    marginTop: 4,
+    marginTop: scale(2),
   },
   pageTitle: {
-    fontSize: 22,
+    fontSize: scaledFont(19),
     fontWeight: "700",
     color: "#2563EB",
-    marginTop: 8,
+    marginTop: scale(6),
   },
-  form: { width: "100%" },
-  nameRow: { flexDirection: "row", gap: 12 },
-  halfInputContainer: { flex: 1 },
+  form: {
+    width: "100%",
+  },
+  nameRow: {
+    flexDirection: "row",
+    gap: scale(12),
+  },
+  halfInputContainer: {
+    flex: 1,
+  },
   label: {
-    fontSize: 14,
-    fontWeight: "600",
+    fontSize: scaledFont(11),
+    fontWeight: "700",
     color: "#1E293B",
-    marginTop: 14,
-    marginBottom: 6,
+    marginTop: scale(12),
+    marginBottom: scale(6),
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   input: {
-    height: 48,
+    height: scale(46),
     borderWidth: 1,
     borderColor: "#CBD5E1",
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    fontSize: 14,
+    borderRadius: moderateScale(10),
+    paddingHorizontal: scale(14),
+    fontSize: scaledFont(13),
     color: "#0F172A",
     backgroundColor: "#FFFFFF",
   },
   passwordWrapper: {
-    height: 48,
+    height: scale(46),
     borderWidth: 1,
     borderColor: "#CBD5E1",
-    borderRadius: 8,
+    borderRadius: moderateScale(10),
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 14,
+    paddingHorizontal: scale(14),
     backgroundColor: "#FFFFFF",
   },
-  passwordInput: { flex: 1, fontSize: 14, color: "#0F172A" },
-  eyeIcon: { padding: 4 },
+  passwordInput: {
+    flex: 1,
+    fontSize: scaledFont(13),
+    color: "#0F172A",
+  },
+  eyeIcon: {
+    padding: scale(4),
+  },
   continueButton: {
-    height: 48,
+    height: scale(48),
     backgroundColor: "#2563EB",
-    borderRadius: 24,
+    borderRadius: moderateScale(24),
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 24,
+    marginTop: scale(24),
+    elevation: 3,
+    shadowColor: "#2563EB",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
   },
-  continueButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "700" },
+  continueButtonText: {
+    color: "#FFFFFF",
+    fontSize: scaledFont(14),
+    fontWeight: "700",
+  },
   footerRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 22,
+    marginTop: scale(20),
   },
-  footerText: { fontSize: 13, color: "#64748B" },
-  footerLink: { fontSize: 13, fontWeight: "700", color: "#0052CC" },
+  footerText: {
+    fontSize: scaledFont(12),
+    color: "#64748B",
+  },
+  footerLink: {
+    fontSize: scaledFont(12),
+    fontWeight: "700",
+    color: "#0052CC",
+  },
 });

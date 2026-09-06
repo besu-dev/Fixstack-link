@@ -4,7 +4,7 @@ import {
   getJobs,
   getJobById,
   getMyJobs,
-  getProviderTasks, // 1. Import
+  getProviderTasks,
   markJobCompleted,
   reviewJob,
 } from "../controllers/jobController.js";
@@ -15,8 +15,11 @@ const router = express.Router();
 
 // Specific routes first
 router.get("/my-jobs", protect, getMyJobs);
-router.get("/provider-tasks", protect, getProviderTasks); // 2. Mount before /:id
+router.get("/provider-tasks", protect, getProviderTasks);
 router.patch("/:id/complete", protect, markJobCompleted);
+
+// Match both /rate-review and /review to prevent mismatch errors
+router.post("/:id/rate-review", protect, reviewJob);
 router.post("/:id/review", protect, reviewJob);
 
 // Root routes

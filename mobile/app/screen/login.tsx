@@ -9,7 +9,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  Alert,
   Image,
   ActivityIndicator,
 } from "react-native";
@@ -17,6 +16,7 @@ import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../src/api/client";
+import { Alert } from "../../src/context/AlertContext";
 
 export default function LoginScreen() {
   const router = useRouter();

@@ -4,16 +4,21 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   StatusBar,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   Modal,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Alert } from "../../../src/context/AlertContext";
+import {
+  scale,
+  moderateScale,
+  scaledFont,
+} from "../../../src/utils/responsive";
 
 const SERVICE_TAXONOMY: Record<string, string[]> = {
   "Plumbing & Water Systems": [
@@ -125,7 +130,7 @@ export default function ProviderSignupStep2Screen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
@@ -407,47 +412,47 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContainer: {
-    paddingHorizontal: 24,
-    paddingTop: 16,
-    paddingBottom: 40,
+    paddingHorizontal: scale(24),
+    paddingTop: scale(16),
+    paddingBottom: scale(40),
   },
   backButton: {
-    paddingVertical: 6,
-    marginBottom: 8,
+    paddingVertical: scale(6),
+    marginBottom: scale(8),
   },
   backText: {
-    fontSize: 15,
+    fontSize: scaledFont(15),
     fontWeight: "700",
     color: "#2563EB",
   },
   brandHeader: {
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: scale(20),
   },
   brandName: {
-    fontSize: 22,
+    fontSize: scaledFont(22),
     fontWeight: "800",
     color: "#002B49",
   },
   pageTitle: {
-    fontSize: 18,
+    fontSize: scaledFont(18),
     fontWeight: "700",
     color: "#2563EB",
-    marginTop: 4,
+    marginTop: scale(4),
   },
   form: {
     width: "100%",
   },
   label: {
-    fontSize: 13,
+    fontSize: scaledFont(13),
     fontWeight: "700",
     color: "#1E293B",
-    marginBottom: 6,
+    marginBottom: scale(6),
   },
   subLabel: {
-    fontSize: 11,
+    fontSize: scaledFont(11),
     color: "#64748B",
-    marginBottom: 6,
+    marginBottom: scale(6),
   },
   subSkillHeader: {
     flexDirection: "row",
@@ -455,24 +460,24 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   fieldSpacing: {
-    marginTop: 14,
+    marginTop: scale(14),
   },
   input: {
-    height: 48,
+    height: scale(48),
     borderWidth: 1,
     borderColor: "#CBD5E1",
-    borderRadius: 8,
-    paddingHorizontal: 14,
-    fontSize: 14,
+    borderRadius: moderateScale(8),
+    paddingHorizontal: scale(14),
+    fontSize: scaledFont(14),
     color: "#0F172A",
     backgroundColor: "#FFFFFF",
   },
   dropdownBox: {
-    height: 48,
+    height: scale(48),
     borderWidth: 1,
     borderColor: "#CBD5E1",
-    borderRadius: 8,
-    paddingHorizontal: 14,
+    borderRadius: moderateScale(8),
+    paddingHorizontal: scale(14),
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -483,7 +488,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
   },
   dropdownText: {
-    fontSize: 14,
+    fontSize: scaledFont(14),
     color: "#0F172A",
     fontWeight: "500",
   },
@@ -492,19 +497,19 @@ const styles = StyleSheet.create({
     fontWeight: "400",
   },
   dropdownIndicator: {
-    fontSize: 11,
+    fontSize: scaledFont(11),
     color: "#64748B",
   },
   pillWrap: {
     flexDirection: "row",
     flexWrap: "wrap",
-    gap: 8,
-    marginTop: 4,
+    gap: scale(8),
+    marginTop: scale(4),
   },
   skillPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: scale(14),
+    paddingVertical: scale(8),
+    borderRadius: moderateScale(20),
     borderWidth: 1,
     borderColor: "#CBD5E1",
     backgroundColor: "#F8FAFC",
@@ -514,7 +519,7 @@ const styles = StyleSheet.create({
     borderColor: "#2563EB",
   },
   skillPillText: {
-    fontSize: 12,
+    fontSize: scaledFont(12),
     fontWeight: "600",
     color: "#475569",
   },
@@ -522,31 +527,31 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
   },
   registerButton: {
-    height: 48,
+    height: scale(48),
     backgroundColor: "#2563EB",
-    borderRadius: 24,
+    borderRadius: moderateScale(24),
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 26,
+    marginTop: scale(26),
     elevation: 2,
   },
   registerButtonText: {
     color: "#FFFFFF",
-    fontSize: 15,
+    fontSize: scaledFont(15),
     fontWeight: "700",
   },
   footerRow: {
     flexDirection: "row",
     justifyContent: "center",
     alignItems: "center",
-    marginTop: 20,
+    marginTop: scale(20),
   },
   footerText: {
-    fontSize: 13,
+    fontSize: scaledFont(13),
     color: "#64748B",
   },
   footerLink: {
-    fontSize: 13,
+    fontSize: scaledFont(13),
     fontWeight: "700",
     color: "#0052CC",
   },
@@ -557,41 +562,41 @@ const styles = StyleSheet.create({
   },
   modalSheet: {
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 36,
+    borderTopLeftRadius: moderateScale(20),
+    borderTopRightRadius: moderateScale(20),
+    paddingHorizontal: scale(20),
+    paddingTop: scale(12),
+    paddingBottom: scale(36),
     maxHeight: "65%",
   },
   sheetHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
+    width: scale(36),
+    height: scale(4),
+    borderRadius: moderateScale(2),
     backgroundColor: "#CBD5E1",
     alignSelf: "center",
-    marginBottom: 14,
+    marginBottom: scale(14),
   },
   sheetHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 14,
-    paddingBottom: 8,
+    marginBottom: scale(14),
+    paddingBottom: scale(8),
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
   },
   sheetTitle: {
-    fontSize: 16,
+    fontSize: scaledFont(16),
     fontWeight: "800",
     color: "#0F172A",
   },
   closeBtn: {
-    paddingVertical: 4,
-    paddingHorizontal: 8,
+    paddingVertical: scale(4),
+    paddingHorizontal: scale(8),
   },
   closeBtnText: {
-    fontSize: 13,
+    fontSize: scaledFont(13),
     fontWeight: "700",
     color: "#64748B",
   },
@@ -599,16 +604,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    marginBottom: 4,
+    paddingVertical: scale(14),
+    paddingHorizontal: scale(12),
+    borderRadius: moderateScale(8),
+    marginBottom: scale(4),
   },
   categoryOptionSelected: {
     backgroundColor: "#EFF6FF",
   },
   categoryOptionText: {
-    fontSize: 14,
+    fontSize: scaledFont(14),
     fontWeight: "600",
     color: "#334155",
   },
@@ -617,7 +622,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   checkMark: {
-    fontSize: 15,
+    fontSize: scaledFont(15),
     fontWeight: "800",
     color: "#0052CC",
   },

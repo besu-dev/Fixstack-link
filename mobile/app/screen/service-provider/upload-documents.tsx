@@ -3,19 +3,24 @@ import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   StatusBar,
-  Alert,
   ActivityIndicator,
   Modal,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import * as DocumentPicker from "expo-document-picker";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../../src/api/client";
+import { Alert } from "../../../src/context/AlertContext";
+import {
+  scale,
+  moderateScale,
+  scaledFont,
+} from "../../../src/utils/responsive";
 
 interface AttachedDoc {
   uri: string;
@@ -207,7 +212,7 @@ export default function UploadDocumentsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -385,45 +390,49 @@ export default function UploadDocumentsScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#FFFFFF" },
-  scrollContainer: { paddingHorizontal: 24, paddingTop: 16, paddingBottom: 40 },
-  backButton: { paddingVertical: 6, marginBottom: 8 },
-  backText: { fontSize: 15, fontWeight: "700", color: "#2563EB" },
-  brandHeader: { alignItems: "center", marginBottom: 24 },
+  scrollContainer: {
+    paddingHorizontal: scale(24),
+    paddingTop: scale(16),
+    paddingBottom: scale(40),
+  },
+  backButton: { paddingVertical: scale(6), marginBottom: scale(8) },
+  backText: { fontSize: scaledFont(15), fontWeight: "700", color: "#2563EB" },
+  brandHeader: { alignItems: "center", marginBottom: scale(24) },
   brandName: {
-    fontSize: 22,
+    fontSize: scaledFont(22),
     fontWeight: "800",
     color: "#002B49",
   },
   pageTitle: {
-    fontSize: 18,
+    fontSize: scaledFont(18),
     fontWeight: "700",
     color: "#2563EB",
-    marginTop: 4,
+    marginTop: scale(4),
   },
   subtitleText: {
-    fontSize: 13,
+    fontSize: scaledFont(13),
     color: "#64748B",
     textAlign: "center",
-    marginTop: 4,
+    marginTop: scale(4),
   },
   sectionLabel: {
-    fontSize: 14,
+    fontSize: scaledFont(14),
     fontWeight: "700",
     color: "#1E293B",
-    marginBottom: 8,
-    marginTop: 10,
+    marginBottom: scale(8),
+    marginTop: scale(10),
   },
-  fieldSpacing: { marginTop: 16 },
+  fieldSpacing: { marginTop: scale(16) },
   uploadBox: {
-    minHeight: 110,
+    minHeight: scale(110),
     borderWidth: 1.5,
     borderStyle: "dashed",
     borderColor: "#CBD5E1",
-    borderRadius: 12,
+    borderRadius: moderateScale(12),
     backgroundColor: "#F8FAFC",
     alignItems: "center",
     justifyContent: "center",
-    padding: 16,
+    padding: scale(16),
   },
   uploadBoxDone: {
     borderColor: "#16A34A",
@@ -431,37 +440,49 @@ const styles = StyleSheet.create({
     borderStyle: "solid",
   },
   emptyState: { alignItems: "center" },
-  uploadActionText: { fontSize: 14, fontWeight: "700", color: "#2563EB" },
-  uploadMeta: { fontSize: 11, color: "#94A3B8", marginTop: 4 },
+  uploadActionText: {
+    fontSize: scaledFont(14),
+    fontWeight: "700",
+    color: "#2563EB",
+  },
+  uploadMeta: {
+    fontSize: scaledFont(11),
+    color: "#94A3B8",
+    marginTop: scale(4),
+  },
   uploadedState: { alignItems: "center" },
   doneBadge: {
-    fontSize: 12,
+    fontSize: scaledFont(12),
     fontWeight: "800",
     color: "#16A34A",
     backgroundColor: "#DCFCE7",
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 12,
-    marginBottom: 6,
+    paddingHorizontal: scale(10),
+    paddingVertical: scale(3),
+    borderRadius: moderateScale(12),
+    marginBottom: scale(6),
   },
   uploadTitle: {
-    fontSize: 13,
+    fontSize: scaledFont(13),
     fontWeight: "700",
     color: "#1E293B",
-    paddingHorizontal: 10,
+    paddingHorizontal: scale(10),
     textAlign: "center",
   },
-  changeText: { fontSize: 11, color: "#64748B", marginTop: 4 },
+  changeText: {
+    fontSize: scaledFont(11),
+    color: "#64748B",
+    marginTop: scale(4),
+  },
   checkboxRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 22,
-    gap: 10,
+    marginTop: scale(22),
+    gap: scale(10),
   },
   checkbox: {
-    width: 22,
-    height: 22,
-    borderRadius: 4,
+    width: moderateScale(22),
+    height: moderateScale(22),
+    borderRadius: moderateScale(4),
     borderWidth: 1.5,
     borderColor: "#CBD5E1",
     alignItems: "center",
@@ -474,21 +495,30 @@ const styles = StyleSheet.create({
   },
   checkText: {
     color: "#FFFFFF",
-    fontSize: 13,
+    fontSize: scaledFont(13),
     fontWeight: "800",
   },
-  agreementText: { flex: 1, fontSize: 12, color: "#475569", lineHeight: 18 },
+  agreementText: {
+    flex: 1,
+    fontSize: scaledFont(12),
+    color: "#475569",
+    lineHeight: scaledFont(18),
+  },
   submitButton: {
-    height: 48,
+    height: scale(48),
     backgroundColor: "#2563EB",
-    borderRadius: 24,
+    borderRadius: moderateScale(24),
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 26,
+    marginTop: scale(26),
     elevation: 2,
   },
   submitButtonDisabled: { opacity: 0.7 },
-  submitButtonText: { color: "#FFFFFF", fontSize: 15, fontWeight: "700" },
+  submitButtonText: {
+    color: "#FFFFFF",
+    fontSize: scaledFont(15),
+    fontWeight: "700",
+  },
 
   // Modal / Bottom Sheet
   modalOverlay: {
@@ -498,41 +528,53 @@ const styles = StyleSheet.create({
   },
   modalSheet: {
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 36,
+    borderTopLeftRadius: moderateScale(20),
+    borderTopRightRadius: moderateScale(20),
+    paddingHorizontal: scale(20),
+    paddingTop: scale(12),
+    paddingBottom: scale(36),
   },
   sheetHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
+    width: scale(36),
+    height: scale(4),
+    borderRadius: moderateScale(2),
     backgroundColor: "#CBD5E1",
     alignSelf: "center",
-    marginBottom: 14,
+    marginBottom: scale(14),
   },
   sheetHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
-    paddingBottom: 10,
+    marginBottom: scale(16),
+    paddingBottom: scale(10),
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
   },
-  sheetTitle: { fontSize: 16, fontWeight: "800", color: "#0F172A" },
-  closeBtn: { paddingVertical: 4, paddingHorizontal: 8 },
-  closeBtnText: { fontSize: 13, fontWeight: "700", color: "#64748B" },
+  sheetTitle: { fontSize: scaledFont(16), fontWeight: "800", color: "#0F172A" },
+  closeBtn: { paddingVertical: scale(4), paddingHorizontal: scale(8) },
+  closeBtnText: {
+    fontSize: scaledFont(13),
+    fontWeight: "700",
+    color: "#64748B",
+  },
   sheetAction: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 10,
+    paddingVertical: scale(14),
+    paddingHorizontal: scale(16),
+    borderRadius: moderateScale(10),
     backgroundColor: "#F8FAFC",
-    marginBottom: 10,
+    marginBottom: scale(10),
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
-  actionTitle: { fontSize: 15, fontWeight: "700", color: "#0F172A" },
-  actionSub: { fontSize: 12, color: "#64748B", marginTop: 2 },
+  actionTitle: {
+    fontSize: scaledFont(15),
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  actionSub: {
+    fontSize: scaledFont(12),
+    color: "#64748B",
+    marginTop: scale(2),
+  },
 });

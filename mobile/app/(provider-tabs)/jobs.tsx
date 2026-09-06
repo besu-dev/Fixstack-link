@@ -4,21 +4,22 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   FlatList,
   StyleSheet,
   StatusBar,
-  Alert,
   ActivityIndicator,
   RefreshControl,
   Modal,
   KeyboardAvoidingView,
   Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import apiClient from "../../src/api/client";
 import BuyConnectsModal from "../../components/BuyConnectsModal";
+import { Alert } from "../../src/context/AlertContext";
+import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 interface Job {
   _id: string;
@@ -34,7 +35,7 @@ interface Job {
   customer?: {
     _id: string;
     fullName: string;
-    phone: string;
+    phone?: string;
   };
 }
 
@@ -72,7 +73,6 @@ export default function ProviderJobsScreen() {
   const [isBoosted, setIsBoosted] = useState(false);
   const [submittingBid, setSubmittingBid] = useState(false);
 
-  // Dynamic Connects Rule:
   // <= 1000 ETB costs 2 Connects, > 1000 ETB costs 4 Connects; Boost adds +5
   const baseConnects = Number(bidPrice) > 1000 ? 4 : 2;
   const totalRequiredConnects = baseConnects + (isBoosted ? 5 : 0);
@@ -80,7 +80,7 @@ export default function ProviderJobsScreen() {
   const fetchWallet = useCallback(async () => {
     try {
       const res = await apiClient.get("/wallet/balance");
-      setConnectsBalance(res.data.connectsBalance || 0);
+      setConnectsBalance(res.data.connectsBalance ?? 0);
     } catch (err: any) {
       console.error("Failed to load technician wallet:", err.message);
     }
@@ -89,7 +89,10 @@ export default function ProviderJobsScreen() {
   const fetchJobs = useCallback(async () => {
     try {
       const response = await apiClient.get("/jobs");
-      setJobs(response.data);
+      const list = Array.isArray(response.data)
+        ? response.data
+        : response.data?.jobs || [];
+      setJobs(list);
     } catch (err: any) {
       console.error("Failed to load jobs:", err?.response?.data || err.message);
     } finally {
@@ -125,7 +128,6 @@ export default function ProviderJobsScreen() {
       return;
     }
 
-    // Local connects balance guard
     if (connectsBalance < totalRequiredConnects) {
       setModalVisible(false);
       setShowWalletModal(true);
@@ -142,7 +144,7 @@ export default function ProviderJobsScreen() {
         isBoosted,
       });
 
-      setConnectsBalance((prev) => prev - totalRequiredConnects);
+      setConnectsBalance((prev) => Math.max(0, prev - totalRequiredConnects));
       setModalVisible(false);
 
       Alert.alert(
@@ -199,7 +201,7 @@ export default function ProviderJobsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* Screen Header */}
@@ -217,11 +219,15 @@ export default function ProviderJobsScreen() {
           onPress={() => setShowWalletModal(true)}
           activeOpacity={0.8}
         >
-          <Feather name="zap" size={13} color="#0052CC" />
+          <Feather name="zap" size={moderateScale(13)} color="#0052CC" />
           <Text style={styles.connectsPillText}>
             {connectsBalance} Connects
           </Text>
-          <Feather name="plus-circle" size={13} color="#0052CC" />
+          <Feather
+            name="plus-circle"
+            size={moderateScale(13)}
+            color="#0052CC"
+          />
         </TouchableOpacity>
       </View>
 
@@ -230,7 +236,7 @@ export default function ProviderJobsScreen() {
         <View style={styles.searchBar}>
           <Feather
             name="search"
-            size={18}
+            size={moderateScale(18)}
             color="#94A3B8"
             style={styles.searchIcon}
           />
@@ -243,7 +249,7 @@ export default function ProviderJobsScreen() {
           />
           {search.length > 0 && (
             <TouchableOpacity onPress={() => setSearch("")}>
-              <Feather name="x" size={18} color="#94A3B8" />
+              <Feather name="x" size={moderateScale(18)} color="#94A3B8" />
             </TouchableOpacity>
           )}
         </View>
@@ -340,11 +346,19 @@ export default function ProviderJobsScreen() {
 
                 <View style={styles.metaRow}>
                   <View style={styles.metaItem}>
-                    <Feather name="map-pin" size={13} color="#64748B" />
+                    <Feather
+                      name="map-pin"
+                      size={moderateScale(13)}
+                      color="#64748B"
+                    />
                     <Text style={styles.metaText}>{item.subcity}</Text>
                   </View>
                   <View style={styles.metaItem}>
-                    <Feather name="clock" size={13} color="#94A3B8" />
+                    <Feather
+                      name="clock"
+                      size={moderateScale(13)}
+                      color="#94A3B8"
+                    />
                     <Text style={styles.metaText}>
                       {formatRelativeTime(item.createdAt)}
                     </Text>
@@ -353,14 +367,22 @@ export default function ProviderJobsScreen() {
 
                 <View style={styles.metaRow}>
                   <View style={styles.metaItem}>
-                    <Feather name="user" size={13} color="#64748B" />
+                    <Feather
+                      name="user"
+                      size={moderateScale(13)}
+                      color="#64748B"
+                    />
                     <Text style={styles.metaText}>
                       {item.customer?.fullName || "Verified Customer"}
                     </Text>
                   </View>
                   {item.photos && item.photos.length > 0 && (
                     <View style={styles.metaItem}>
-                      <Feather name="image" size={13} color="#0052CC" />
+                      <Feather
+                        name="image"
+                        size={moderateScale(13)}
+                        color="#0052CC"
+                      />
                       <Text style={[styles.metaText, { color: "#0052CC" }]}>
                         {item.photos.length} attached
                       </Text>
@@ -384,7 +406,11 @@ export default function ProviderJobsScreen() {
                     }
                     activeOpacity={0.8}
                   >
-                    <Feather name="message-square" size={14} color="#0052CC" />
+                    <Feather
+                      name="message-square"
+                      size={moderateScale(14)}
+                      color="#0052CC"
+                    />
                     <Text style={styles.chatBtnText}>Chat</Text>
                   </TouchableOpacity>
 
@@ -405,7 +431,11 @@ export default function ProviderJobsScreen() {
                     activeOpacity={0.85}
                   >
                     <Text style={styles.quoteBtnText}>Send Quote</Text>
-                    <Feather name="send" size={13} color="#FFFFFF" />
+                    <Feather
+                      name="send"
+                      size={moderateScale(13)}
+                      color="#FFFFFF"
+                    />
                   </TouchableOpacity>
                 </View>
               </View>
@@ -413,7 +443,7 @@ export default function ProviderJobsScreen() {
           }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Feather name="inbox" size={44} color="#CBD5E1" />
+              <Feather name="inbox" size={moderateScale(44)} color="#CBD5E1" />
               <Text style={styles.emptyTitle}>No matching job requests</Text>
               <Text style={styles.emptySubtitle}>
                 Try selecting "All" or pull down to check for newly published
@@ -445,7 +475,7 @@ export default function ProviderJobsScreen() {
                 onPress={() => setModalVisible(false)}
                 style={styles.closeModalBtn}
               >
-                <Feather name="x" size={20} color="#64748B" />
+                <Feather name="x" size={moderateScale(20)} color="#64748B" />
               </TouchableOpacity>
             </View>
 
@@ -507,7 +537,7 @@ export default function ProviderJobsScreen() {
             >
               <Feather
                 name={isBoosted ? "check-square" : "square"}
-                size={20}
+                size={moderateScale(20)}
                 color={isBoosted ? "#0052CC" : "#64748B"}
               />
               <View style={styles.boostContent}>
@@ -524,7 +554,7 @@ export default function ProviderJobsScreen() {
 
             {/* Connect Deduction Info Pill */}
             <View style={styles.deductionSummary}>
-              <Feather name="info" size={13} color="#64748B" />
+              <Feather name="info" size={moderateScale(13)} color="#64748B" />
               <Text style={styles.deductionText}>
                 Cost:{" "}
                 <Text style={styles.boldText}>
@@ -570,89 +600,89 @@ export default function ProviderJobsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#F8FAFC",
+    backgroundColor: "#FFFFFF",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 10,
+    paddingHorizontal: scale(20),
+    paddingTop: scale(8),
+    paddingBottom: scale(10),
     backgroundColor: "#FFFFFF",
   },
   headerTitleWrap: {
     flex: 1,
-    paddingRight: 10,
+    paddingRight: scale(10),
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: scaledFont(20),
     fontWeight: "800",
     color: "#0F172A",
   },
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     color: "#64748B",
-    marginTop: 2,
+    marginTop: scale(2),
   },
   connectsPill: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
+    gap: scale(5),
     backgroundColor: "#EFF6FF",
     borderWidth: 1,
     borderColor: "#BFDBFE",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: scale(10),
+    paddingVertical: scale(6),
+    borderRadius: moderateScale(20),
   },
   connectsPillText: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     fontWeight: "800",
     color: "#0052CC",
   },
   searchWrapper: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: scale(20),
+    paddingVertical: scale(10),
     backgroundColor: "#FFFFFF",
   },
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#F1F5F9",
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 44,
+    borderRadius: moderateScale(12),
+    paddingHorizontal: scale(12),
+    height: scale(44),
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: scale(8),
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: scaledFont(13),
     color: "#0F172A",
   },
   categoryPillsWrapper: {
     backgroundColor: "#FFFFFF",
-    paddingBottom: 12,
+    paddingBottom: scale(10),
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
   },
   categoryPillsContainer: {
-    paddingHorizontal: 20,
-    gap: 8,
+    paddingHorizontal: scale(20),
+    gap: scale(8),
   },
   categoryPill: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: scale(14),
+    paddingVertical: scale(6),
+    borderRadius: moderateScale(20),
     backgroundColor: "#F1F5F9",
   },
   categoryPillActive: {
     backgroundColor: "#0052CC",
   },
   categoryPillText: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     fontWeight: "600",
     color: "#64748B",
   },
@@ -665,120 +695,120 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadingText: {
-    marginTop: 10,
-    fontSize: 13,
+    marginTop: scale(10),
+    fontSize: scaledFont(12),
     color: "#64748B",
   },
   listContent: {
-    padding: 20,
-    paddingBottom: 110,
+    padding: scale(18),
+    paddingBottom: scale(110),
   },
   jobCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 14,
+    borderRadius: moderateScale(16),
+    padding: scale(15),
+    marginBottom: scale(14),
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    shadowColor: "#000",
+    elevation: 2,
+    shadowColor: "#0F172A",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 5,
-    elevation: 2,
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: scale(8),
   },
   badgeRow: {
     flexDirection: "row",
-    gap: 6,
+    gap: scale(6),
   },
   categoryBadge: {
     backgroundColor: "#EFF6FF",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(3),
+    borderRadius: moderateScale(6),
   },
   categoryBadgeText: {
-    fontSize: 11,
+    fontSize: scaledFont(10),
     fontWeight: "700",
     color: "#0052CC",
   },
   urgencyBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(3),
+    borderRadius: moderateScale(6),
   },
   urgencyBadgeText: {
-    fontSize: 11,
+    fontSize: scaledFont(10),
     fontWeight: "700",
   },
   budgetAmount: {
-    fontSize: 15,
+    fontSize: scaledFont(14),
     fontWeight: "800",
     color: "#0F172A",
   },
   jobTitle: {
-    fontSize: 15,
+    fontSize: scaledFont(15),
     fontWeight: "700",
     color: "#0F172A",
-    lineHeight: 20,
+    lineHeight: scaledFont(20),
   },
   jobDescription: {
-    fontSize: 13,
+    fontSize: scaledFont(12),
     color: "#64748B",
-    marginTop: 4,
-    lineHeight: 18,
+    marginTop: scale(4),
+    lineHeight: scale(17),
   },
   metaDivider: {
     height: 1,
     backgroundColor: "#F1F5F9",
-    marginVertical: 10,
+    marginVertical: scale(10),
   },
   metaRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 6,
+    marginBottom: scale(6),
   },
   metaItem: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
+    gap: scale(5),
   },
   metaText: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     color: "#475569",
   },
   cardActions: {
     flexDirection: "row",
-    gap: 8,
-    marginTop: 12,
+    gap: scale(8),
+    marginTop: scale(10),
   },
   chatBtn: {
     flex: 1,
-    height: 38,
-    borderRadius: 8,
+    height: scale(38),
+    borderRadius: moderateScale(8),
     borderWidth: 1,
     borderColor: "#BFDBFE",
     backgroundColor: "#EFF6FF",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 5,
+    gap: scale(5),
   },
   chatBtnText: {
-    fontSize: 13,
+    fontSize: scaledFont(12),
     fontWeight: "700",
     color: "#0052CC",
   },
   detailsBtn: {
     flex: 1,
-    height: 38,
-    borderRadius: 8,
+    height: scale(38),
+    borderRadius: moderateScale(8),
     borderWidth: 1,
     borderColor: "#CBD5E1",
     alignItems: "center",
@@ -786,42 +816,43 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
   },
   detailsBtnText: {
-    fontSize: 13,
+    fontSize: scaledFont(12),
     fontWeight: "700",
     color: "#334155",
   },
   quoteBtn: {
-    flex: 1.3,
-    height: 38,
-    borderRadius: 8,
+    flex: 1.4,
+    height: scale(38),
+    borderRadius: moderateScale(8),
     backgroundColor: "#0052CC",
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 5,
+    gap: scale(5),
   },
   quoteBtnText: {
-    fontSize: 13,
+    fontSize: scaledFont(12),
     fontWeight: "700",
     color: "#FFFFFF",
   },
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 70,
-    paddingHorizontal: 20,
+    marginTop: scale(60),
+    paddingHorizontal: scale(20),
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: scaledFont(15),
     fontWeight: "700",
     color: "#334155",
-    marginTop: 12,
+    marginTop: scale(12),
   },
   emptySubtitle: {
-    fontSize: 13,
+    fontSize: scaledFont(12),
     color: "#94A3B8",
     textAlign: "center",
-    marginTop: 4,
+    marginTop: scale(4),
+    lineHeight: scale(16),
   },
   modalOverlay: {
     flex: 1,
@@ -830,61 +861,63 @@ const styles = StyleSheet.create({
   },
   modalContent: {
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 36,
+    borderTopLeftRadius: moderateScale(24),
+    borderTopRightRadius: moderateScale(24),
+    paddingHorizontal: scale(20),
+    paddingTop: scale(18),
+    paddingBottom: scale(36),
   },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "flex-start",
-    marginBottom: 16,
+    marginBottom: scale(14),
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: scaledFont(17),
     fontWeight: "800",
     color: "#0F172A",
   },
   modalSub: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     color: "#64748B",
-    marginTop: 2,
-    maxWidth: 260,
+    marginTop: scale(2),
+    maxWidth: scale(260),
   },
   closeModalBtn: {
-    padding: 4,
+    padding: scale(4),
   },
   modalLabel: {
-    fontSize: 13,
+    fontSize: scaledFont(11),
     fontWeight: "700",
     color: "#1E293B",
-    marginTop: 12,
-    marginBottom: 6,
+    marginTop: scale(10),
+    marginBottom: scale(6),
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   modalInput: {
-    height: 46,
+    height: scale(44),
     borderWidth: 1,
     borderColor: "#CBD5E1",
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    fontSize: 14,
+    borderRadius: moderateScale(8),
+    paddingHorizontal: scale(12),
+    fontSize: scaledFont(13),
     color: "#0F172A",
     backgroundColor: "#F8FAFC",
   },
   modalTextArea: {
-    height: 70,
-    paddingTop: 10,
+    height: scale(65),
+    paddingTop: scale(8),
   },
   durationRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: scale(8),
   },
   durationChip: {
     flex: 1,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: scale(8),
+    borderRadius: moderateScale(8),
     borderWidth: 1,
     borderColor: "#CBD5E1",
     alignItems: "center",
@@ -895,7 +928,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#EFF6FF",
   },
   durationText: {
-    fontSize: 11,
+    fontSize: scaledFont(10),
     fontWeight: "600",
     color: "#64748B",
   },
@@ -908,10 +941,10 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
     borderWidth: 1.5,
     borderColor: "#E2E8F0",
-    borderRadius: 12,
-    padding: 12,
-    marginTop: 14,
-    gap: 10,
+    borderRadius: moderateScale(12),
+    padding: scale(10),
+    marginTop: scale(12),
+    gap: scale(10),
   },
   boostBoxActive: {
     borderColor: "#0052CC",
@@ -926,32 +959,32 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   boostTitle: {
-    fontSize: 13,
+    fontSize: scaledFont(12),
     fontWeight: "700",
     color: "#0F172A",
   },
   boostBadge: {
-    fontSize: 11,
+    fontSize: scaledFont(10),
     fontWeight: "800",
     color: "#0052CC",
   },
   boostSubtitle: {
-    fontSize: 11,
+    fontSize: scaledFont(10),
     color: "#64748B",
-    marginTop: 2,
-    lineHeight: 15,
+    marginTop: scale(2),
+    lineHeight: scaledFont(14),
   },
   deductionSummary: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: scale(6),
     backgroundColor: "#F1F5F9",
-    padding: 10,
-    borderRadius: 8,
-    marginTop: 12,
+    padding: scale(10),
+    borderRadius: moderateScale(8),
+    marginTop: scale(12),
   },
   deductionText: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     color: "#64748B",
     flex: 1,
   },
@@ -960,19 +993,19 @@ const styles = StyleSheet.create({
     color: "#0F172A",
   },
   sendBidBtn: {
-    height: 48,
+    height: scale(46),
     backgroundColor: "#0052CC",
-    borderRadius: 24,
+    borderRadius: moderateScale(23),
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 18,
+    marginTop: scale(16),
   },
   sendBidBtnDisabled: {
     backgroundColor: "#94A3B8",
   },
   sendBidBtnText: {
     color: "#FFFFFF",
-    fontSize: 15,
+    fontSize: scaledFont(14),
     fontWeight: "700",
   },
 });

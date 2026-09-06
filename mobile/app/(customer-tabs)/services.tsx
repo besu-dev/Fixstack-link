@@ -1,18 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   Image,
   StyleSheet,
   StatusBar,
   ImageSourcePropType,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
+import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 interface ServiceItem {
   id: string;
@@ -72,7 +73,9 @@ const CATEGORIES: ServiceCategory[] = [
       {
         id: "e1",
         name: "House Wiring",
-        image: require("../../assets/images/House-Wiring.jpg"),
+        image: {
+          uri: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=400",
+        },
       },
       {
         id: "e2",
@@ -106,22 +109,30 @@ const CATEGORIES: ServiceCategory[] = [
       {
         id: "a1",
         name: "Washing Machine",
-        image: require("../../assets/images/washing-machine.jpg"),
+        image: {
+          uri: "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?auto=format&fit=crop&q=80&w=400",
+        },
       },
       {
         id: "a2",
         name: "Refrigerator",
-        image: require("../../assets/images/Refrigerator.jpg"),
+        image: {
+          uri: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?auto=format&fit=crop&q=80&w=400",
+        },
       },
       {
         id: "a3",
         name: "TV & Satellite",
-        image: require("../../assets/images/TV-Satellite.jpg"),
+        image: {
+          uri: "https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&q=80&w=400",
+        },
       },
       {
         id: "a4",
         name: "Electric Stove",
-        image: require("../../assets/images/Electric-Stove.jpg"),
+        image: {
+          uri: "https://images.unsplash.com/photo-1588854337236-6889d631faa8?auto=format&fit=crop&q=80&w=400",
+        },
       },
     ],
   },
@@ -134,22 +145,30 @@ const CATEGORIES: ServiceCategory[] = [
       {
         id: "c1",
         name: "Compound Gate",
-        image: require("../../assets/images/gate.jpg"),
+        image: {
+          uri: "https://images.unsplash.com/photo-1533750349088-cd871a92f312?auto=format&fit=crop&q=80&w=400",
+        },
       },
       {
         id: "c2",
         name: "Lock & Key",
-        image: require("../../assets/images/Lock-Key.jpg"),
+        image: {
+          uri: "https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&q=80&w=400",
+        },
       },
       {
         id: "c3",
         name: "Furniture",
-        image: require("../../assets/images/Furniture.jpg"),
+        image: {
+          uri: "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&q=80&w=400",
+        },
       },
       {
         id: "c4",
         name: "Roof Sheet",
-        image: require("../../assets/images/Roof-Sheet.jpg"),
+        image: {
+          uri: "https://images.unsplash.com/photo-1632759145351-1d592919f522?auto=format&fit=crop&q=80&w=400",
+        },
       },
     ],
   },
@@ -162,12 +181,16 @@ const CATEGORIES: ServiceCategory[] = [
       {
         id: "h1",
         name: "Wall Painting",
-        image: require("../../assets/images/painting.jpg"),
+        image: {
+          uri: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&q=80&w=400",
+        },
       },
       {
         id: "h2",
         name: "Tile Repair",
-        image: require("../../assets/images/tile.jpg"),
+        image: {
+          uri: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=400",
+        },
       },
       {
         id: "h3",
@@ -179,7 +202,9 @@ const CATEGORIES: ServiceCategory[] = [
       {
         id: "h4",
         name: "Moving & Loading",
-        image: require("../../assets/images/Moving-Loading.jpg"),
+        image: {
+          uri: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=400",
+        },
       },
     ],
   },
@@ -187,43 +212,55 @@ const CATEGORIES: ServiceCategory[] = [
 
 export default function ServicesScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ category?: string }>();
   const [search, setSearch] = useState("");
+
+  useEffect(() => {
+    if (params?.category) {
+      setSearch(params.category);
+    }
+  }, [params?.category]);
 
   const handleSelect = (name: string) => {
     router.push({
-      pathname: "../screen/service-providers",
+      pathname: "/screen/service-providers",
       params: { category: name },
     } as any);
   };
 
   const filteredCategories = CATEGORIES.map((cat) => ({
     ...cat,
-    items: cat.items.filter((item) =>
-      item.name.toLowerCase().includes(search.toLowerCase()),
+    items: cat.items.filter(
+      (item) =>
+        item.name.toLowerCase().includes(search.toLowerCase()) ||
+        cat.title.toLowerCase().includes(search.toLowerCase()),
     ),
   })).filter((cat) => cat.items.length > 0);
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Services</Text>
+        <Text style={styles.headerTitle}>Services Catalog</Text>
+        <Text style={styles.headerSub}>
+          Select a repair specialty to request bids
+        </Text>
       </View>
 
-    
+      {/* Search Input Bar */}
       <View style={styles.searchWrapper}>
         <View style={styles.searchBar}>
           <Feather
             name="search"
-            size={18}
+            size={moderateScale(18)}
             color="#94A3B8"
             style={styles.searchIcon}
           />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search service, e.g. Pump, Wiring..."
+            placeholder="Search service, e.g. Pump, Wiring, Gate..."
             placeholderTextColor="#94A3B8"
             value={search}
             onChangeText={setSearch}
@@ -233,7 +270,7 @@ export default function ServicesScreen() {
               onPress={() => setSearch("")}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Feather name="x" size={18} color="#94A3B8" />
+              <Feather name="x" size={moderateScale(18)} color="#94A3B8" />
             </TouchableOpacity>
           )}
         </View>
@@ -251,7 +288,7 @@ export default function ServicesScreen() {
                 <Text style={styles.sectionTitle}>{section.title}</Text>
               </View>
 
-              {/* Large Section Work Banner */}
+              {/* Work Category Banner */}
               <View style={styles.bannerContainer}>
                 <Image
                   source={section.bannerImage}
@@ -263,7 +300,7 @@ export default function ServicesScreen() {
                 </View>
               </View>
 
-              {/* Individual Service Photo Cards */}
+              {/* Horizontal Scroll Service Cards */}
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -290,10 +327,10 @@ export default function ServicesScreen() {
           ))
         ) : (
           <View style={styles.emptyContainer}>
-            <Feather name="search" size={40} color="#CBD5E1" />
-            <Text style={styles.emptyTitle}>No matching services</Text>
+            <Feather name="search" size={moderateScale(38)} color="#CBD5E1" />
+            <Text style={styles.emptyTitle}>No matching services found</Text>
             <Text style={styles.emptySubtitle}>
-              Try searching with another keyword.
+              {`Try searching for another keyword like "Pipe", "Solar", or "Gate"`}
             </Text>
           </View>
         )}
@@ -308,19 +345,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
   },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 8,
+    paddingHorizontal: scale(20),
+    paddingTop: scale(4),
+    paddingBottom: scale(6),
     backgroundColor: "#FFFFFF",
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: scaledFont(22),
     fontWeight: "800",
     color: "#0052CC",
   },
+  headerSub: {
+    fontSize: scaledFont(12),
+    color: "#64748B",
+    marginTop: scale(2),
+  },
   searchWrapper: {
-    paddingHorizontal: 20,
-    paddingBottom: 12,
+    paddingHorizontal: scale(20),
+    paddingVertical: scale(8),
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
@@ -329,41 +371,41 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#F1F5F9",
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    height: 44,
+    borderRadius: moderateScale(12),
+    paddingHorizontal: scale(12),
+    height: scale(42),
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: scale(8),
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
+    fontSize: scaledFont(13),
     color: "#0F172A",
   },
   scrollContent: {
-    paddingTop: 16,
-    paddingBottom: 110,
+    paddingTop: scale(14),
+    paddingBottom: scale(110),
   },
   section: {
-    marginBottom: 24,
+    marginBottom: scale(22),
   },
   sectionHeaderRow: {
-    paddingHorizontal: 20,
-    marginBottom: 8,
+    paddingHorizontal: scale(20),
+    marginBottom: scale(8),
   },
   sectionTitle: {
-    fontSize: 16,
+    fontSize: scaledFont(15),
     fontWeight: "800",
     color: "#1E293B",
   },
   bannerContainer: {
-    marginHorizontal: 20,
-    height: 120,
-    borderRadius: 14,
+    marginHorizontal: scale(20),
+    height: scale(115),
+    borderRadius: moderateScale(14),
     overflow: "hidden",
     position: "relative",
-    marginBottom: 12,
+    marginBottom: scale(12),
   },
   bannerImage: {
     width: "100%",
@@ -376,34 +418,34 @@ const styles = StyleSheet.create({
   },
   bannerTag: {
     position: "absolute",
-    bottom: 10,
-    left: 10,
+    bottom: scale(10),
+    left: scale(10),
     backgroundColor: "rgba(255, 255, 255, 0.95)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 20,
+    paddingHorizontal: scale(10),
+    paddingVertical: scale(4),
+    borderRadius: moderateScale(20),
   },
   bannerTagText: {
-    fontSize: 11,
+    fontSize: scaledFont(10),
     fontWeight: "700",
     color: "#0052CC",
   },
   row: {
-    paddingLeft: 20,
-    paddingRight: 8,
-    gap: 12,
+    paddingLeft: scale(20),
+    paddingRight: scale(8),
+    gap: scale(12),
   },
   card: {
-    width: 120,
-    height: 120,
-    borderRadius: 14,
+    width: scale(115),
+    height: scale(115),
+    borderRadius: moderateScale(14),
     overflow: "hidden",
     position: "relative",
     backgroundColor: "#E2E8F0",
-    elevation: 3,
-    shadowColor: "#000",
+    elevation: 2,
+    shadowColor: "#0F172A",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
+    shadowOpacity: 0.1,
     shadowRadius: 4,
   },
   cardImage: {
@@ -417,12 +459,12 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     position: "absolute",
-    bottom: 8,
-    left: 8,
-    right: 8,
+    bottom: scale(8),
+    left: scale(8),
+    right: scale(8),
   },
   cardTitle: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     fontWeight: "700",
     color: "#FFFFFF",
     textShadowColor: "rgba(0, 0, 0, 0.6)",
@@ -432,18 +474,19 @@ const styles = StyleSheet.create({
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 60,
-    paddingHorizontal: 20,
+    marginTop: scale(50),
+    paddingHorizontal: scale(20),
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: scaledFont(15),
     fontWeight: "700",
     color: "#334155",
-    marginTop: 12,
+    marginTop: scale(12),
   },
   emptySubtitle: {
-    fontSize: 13,
+    fontSize: scaledFont(12),
     color: "#94A3B8",
-    marginTop: 4,
+    marginTop: scale(4),
+    textAlign: "center",
   },
 });

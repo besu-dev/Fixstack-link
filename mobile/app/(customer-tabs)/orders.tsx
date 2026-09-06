@@ -4,18 +4,21 @@ import {
   Text,
   FlatList,
   TouchableOpacity,
-  SafeAreaView,
   StyleSheet,
   StatusBar,
   Modal,
   ActivityIndicator,
-  Alert,
   RefreshControl,
   ScrollView,
+  TextInput,
 } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Feather, FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import apiClient from "../../src/api/client";
+import { Alert } from "../../src/context/AlertContext";
+import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
+import { OrderCard } from "../../components/customer/OrderCard";
 
 interface ProviderDetails {
   _id: string;
@@ -49,6 +52,8 @@ interface CustomerJob {
   status: "open" | "assigned" | "completed" | "cancelled";
   createdAt: string;
   assignedProvider?: ProviderDetails;
+  rating?: number;
+  review?: string;
 }
 
 export default function CustomerOrdersScreen() {
@@ -67,10 +72,17 @@ export default function CustomerOrdersScreen() {
   const [loadingBids, setLoadingBids] = useState(false);
   const [acceptingBidId, setAcceptingBidId] = useState<string | null>(null);
 
+  // Rating & Review Modal State
+  const [reviewModalVisible, setReviewModalVisible] = useState(false);
+  const [ratingJob, setRatingJob] = useState<CustomerJob | null>(null);
+  const [starCount, setStarCount] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [submittingReview, setSubmittingReview] = useState(false);
+
   const fetchMyJobs = useCallback(async () => {
     try {
       const res = await apiClient.get("/jobs/my-jobs");
-      setJobs(res.data);
+      setJobs(Array.isArray(res.data) ? res.data : []);
     } catch (err: any) {
       console.error("Failed to fetch customer orders:", err.message);
     } finally {
@@ -89,14 +101,13 @@ export default function CustomerOrdersScreen() {
   };
 
   // Open proposals review sheet
-  const handleOpenProposals = async (job: CustomerJob) => {
+  const handleOpenProposals = async (job: any) => {
     setSelectedJob(job);
     setBidsModalVisible(true);
     setLoadingBids(true);
     try {
-      // Backend automatically delivers boosted proposals first (.sort({ isBoosted: -1, createdAt: 1 }))
       const res = await apiClient.get(`/bids/job/${job._id}`);
-      setJobBids(res.data);
+      setJobBids(Array.isArray(res.data) ? res.data : []);
     } catch (err: any) {
       Alert.alert(
         "Error",
@@ -159,23 +170,96 @@ export default function CustomerOrdersScreen() {
     );
   };
 
+  // Prompt Complete Job
+  const handlePromptComplete = (job: any) => {
+    Alert.alert(
+      "Mark Job as Completed?",
+      `Has ${job.assignedProvider?.fullName || "the technician"} finished all requested repairs to your satisfaction?`,
+      [
+        { text: "Not Yet", style: "cancel" },
+        {
+          text: "Yes, Completed",
+          style: "default",
+          onPress: async () => {
+            try {
+              await apiClient.patch(`/jobs/${job._id}/complete`);
+              setRatingJob(job);
+              setStarCount(5);
+              setReviewComment("");
+              setReviewModalVisible(true);
+              fetchMyJobs();
+            } catch (err: any) {
+              Alert.alert(
+                "Action Failed",
+                err.response?.data?.message || "Could not complete order.",
+              );
+            }
+          },
+        },
+      ],
+    );
+  };
+
+  // Submit Rating & Feedback
+  const handleSubmitReview = async () => {
+    if (!ratingJob) return;
+
+    setSubmittingReview(true);
+    try {
+      await apiClient.post(`/jobs/${ratingJob._id}/rate-review`, {
+        rating: starCount,
+        review: reviewComment.trim(),
+        providerId: ratingJob.assignedProvider?._id,
+      });
+
+      setReviewModalVisible(false);
+      setRatingJob(null);
+      Alert.alert("Thank You! 🌟", "Your rating and feedback have been saved.");
+      fetchMyJobs();
+    } catch (err: any) {
+      Alert.alert(
+        "Failed to Submit",
+        err.response?.data?.message || "Could not save review.",
+      );
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  // Helper to determine whether an order has been reviewed
+  const isJobReviewed = (job: CustomerJob) => {
+    return Boolean(
+      job.rating ||
+      (typeof job.review === "object" && job.review ? (job.review as any).rating : null) ||
+      (job as any).reviewDetails ||
+      (job as any).isReviewed
+    );
+  };
+
   // Filter Active vs Completed
   const filteredJobs = jobs.filter((job) => {
     if (activeTab === "active") {
-      return job.status === "open" || job.status === "assigned";
+      // In Active Requests: Allow customers to rate and review a service after it is completed!
+      // Keep open, assigned, and completed jobs awaiting review in Active Requests
+      return (
+        job.status === "open" ||
+        job.status === "assigned" ||
+        (job.status === "completed" && !isJobReviewed(job))
+      );
     }
+    // In History & Completed: Show all completed and cancelled jobs
     return job.status === "completed" || job.status === "cancelled";
   });
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* Screen Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>My Orders</Text>
         <Text style={styles.headerSubtitle}>
-          Manage your maintenance requests and quotes
+          Manage your maintenance requests, active jobs, and ratings
         </Text>
       </View>
 
@@ -229,103 +313,41 @@ export default function CustomerOrdersScreen() {
               colors={["#0052CC"]}
             />
           }
-          renderItem={({ item }) => {
-            const isAssigned = item.status === "assigned";
-
-            return (
-              <View style={styles.orderCard}>
-                <View style={styles.orderCardHeader}>
-                  <View style={styles.pillRow}>
-                    <View style={styles.categoryPill}>
-                      <Text style={styles.categoryPillText}>
-                        {item.category}
-                      </Text>
-                    </View>
-                    <View
-                      style={[
-                        styles.statusPill,
-                        isAssigned ? styles.statusAssigned : styles.statusOpen,
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.statusText,
-                          isAssigned
-                            ? styles.statusTextAssigned
-                            : styles.statusTextOpen,
-                        ]}
-                      >
-                        {item.status.toUpperCase()}
-                      </Text>
-                    </View>
-                  </View>
-                  <Text style={styles.budgetAmount}>{item.budget} ETB</Text>
-                </View>
-
-                <Text style={styles.jobTitle}>{item.title}</Text>
-                <Text style={styles.jobDescription} numberOfLines={2}>
-                  {item.description}
-                </Text>
-
-                <View style={styles.locationRow}>
-                  <Feather name="map-pin" size={12} color="#64748B" />
-                  <Text style={styles.locationText}>{item.subcity}</Text>
-                </View>
-
-                <View style={styles.cardFooter}>
-                  {isAssigned && item.assignedProvider ? (
-                    <View style={styles.assignedContainer}>
-                      <View style={styles.providerInfo}>
-                        <Feather name="tool" size={14} color="#0052CC" />
-                        <Text style={styles.assignedProName}>
-                          {item.assignedProvider.fullName}
-                        </Text>
-                      </View>
-                      <TouchableOpacity
-                        style={styles.chatProBtn}
-                        onPress={() =>
-                          router.push({
-                            pathname: "/(customer-tabs)/message",
-                            params: {
-                              jobId: item._id,
-                              recipientName: item.assignedProvider?.fullName,
-                              receiverId: item.assignedProvider?._id,
-                              recipientPhone: item.assignedProvider?.phone,
-                            },
-                          })
-                        }
-                      >
-                        <Feather
-                          name="message-square"
-                          size={13}
-                          color="#FFFFFF"
-                        />
-                        <Text style={styles.chatProBtnText}>Chat Pro</Text>
-                      </TouchableOpacity>
-                    </View>
-                  ) : (
-                    <TouchableOpacity
-                      style={styles.viewQuotesBtn}
-                      onPress={() => handleOpenProposals(item)}
-                      activeOpacity={0.85}
-                    >
-                      <Feather name="file-text" size={14} color="#0052CC" />
-                      <Text style={styles.viewQuotesBtnText}>
-                        View Quotes & Proposals
-                      </Text>
-                      <Feather name="chevron-right" size={16} color="#0052CC" />
-                    </TouchableOpacity>
-                  )}
-                </View>
-              </View>
-            );
-          }}
+          renderItem={({ item }) => (
+            <OrderCard
+              job={item as any}
+              onViewQuotes={handleOpenProposals}
+              onChat={(job) => {
+                if (!job.assignedProvider) return;
+                router.push({
+                  pathname: "/(customer-tabs)/message",
+                  params: {
+                    jobId: job._id,
+                    recipientName: job.assignedProvider.fullName,
+                    receiverId: job.assignedProvider._id,
+                    recipientPhone: job.assignedProvider.phone,
+                  },
+                });
+              }}
+              onComplete={handlePromptComplete}
+              onRate={(job) => {
+                setRatingJob(job as any);
+                setStarCount(5);
+                setReviewComment("");
+                setReviewModalVisible(true);
+              }}
+            />
+          )}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Feather name="clipboard" size={44} color="#CBD5E1" />
-              <Text style={styles.emptyTitle}>No orders in this category</Text>
+              <Feather
+                name="clipboard"
+                size={moderateScale(44)}
+                color="#CBD5E1"
+              />
+              <Text style={styles.emptyTitle}>No orders in this tab</Text>
               <Text style={styles.emptySubtitle}>
-                Jobs you publish from the Post tab will appear here.
+                Published jobs and past repairs will show up here.
               </Text>
             </View>
           }
@@ -352,7 +374,7 @@ export default function CustomerOrdersScreen() {
                 onPress={() => setBidsModalVisible(false)}
                 style={styles.closeBtn}
               >
-                <Feather name="x" size={20} color="#64748B" />
+                <Feather name="x" size={moderateScale(20)} color="#64748B" />
               </TouchableOpacity>
             </View>
 
@@ -363,7 +385,11 @@ export default function CustomerOrdersScreen() {
               </View>
             ) : jobBids.length === 0 ? (
               <View style={styles.emptyModalBox}>
-                <Feather name="users" size={38} color="#CBD5E1" />
+                <Feather
+                  name="users"
+                  size={moderateScale(38)}
+                  color="#CBD5E1"
+                />
                 <Text style={styles.emptyTitle}>No Quotes Yet</Text>
                 <Text style={styles.emptySubtitle}>
                   Certified technicians are reviewing your job request.
@@ -386,10 +412,13 @@ export default function CustomerOrdersScreen() {
                         bid.isBoosted && styles.bidCardBoosted,
                       ]}
                     >
-                      {/* Priority Boost Banner */}
                       {bid.isBoosted && (
                         <View style={styles.boostedTag}>
-                          <Feather name="zap" size={11} color="#FFFFFF" />
+                          <Feather
+                            name="zap"
+                            size={moderateScale(11)}
+                            color="#FFFFFF"
+                          />
                           <Text style={styles.boostedTagText}>
                             TOP SPONSORED PROPOSAL
                           </Text>
@@ -399,7 +428,11 @@ export default function CustomerOrdersScreen() {
                       <View style={styles.bidHeader}>
                         <View style={styles.providerDetails}>
                           <View style={styles.avatar}>
-                            <Feather name="tool" size={18} color="#0052CC" />
+                            <Feather
+                              name="tool"
+                              size={moderateScale(18)}
+                              color="#0052CC"
+                            />
                           </View>
                           <View>
                             <View style={styles.nameRow}>
@@ -409,7 +442,7 @@ export default function CustomerOrdersScreen() {
                               {bid.provider.isVerified && (
                                 <Feather
                                   name="check-circle"
-                                  size={13}
+                                  size={moderateScale(13)}
                                   color="#16A34A"
                                 />
                               )}
@@ -433,7 +466,6 @@ export default function CustomerOrdersScreen() {
                         <Text style={styles.bidNote}>"{bid.note}"</Text>
                       ) : null}
 
-                      {/* Card Action Buttons */}
                       <View style={styles.bidActions}>
                         <TouchableOpacity
                           style={styles.chatActionBtn}
@@ -452,7 +484,7 @@ export default function CustomerOrdersScreen() {
                         >
                           <Feather
                             name="message-circle"
-                            size={15}
+                            size={moderateScale(15)}
                             color="#0052CC"
                           />
                           <Text style={styles.chatActionText}>Chat</Text>
@@ -483,45 +515,140 @@ export default function CustomerOrdersScreen() {
           </View>
         </View>
       </Modal>
+
+      {/* Rating & Feedback Bottom Sheet Modal */}
+      <Modal
+        visible={reviewModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setReviewModalVisible(false)}
+      >
+        <View style={styles.modalBackdrop}>
+          <View style={styles.modalSheet}>
+            <View style={styles.modalHeader}>
+              <View>
+                <Text style={styles.modalTitle}>Rate Your Experience</Text>
+                <Text style={styles.modalSubtitle} numberOfLines={1}>
+                  {ratingJob?.assignedProvider?.fullName || "Technician"} •{" "}
+                  {ratingJob?.title}
+                </Text>
+              </View>
+              <TouchableOpacity
+                onPress={() => setReviewModalVisible(false)}
+                style={styles.closeBtn}
+              >
+                <Feather name="x" size={moderateScale(20)} color="#64748B" />
+              </TouchableOpacity>
+            </View>
+
+            {/* Star Selector */}
+            <View style={styles.starSelectionRow}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <TouchableOpacity
+                  key={star}
+                  onPress={() => setStarCount(star)}
+                  activeOpacity={0.7}
+                  style={styles.starTouchArea}
+                >
+                  <FontAwesome
+                    name={star <= starCount ? "star" : "star-o"}
+                    size={moderateScale(32)}
+                    color={star <= starCount ? "#F59E0B" : "#CBD5E1"}
+                  />
+                </TouchableOpacity>
+              ))}
+            </View>
+            <Text style={styles.starRatingNotice}>
+              {starCount === 5
+                ? "Excellent service!"
+                : starCount === 4
+                  ? "Good work!"
+                  : starCount === 3
+                    ? "Average repair"
+                    : "Needs improvement"}
+            </Text>
+
+            {/* Feedback Input */}
+            <Text style={styles.reviewLabel}>Leave a Review (Optional)</Text>
+            <TextInput
+              style={styles.reviewInput}
+              placeholder="Was the provider punctual, polite, and thorough?"
+              placeholderTextColor="#94A3B8"
+              multiline
+              numberOfLines={3}
+              value={reviewComment}
+              onChangeText={setReviewComment}
+              textAlignVertical="top"
+            />
+
+            {/* Submit Button */}
+            <TouchableOpacity
+              style={[
+                styles.submitReviewBtn,
+                submittingReview && styles.btnDisabled,
+              ]}
+              onPress={handleSubmitReview}
+              disabled={submittingReview}
+              activeOpacity={0.85}
+            >
+              {submittingReview ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Text style={styles.submitReviewBtnText}>
+                  Submit Rating & Review
+                </Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#F8FAFC" },
+  safeArea: { flex: 1, backgroundColor: "#FFFFFF" },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 12,
+    paddingHorizontal: scale(20),
+    paddingTop: scale(8),
+    paddingBottom: scale(10),
     backgroundColor: "#FFFFFF",
   },
-  headerTitle: { fontSize: 22, fontWeight: "800", color: "#0F172A" },
-  headerSubtitle: { fontSize: 12, color: "#64748B", marginTop: 2 },
+  headerTitle: {
+    fontSize: scaledFont(20),
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  headerSubtitle: {
+    fontSize: scaledFont(11),
+    color: "#64748B",
+    marginTop: scale(2),
+  },
   tabBar: {
     flexDirection: "row",
     backgroundColor: "#FFFFFF",
-    paddingHorizontal: 20,
-    paddingBottom: 10,
+    paddingHorizontal: scale(20),
+    paddingBottom: scale(10),
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
-    gap: 8,
+    gap: scale(8),
   },
   tabBtn: {
     flex: 1,
-    paddingVertical: 9,
+    paddingVertical: scale(8),
     alignItems: "center",
-    borderRadius: 8,
+    borderRadius: moderateScale(8),
     backgroundColor: "#F1F5F9",
   },
   tabBtnActive: { backgroundColor: "#0052CC" },
-  tabText: { fontSize: 13, fontWeight: "700", color: "#64748B" },
+  tabText: { fontSize: scaledFont(12), fontWeight: "700", color: "#64748B" },
   tabTextActive: { color: "#FFFFFF" },
-  listContent: { padding: 16, paddingBottom: 100 },
+  listContent: { padding: scale(16), paddingBottom: scale(110) },
   orderCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 12,
+    borderRadius: moderateScale(14),
+    padding: scale(15),
+    marginBottom: scale(12),
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
@@ -529,93 +656,175 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 10,
+    marginBottom: scale(8),
   },
-  pillRow: { flexDirection: "row", gap: 6 },
+  pillRow: { flexDirection: "row", gap: scale(6) },
   categoryPill: {
     backgroundColor: "#F1F5F9",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(3),
+    borderRadius: moderateScale(6),
   },
-  categoryPillText: { fontSize: 11, fontWeight: "700", color: "#475569" },
-  statusPill: { paddingHorizontal: 8, paddingVertical: 3, borderRadius: 6 },
+  categoryPillText: {
+    fontSize: scaledFont(11),
+    fontWeight: "700",
+    color: "#475569",
+  },
+  statusPill: {
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(3),
+    borderRadius: moderateScale(6),
+  },
   statusOpen: { backgroundColor: "#EFF6FF" },
-  statusAssigned: { backgroundColor: "#DCFCE7" },
-  statusText: { fontSize: 10, fontWeight: "800" },
+  statusAssigned: { backgroundColor: "#FEF3C7" },
+  statusCompleted: { backgroundColor: "#DCFCE7" },
+  statusText: { fontSize: scaledFont(10), fontWeight: "800" },
   statusTextOpen: { color: "#0052CC" },
-  statusTextAssigned: { color: "#16A34A" },
-  budgetAmount: { fontSize: 15, fontWeight: "800", color: "#0F172A" },
+  statusTextAssigned: { color: "#D97706" },
+  statusTextCompleted: { color: "#16A34A" },
+  budgetAmount: {
+    fontSize: scaledFont(15),
+    fontWeight: "800",
+    color: "#0F172A",
+  },
   jobTitle: {
-    fontSize: 16,
+    fontSize: scaledFont(15),
     fontWeight: "700",
     color: "#0F172A",
-    marginBottom: 6,
+    marginBottom: scale(4),
   },
   jobDescription: {
-    fontSize: 13,
+    fontSize: scaledFont(12),
     color: "#64748B",
-    lineHeight: 18,
-    marginBottom: 10,
+    lineHeight: scale(17),
+    marginBottom: scale(10),
   },
   locationRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
-    marginBottom: 12,
+    gap: scale(5),
+    marginBottom: scale(12),
   },
-  locationText: { fontSize: 12, color: "#64748B" },
-  cardFooter: { borderTopWidth: 1, borderTopColor: "#F1F5F9", paddingTop: 10 },
+  locationText: { fontSize: scaledFont(11), color: "#64748B" },
+  cardFooter: {
+    borderTopWidth: 1,
+    borderTopColor: "#F1F5F9",
+    paddingTop: scale(10),
+  },
   viewQuotesBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
     backgroundColor: "#EFF6FF",
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 8,
+    paddingVertical: scale(9),
+    paddingHorizontal: scale(12),
+    borderRadius: moderateScale(8),
   },
-  viewQuotesBtnText: { fontSize: 13, fontWeight: "700", color: "#0052CC" },
+  viewQuotesBtnText: {
+    fontSize: scaledFont(12),
+    fontWeight: "700",
+    color: "#0052CC",
+  },
   assignedContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  providerInfo: { flexDirection: "row", alignItems: "center", gap: 6 },
-  assignedProName: { fontSize: 13, fontWeight: "700", color: "#0F172A" },
-  chatProBtn: {
+  providerInfo: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    backgroundColor: "#0052CC",
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 8,
+    gap: scale(6),
+    flex: 1,
   },
-  chatProBtnText: { color: "#FFFFFF", fontSize: 12, fontWeight: "700" },
+  assignedProName: {
+    fontSize: scaledFont(13),
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  assignedActionsRow: { flexDirection: "row", gap: scale(8) },
+  chatProBtn: {
+    width: moderateScale(36),
+    height: moderateScale(36),
+    borderRadius: moderateScale(8),
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  completeBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(4),
+    backgroundColor: "#16A34A",
+    paddingHorizontal: scale(12),
+    height: moderateScale(36),
+    borderRadius: moderateScale(8),
+  },
+  completeBtnText: {
+    color: "#FFFFFF",
+    fontSize: scaledFont(12),
+    fontWeight: "700",
+  },
+  completedFooterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  completedNotice: { fontSize: scaledFont(11), color: "#64748B", flex: 1 },
+  ratedBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(4),
+    backgroundColor: "#FEF3C7",
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(4),
+    borderRadius: moderateScale(6),
+  },
+  ratedText: { fontSize: scaledFont(11), fontWeight: "700", color: "#B45309" },
+  rateNowBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(4),
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    paddingHorizontal: scale(10),
+    paddingVertical: scale(5),
+    borderRadius: moderateScale(8),
+  },
+  rateNowText: {
+    fontSize: scaledFont(11),
+    fontWeight: "700",
+    color: "#0052CC",
+  },
   centerContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingVertical: 60,
+    paddingVertical: scale(60),
   },
-  loadingText: { marginTop: 10, fontSize: 13, color: "#64748B" },
+  loadingText: {
+    marginTop: scale(10),
+    fontSize: scaledFont(12),
+    color: "#64748B",
+  },
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
-    paddingTop: 80,
+    paddingTop: scale(80),
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: scaledFont(15),
     fontWeight: "700",
     color: "#334155",
-    marginTop: 12,
+    marginTop: scale(12),
   },
   emptySubtitle: {
-    fontSize: 13,
+    fontSize: scaledFont(12),
     color: "#94A3B8",
     textAlign: "center",
-    marginTop: 4,
+    marginTop: scale(4),
   },
   modalBackdrop: {
     flex: 1,
@@ -624,36 +833,36 @@ const styles = StyleSheet.create({
   },
   modalSheet: {
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    paddingHorizontal: 20,
-    paddingTop: 18,
-    paddingBottom: 36,
+    borderTopLeftRadius: moderateScale(24),
+    borderTopRightRadius: moderateScale(24),
+    paddingHorizontal: scale(20),
+    paddingTop: scale(18),
+    paddingBottom: scale(36),
     maxHeight: "85%",
   },
   modalHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 16,
+    marginBottom: scale(16),
   },
-  modalTitle: { fontSize: 18, fontWeight: "800", color: "#0F172A" },
+  modalTitle: { fontSize: scaledFont(17), fontWeight: "800", color: "#0F172A" },
   modalSubtitle: {
-    fontSize: 12,
+    fontSize: scaledFont(12),
     color: "#64748B",
-    marginTop: 2,
-    maxWidth: 260,
+    marginTop: scale(2),
+    maxWidth: scale(260),
   },
-  closeBtn: { padding: 4 },
-  emptyModalBox: { alignItems: "center", paddingVertical: 40 },
-  proposalsList: { paddingBottom: 20 },
+  closeBtn: { padding: scale(4) },
+  emptyModalBox: { alignItems: "center", paddingVertical: scale(40) },
+  proposalsList: { paddingBottom: scale(20) },
   bidCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 12,
+    borderRadius: moderateScale(12),
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    padding: 14,
-    marginBottom: 12,
+    padding: scale(14),
+    marginBottom: scale(12),
   },
   bidCardBoosted: {
     borderColor: "#0052CC",
@@ -662,67 +871,125 @@ const styles = StyleSheet.create({
   boostedTag: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: scale(4),
     backgroundColor: "#0052CC",
     alignSelf: "flex-start",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 4,
-    marginBottom: 10,
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(3),
+    borderRadius: moderateScale(4),
+    marginBottom: scale(10),
   },
   boostedTagText: {
     color: "#FFFFFF",
-    fontSize: 9,
+    fontSize: scaledFont(9),
     fontWeight: "800",
     letterSpacing: 0.5,
   },
   bidHeader: { flexDirection: "row", justifyContent: "space-between" },
-  providerDetails: { flexDirection: "row", gap: 10 },
+  providerDetails: { flexDirection: "row", gap: scale(10) },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: moderateScale(38),
+    height: moderateScale(38),
+    borderRadius: moderateScale(19),
     backgroundColor: "#EFF6FF",
     alignItems: "center",
     justifyContent: "center",
   },
-  nameRow: { flexDirection: "row", alignItems: "center", gap: 5 },
-  proName: { fontSize: 14, fontWeight: "700", color: "#0F172A" },
-  proMeta: { fontSize: 11, color: "#64748B", marginTop: 2 },
+  nameRow: { flexDirection: "row", alignItems: "center", gap: scale(5) },
+  proName: { fontSize: scaledFont(13), fontWeight: "700", color: "#0F172A" },
+  proMeta: { fontSize: scaledFont(11), color: "#64748B", marginTop: 2 },
   quoteBox: { alignItems: "flex-end" },
-  quotePrice: { fontSize: 16, fontWeight: "800", color: "#0052CC" },
-  quoteDuration: { fontSize: 11, color: "#64748B", marginTop: 1 },
+  quotePrice: { fontSize: scaledFont(15), fontWeight: "800", color: "#0052CC" },
+  quoteDuration: { fontSize: scaledFont(11), color: "#64748B", marginTop: 1 },
   bidNote: {
-    fontSize: 13,
+    fontSize: scaledFont(12),
     color: "#334155",
     fontStyle: "italic",
     backgroundColor: "#F8FAFC",
-    padding: 10,
-    borderRadius: 8,
-    marginVertical: 10,
+    padding: scale(10),
+    borderRadius: moderateScale(8),
+    marginVertical: scale(10),
   },
-  bidActions: { flexDirection: "row", gap: 10, marginTop: 10 },
+  bidActions: { flexDirection: "row", gap: scale(10), marginTop: scale(10) },
   chatActionBtn: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 6,
-    height: 38,
-    borderRadius: 8,
+    gap: scale(6),
+    height: scale(38),
+    borderRadius: moderateScale(8),
     borderWidth: 1,
     borderColor: "#BFDBFE",
     backgroundColor: "#EFF6FF",
   },
-  chatActionText: { fontSize: 13, fontWeight: "700", color: "#0052CC" },
+  chatActionText: {
+    fontSize: scaledFont(12),
+    fontWeight: "700",
+    color: "#0052CC",
+  },
   acceptActionBtn: {
     flex: 1.5,
     alignItems: "center",
     justifyContent: "center",
-    height: 38,
-    borderRadius: 8,
+    height: scale(38),
+    borderRadius: moderateScale(8),
     backgroundColor: "#0052CC",
   },
   acceptActionBtnDisabled: { backgroundColor: "#16A34A" },
-  acceptActionText: { color: "#FFFFFF", fontSize: 13, fontWeight: "700" },
+  acceptActionText: {
+    color: "#FFFFFF",
+    fontSize: scaledFont(12),
+    fontWeight: "700",
+  },
+  starSelectionRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: scale(14),
+    marginTop: scale(10),
+  },
+  starTouchArea: { padding: scale(4) },
+  starRatingNotice: {
+    fontSize: scaledFont(12),
+    fontWeight: "700",
+    color: "#0052CC",
+    textAlign: "center",
+    marginTop: scale(6),
+    marginBottom: scale(14),
+  },
+  reviewLabel: {
+    fontSize: scaledFont(11),
+    fontWeight: "700",
+    color: "#1E293B",
+    marginBottom: scale(6),
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  reviewInput: {
+    height: scale(80),
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    borderRadius: moderateScale(10),
+    paddingHorizontal: scale(12),
+    paddingTop: scale(10),
+    fontSize: scaledFont(13),
+    color: "#0F172A",
+    backgroundColor: "#F8FAFC",
+    marginBottom: scale(20),
+  },
+  submitReviewBtn: {
+    height: scale(46),
+    backgroundColor: "#0052CC",
+    borderRadius: moderateScale(12),
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  submitReviewBtnText: {
+    color: "#FFFFFF",
+    fontSize: scaledFont(14),
+    fontWeight: "700",
+  },
+  btnDisabled: {
+    backgroundColor: "#94A3B8",
+  },
 });

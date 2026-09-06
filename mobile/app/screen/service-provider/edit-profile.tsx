@@ -25,18 +25,32 @@ import {
   scaledFont,
 } from "../../../src/utils/responsive";
 
-export default function EditProfileScreen() {
+const PROFESSIONS = [
+  "Plumbing",
+  "Electrical",
+  "Solar Technician",
+  "Air Conditioning",
+  "Appliances & Mitad",
+  "Gate & Metalwork",
+  "General Maintenance",
+];
+
+const EXPERIENCE_LEVELS = ["< 1 year", "1-3 yrs", "3-5 yrs", "5+ yrs"];
+
+export default function ProviderEditProfileScreen() {
   const router = useRouter();
 
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
-  const [phoneNumber, setPhoneNumber] = useState("");
-  const [address, setAddress] = useState("");
+  const [phone, setPhone] = useState("");
+  const [profession, setProfession] = useState("Plumbing");
+  const [subcity, setSubcity] = useState("");
+  const [experience, setExperience] = useState("1-3 yrs");
+
   const [initialLoading, setInitialLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Load existing profile from backend or local cache
   useEffect(() => {
     const loadProfile = async () => {
       try {
@@ -45,8 +59,10 @@ export default function EditProfileScreen() {
         if (user) {
           setFullName(user.fullName || "");
           setEmail(user.email || "");
-          setPhoneNumber(user.phone || "");
-          setAddress(user.subcity || "");
+          setPhone(user.phone || "");
+          if (user.profession) setProfession(user.profession);
+          if (user.subcity) setSubcity(user.subcity);
+          if (user.experience) setExperience(user.experience);
           if (user.avatarUrl) setAvatarUri(user.avatarUrl);
         }
       } catch {
@@ -55,8 +71,10 @@ export default function EditProfileScreen() {
           const user = JSON.parse(cached);
           setFullName(user.fullName || "");
           setEmail(user.email || "");
-          setPhoneNumber(user.phone || "");
-          setAddress(user.subcity || "");
+          setPhone(user.phone || "");
+          if (user.profession) setProfession(user.profession);
+          if (user.subcity) setSubcity(user.subcity);
+          if (user.experience) setExperience(user.experience);
           if (user.avatarUrl) setAvatarUri(user.avatarUrl);
         }
       } finally {
@@ -69,11 +87,10 @@ export default function EditProfileScreen() {
 
   const handlePickAvatar = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
     if (status !== "granted") {
       Alert.alert(
         "Permission Denied",
-        "Photo library access is needed to update your profile photo.",
+        "Photo library access is needed to change your profile picture.",
       );
       return;
     }
@@ -92,7 +109,11 @@ export default function EditProfileScreen() {
 
   const handleSave = async () => {
     if (!fullName.trim()) {
-      Alert.alert("Missing Field", "Please provide your full name.");
+      Alert.alert("Missing Name", "Please enter your full name.");
+      return;
+    }
+    if (!phone.trim()) {
+      Alert.alert("Missing Phone", "Please enter your contact phone number.");
       return;
     }
 
@@ -100,11 +121,13 @@ export default function EditProfileScreen() {
     try {
       const formData = new FormData();
       formData.append("fullName", fullName.trim());
-      formData.append("phone", phoneNumber.trim());
-      formData.append("subcity", address.trim());
+      formData.append("phone", phone.trim());
+      formData.append("profession", profession);
+      formData.append("subcity", subcity.trim());
+      formData.append("experience", experience);
 
       if (avatarUri && !avatarUri.startsWith("http")) {
-        const filename = avatarUri.split("/").pop() || "avatar.jpg";
+        const filename = avatarUri.split("/").pop() || "provider_avatar.jpg";
         const match = /\.(\w+)$/.exec(filename);
         const type = match ? `image/${match[1]}` : "image/jpeg";
 
@@ -119,7 +142,6 @@ export default function EditProfileScreen() {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      // Update local storage so CustomerProfileScreen updates immediately
       const updatedUser = res.data?.user || res.data;
       if (updatedUser) {
         await SecureStore.setItemAsync(
@@ -128,9 +150,11 @@ export default function EditProfileScreen() {
         );
       }
 
-      Alert.alert("Success", "Your profile has been updated.", [
-        { text: "OK", onPress: () => router.back() },
-      ]);
+      Alert.alert(
+        "Profile Updated 🎉",
+        "Your technician credentials have been saved.",
+        [{ text: "OK", onPress: () => router.back() }],
+      );
     } catch (err: any) {
       Alert.alert(
         "Update Failed",
@@ -162,7 +186,7 @@ export default function EditProfileScreen() {
         >
           <Feather name="arrow-left" size={moderateScale(22)} color="#0F172A" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Profile</Text>
+        <Text style={styles.headerTitle}>Edit Provider Profile</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -179,13 +203,11 @@ export default function EditProfileScreen() {
           <View style={styles.avatarSection}>
             <View style={styles.avatarWrapper}>
               <Image
-                source={
-                  avatarUri
-                    ? { uri: avatarUri }
-                    : {
-                        uri: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300",
-                      }
-                }
+                source={{
+                  uri:
+                    avatarUri ||
+                    "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=300",
+                }}
                 style={styles.avatar}
               />
               <TouchableOpacity
@@ -212,7 +234,17 @@ export default function EditProfileScreen() {
               style={styles.input}
               value={fullName}
               onChangeText={setFullName}
-              placeholder="e.g. Alex Tefera"
+              placeholder="e.g., Besufikad Getaye"
+              placeholderTextColor="#94A3B8"
+            />
+
+            <Text style={styles.label}>Phone Number</Text>
+            <TextInput
+              style={styles.input}
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+              placeholder="+251 91 123 4567"
               placeholderTextColor="#94A3B8"
             />
 
@@ -225,24 +257,72 @@ export default function EditProfileScreen() {
               placeholderTextColor="#94A3B8"
             />
 
-            <Text style={styles.label}>Phone Number</Text>
+            {/* Primary Profession Selection */}
+            <Text style={styles.label}>Primary Trade / Specialty</Text>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.chipsRow}
+            >
+              {PROFESSIONS.map((item) => {
+                const isSelected = profession === item;
+                return (
+                  <TouchableOpacity
+                    key={item}
+                    style={[styles.chip, isSelected && styles.chipSelected]}
+                    onPress={() => setProfession(item)}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      style={[
+                        styles.chipText,
+                        isSelected && styles.chipTextSelected,
+                      ]}
+                    >
+                      {item}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+
+            {/* Location / Subcity Input Field */}
+            <Text style={styles.label}>Location / Subcity</Text>
             <TextInput
               style={styles.input}
-              value={phoneNumber}
-              onChangeText={setPhoneNumber}
-              keyboardType="phone-pad"
-              placeholder="+251 91 234 5678"
+              value={subcity}
+              onChangeText={setSubcity}
+              placeholder="e.g., Bole, Addis Ababa"
               placeholderTextColor="#94A3B8"
             />
 
-            <Text style={styles.label}>Home Address / Subcity</Text>
-            <TextInput
-              style={styles.input}
-              value={address}
-              onChangeText={setAddress}
-              placeholder="e.g. Bole Sub-city, Addis Ababa"
-              placeholderTextColor="#94A3B8"
-            />
+            {/* Years of Experience */}
+            <Text style={styles.label}>Years of Experience</Text>
+            <View style={styles.experienceRow}>
+              {EXPERIENCE_LEVELS.map((level) => {
+                const isSelected = experience === level;
+                return (
+                  <TouchableOpacity
+                    key={level}
+                    style={[
+                      styles.expChip,
+                      isSelected && styles.expChipSelected,
+                    ]}
+                    onPress={() => setExperience(level)}
+                    activeOpacity={0.8}
+                  >
+                    <Text
+                      style={[
+                        styles.expText,
+                        isSelected && styles.expTextSelected,
+                      ]}
+                    >
+                      {level}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
 
             {/* Save Button */}
             <TouchableOpacity
@@ -302,16 +382,16 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: scale(20),
-    paddingTop: scale(18),
+    paddingTop: scale(16),
     paddingBottom: scale(40),
   },
   avatarSection: {
     alignItems: "center",
-    marginBottom: scale(20),
+    marginBottom: scale(18),
   },
   avatarWrapper: {
     position: "relative",
-    marginBottom: scale(10),
+    marginBottom: scale(8),
   },
   avatar: {
     width: moderateScale(92),
@@ -363,6 +443,56 @@ const styles = StyleSheet.create({
     backgroundColor: "#F8FAFC",
     color: "#64748B",
     borderColor: "#E2E8F0",
+  },
+  chipsRow: {
+    flexDirection: "row",
+    gap: scale(8),
+    paddingBottom: scale(4),
+  },
+  chip: {
+    paddingHorizontal: scale(14),
+    paddingVertical: scale(8),
+    borderRadius: moderateScale(20),
+    backgroundColor: "#F8FAFC",
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+  },
+  chipSelected: {
+    backgroundColor: "#0052CC",
+    borderColor: "#0052CC",
+  },
+  chipText: {
+    fontSize: scaledFont(12),
+    fontWeight: "600",
+    color: "#475569",
+  },
+  chipTextSelected: {
+    color: "#FFFFFF",
+  },
+  experienceRow: {
+    flexDirection: "row",
+    gap: scale(8),
+  },
+  expChip: {
+    flex: 1,
+    paddingVertical: scale(9),
+    borderRadius: moderateScale(8),
+    borderWidth: 1,
+    borderColor: "#CBD5E1",
+    alignItems: "center",
+    backgroundColor: "#F8FAFC",
+  },
+  expChipSelected: {
+    borderColor: "#0052CC",
+    backgroundColor: "#EFF6FF",
+  },
+  expText: {
+    fontSize: scaledFont(11),
+    fontWeight: "700",
+    color: "#64748B",
+  },
+  expTextSelected: {
+    color: "#0052CC",
   },
   saveBtn: {
     height: scale(48),

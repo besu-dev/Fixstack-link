@@ -40,6 +40,8 @@ const CATEGORY_MAP = {
 
   // Carpentry & Metalwork
   "Compound Gate": "Carpentry & Metalwork",
+  "Gate Repair": "Carpentry & Metalwork",
+  "Gate & Metalwork": "Carpentry & Metalwork",
   "Lock & Key": "Carpentry & Metalwork",
   Furniture: "Carpentry & Metalwork",
   "Roof Sheet": "Carpentry & Metalwork",
@@ -347,7 +349,7 @@ export const getProviders = async (req, res) => {
 
     const rawProviders = await User.find(query)
       .select(
-        "fullName phone profession skills experience rating isVerified isFeatured featuredUntil subcity",
+        "fullName phone profession skills experience rating isVerified isAvailable avatarUrl isFeatured featuredUntil subcity",
       )
       .lean();
 

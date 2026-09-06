@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   FlatList,
   StyleSheet,
   StatusBar,
@@ -13,12 +12,15 @@ import {
   ActivityIndicator,
   RefreshControl,
   Linking,
+  Image,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { io, Socket } from "socket.io-client";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../src/api/client";
+import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 interface MessageItem {
   _id: string;
@@ -26,6 +28,7 @@ interface MessageItem {
   sender: {
     _id: string;
     fullName: string;
+    avatarUrl?: string;
     role?: string;
   };
   createdAt: string;
@@ -37,6 +40,7 @@ interface ProviderSummary {
   phone?: string;
   profession?: string;
   rating?: number;
+  avatarUrl?: string;
 }
 
 interface ConversationItem {
@@ -49,7 +53,12 @@ interface ConversationItem {
   lastMessageTime?: string;
 }
 
-const SOCKET_URL = "http://10.0.2.2:5000";
+// Replace with your actual LAN IP for physical device testing
+const SOCKET_URL = __DEV__
+  ? Platform.OS === "android"
+    ? "http://10.0.2.2:5000" // Use your LAN IP like "http://192.168.1.15:5000" if testing on real device
+    : "http://localhost:5000"
+  : "https://api.fixlink.et";
 
 export default function CustomerMessageScreen() {
   const router = useRouter();
@@ -61,20 +70,17 @@ export default function CustomerMessageScreen() {
       recipientPhone?: string;
     }>();
 
-  // Active Chat Room State
   const [messages, setMessages] = useState<MessageItem[]>([]);
   const [inputText, setInputText] = useState("");
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [loadingChat, setLoadingChat] = useState(false);
 
-  // Conversations Inbox State
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [loadingList, setLoadingList] = useState(false);
 
   const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
-  // 1. Fetch current logged-in user ID
   useEffect(() => {
     const fetchCurrentUser = async () => {
       try {
@@ -90,7 +96,6 @@ export default function CustomerMessageScreen() {
     fetchCurrentUser();
   }, []);
 
-  // 2. Fetch deduplicated conversation list (1 card per provider)
   const fetchConversations = useCallback(async () => {
     setLoadingList(true);
     try {
@@ -118,7 +123,6 @@ export default function CustomerMessageScreen() {
 
       const convArray = Array.from(providerMap.values());
 
-      // Fetch last message preview for each conversation thread
       const hydratedConversations = await Promise.all(
         convArray.map(async (conv) => {
           try {
@@ -133,8 +137,8 @@ export default function CustomerMessageScreen() {
                 lastMessageTime: latestMsg.createdAt,
               };
             }
-          } catch (e) {
-            // Keep default placeholder
+          } catch {
+            // Keep fallback placeholder
           }
           return conv;
         }),
@@ -157,7 +161,6 @@ export default function CustomerMessageScreen() {
     }
   }, [jobId, fetchConversations]);
 
-  // 3. Connect Socket and load complete past history
   useEffect(() => {
     if (!jobId && !receiverId) return;
 
@@ -176,7 +179,6 @@ export default function CustomerMessageScreen() {
           }
         }
 
-        // Query with receiverId parameter to fetch all historical messages between the two users
         const url = receiverId
           ? `/messages/${jobId || "direct"}?receiverId=${receiverId}`
           : `/messages/${jobId}`;
@@ -218,9 +220,8 @@ export default function CustomerMessageScreen() {
         socket.disconnect();
       }
     };
-  }, [jobId, receiverId]);
+  }, [jobId, receiverId, currentUserId]);
 
-  // 4. Send message handler
   const handleSendMessage = async () => {
     const trimmed = inputText.trim();
     if (!trimmed || !currentUserId) return;
@@ -260,11 +261,11 @@ export default function CustomerMessageScreen() {
   };
 
   // -------------------------------------------------------------
-  // VIEW 1: DEDUPLICATED CONVERSATIONS LIST
+  // VIEW 1: INBOX CONVERSATIONS LIST
   // -------------------------------------------------------------
   if (!jobId) {
     return (
-      <SafeAreaView style={styles.safeArea}>
+      <SafeAreaView style={styles.safeArea} edges={["top"]}>
         <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Messages</Text>
@@ -306,9 +307,14 @@ export default function CustomerMessageScreen() {
                 }
                 activeOpacity={0.7}
               >
-                <View style={styles.avatar}>
-                  <Feather name="tool" size={20} color="#0052CC" />
-                </View>
+                <Image
+                  source={{
+                    uri:
+                      item.provider.avatarUrl ||
+                      "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=200",
+                  }}
+                  style={styles.avatarImage}
+                />
 
                 <View style={styles.chatInfo}>
                   <View style={styles.cardTopRow}>
@@ -351,10 +357,10 @@ export default function CustomerMessageScreen() {
   }
 
   // -------------------------------------------------------------
-  // VIEW 2: LIVE CHAT ROOM WITH PREVIOUS MESSAGES
+  // VIEW 2: LIVE CHAT ROOM WITH PROFILE AVATARS
   // -------------------------------------------------------------
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* Top Header */}
@@ -417,12 +423,29 @@ export default function CustomerMessageScreen() {
                     isMine ? styles.rowRight : styles.rowLeft,
                   ]}
                 >
+                  {/* Avatar for the other user */}
+                  {!isMine && (
+                    <Image
+                      source={{
+                        uri:
+                          item.sender?.avatarUrl ||
+                          "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=150",
+                      }}
+                      style={styles.msgAvatar}
+                    />
+                  )}
+
                   <View
                     style={[
                       styles.bubble,
                       isMine ? styles.bubbleRight : styles.bubbleLeft,
                     ]}
                   >
+                    {!isMine && (
+                      <Text style={styles.senderNameLabel}>
+                        {item.sender?.fullName || recipientName}
+                      </Text>
+                    )}
                     <Text
                       style={[
                         styles.messageText,
@@ -448,13 +471,12 @@ export default function CustomerMessageScreen() {
                 <Feather name="lock" size={16} color="#94A3B8" />
                 <Text style={styles.emptyChatText}>
                   Messages are end-to-end coordinated for this service order.
-                  Send a message to coordinate tools, timing, or directions.
                 </Text>
               </View>
             }
           />
 
-          {/* Bottom Dock */}
+          {/* Bottom Message Input Bar */}
           <View style={styles.inputBar}>
             <TextInput
               style={styles.textInput}
@@ -487,31 +509,43 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#F8FAFC" },
   flex: { flex: 1 },
   header: {
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 12,
+    paddingHorizontal: scale(20),
+    paddingTop: scale(10),
+    paddingBottom: scale(10),
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
   },
-  headerTitle: { fontSize: 22, fontWeight: "800", color: "#0F172A" },
-  headerSubtitle: { fontSize: 12, color: "#64748B", marginTop: 2 },
+  headerTitle: {
+    fontSize: scaledFont(22),
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  headerSubtitle: {
+    fontSize: scaledFont(12),
+    color: "#64748B",
+    marginTop: scale(2),
+  },
   chatHeader: {
     flexDirection: "row",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: scale(16),
+    paddingVertical: scale(10),
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#E2E8F0",
   },
-  backBtn: { padding: 4, marginRight: 8 },
+  backBtn: { padding: scale(4), marginRight: scale(8) },
   headerInfo: { flex: 1 },
-  recipientName: { fontSize: 16, fontWeight: "700", color: "#0F172A" },
+  recipientName: {
+    fontSize: scaledFont(15),
+    fontWeight: "700",
+    color: "#0F172A",
+  },
   statusWrap: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
+    gap: scale(5),
     marginTop: 1,
   },
   activeDot: {
@@ -520,11 +554,15 @@ const styles = StyleSheet.create({
     borderRadius: 3.5,
     backgroundColor: "#16A34A",
   },
-  onlineBadge: { fontSize: 11, color: "#16A34A", fontWeight: "600" },
+  onlineBadge: {
+    fontSize: scaledFont(11),
+    color: "#16A34A",
+    fontWeight: "600",
+  },
   headerCallBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: moderateScale(36),
+    height: moderateScale(36),
+    borderRadius: moderateScale(18),
     backgroundColor: "#EFF6FF",
     alignItems: "center",
     justifyContent: "center",
@@ -533,41 +571,43 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: scale(24),
   },
-  syncText: { marginTop: 10, fontSize: 13, color: "#64748B" },
+  syncText: {
+    marginTop: scale(10),
+    fontSize: scaledFont(13),
+    color: "#64748B",
+  },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: scaledFont(16),
     fontWeight: "700",
     color: "#334155",
-    marginTop: 12,
+    marginTop: scale(12),
   },
   emptySubtitle: {
-    fontSize: 13,
+    fontSize: scaledFont(13),
     color: "#94A3B8",
     textAlign: "center",
-    marginTop: 6,
-    lineHeight: 18,
+    marginTop: scale(6),
+    lineHeight: scale(18),
   },
-  listContent: { padding: 16, paddingBottom: 100 },
+  listContent: { padding: scale(16), paddingBottom: scale(100) },
   chatCard: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
+    borderRadius: moderateScale(14),
+    padding: scale(14),
+    marginBottom: scale(10),
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
-  avatar: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    backgroundColor: "#EFF6FF",
-    alignItems: "center",
-    justifyContent: "center",
-    marginRight: 12,
+  avatarImage: {
+    width: moderateScale(46),
+    height: moderateScale(46),
+    borderRadius: moderateScale(23),
+    backgroundColor: "#E2E8F0",
+    marginRight: scale(12),
   },
   chatInfo: { flex: 1 },
   cardTopRow: {
@@ -575,73 +615,93 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  chatName: { fontSize: 15, fontWeight: "700", color: "#0F172A" },
-  timeTag: { fontSize: 11, color: "#94A3B8" },
+  chatName: { fontSize: scaledFont(15), fontWeight: "700", color: "#0F172A" },
+  timeTag: { fontSize: scaledFont(11), color: "#94A3B8" },
   lastMsgText: {
-    fontSize: 13,
+    fontSize: scaledFont(13),
     color: "#475569",
-    marginTop: 2,
-    marginBottom: 4,
+    marginTop: scale(2),
+    marginBottom: scale(4),
   },
-  metaRow: { flexDirection: "row", alignItems: "center", gap: 6 },
-  badgeText: { fontSize: 11, fontWeight: "700", color: "#0052CC" },
-  dot: { fontSize: 11, color: "#CBD5E1" },
-  locationText: { fontSize: 11, color: "#64748B" },
-  messageList: { padding: 16, paddingBottom: 24 },
-  messageRow: { flexDirection: "row", marginVertical: 4 },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: scale(6) },
+  badgeText: { fontSize: scaledFont(11), fontWeight: "700", color: "#0052CC" },
+  dot: { fontSize: scaledFont(11), color: "#CBD5E1" },
+  locationText: { fontSize: scaledFont(11), color: "#64748B" },
+  messageList: { padding: scale(16), paddingBottom: scale(24) },
+  messageRow: {
+    flexDirection: "row",
+    marginVertical: scale(4),
+    alignItems: "flex-end",
+  },
   rowRight: { justifyContent: "flex-end" },
   rowLeft: { justifyContent: "flex-start" },
+  msgAvatar: {
+    width: moderateScale(28),
+    height: moderateScale(28),
+    borderRadius: moderateScale(14),
+    marginRight: scale(6),
+    marginBottom: scale(2),
+  },
   bubble: {
-    maxWidth: "80%",
-    paddingHorizontal: 14,
-    paddingVertical: 9,
-    borderRadius: 16,
+    maxWidth: "76%",
+    paddingHorizontal: scale(14),
+    paddingVertical: scale(9),
+    borderRadius: moderateScale(16),
   },
   bubbleRight: { backgroundColor: "#0052CC", borderBottomRightRadius: 3 },
   bubbleLeft: { backgroundColor: "#E2E8F0", borderBottomLeftRadius: 3 },
-  messageText: { fontSize: 14, lineHeight: 20 },
+  senderNameLabel: {
+    fontSize: scaledFont(10),
+    fontWeight: "700",
+    color: "#0052CC",
+    marginBottom: scale(2),
+  },
+  messageText: { fontSize: scaledFont(14), lineHeight: scale(20) },
   textRight: { color: "#FFFFFF" },
   textLeft: { color: "#0F172A" },
-  timeText: { fontSize: 10, marginTop: 4, alignSelf: "flex-end" },
+  timeText: {
+    fontSize: scaledFont(10),
+    marginTop: scale(3),
+    alignSelf: "flex-end",
+  },
   timeRight: { color: "#BFDBFE" },
   timeLeft: { color: "#64748B" },
   emptyChatBox: {
     alignItems: "center",
-    padding: 20,
-    marginTop: 40,
+    padding: scale(20),
+    marginTop: scale(40),
     backgroundColor: "#F1F5F9",
-    borderRadius: 12,
-    gap: 8,
+    borderRadius: moderateScale(12),
+    gap: scale(8),
   },
   emptyChatText: {
-    fontSize: 12,
+    fontSize: scaledFont(12),
     color: "#64748B",
     textAlign: "center",
-    lineHeight: 18,
+    lineHeight: scale(18),
   },
   inputBar: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 10,
+    padding: scale(10),
     backgroundColor: "#FFFFFF",
     borderTopWidth: 1,
     borderTopColor: "#E2E8F0",
-    gap: 8,
-    marginBottom: Platform.OS === "android" ? 70 : 0,
+    gap: scale(8),
   },
   textInput: {
     flex: 1,
-    height: 42,
-    borderRadius: 21,
+    height: scale(42),
+    borderRadius: moderateScale(21),
     backgroundColor: "#F1F5F9",
-    paddingHorizontal: 16,
-    fontSize: 14,
+    paddingHorizontal: scale(16),
+    fontSize: scaledFont(14),
     color: "#0F172A",
   },
   sendButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: moderateScale(42),
+    height: moderateScale(42),
+    borderRadius: moderateScale(21),
     backgroundColor: "#0052CC",
     alignItems: "center",
     justifyContent: "center",

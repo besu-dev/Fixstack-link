@@ -8,7 +8,6 @@ import {
   ScrollView,
   StyleSheet,
   StatusBar,
-  Alert,
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
@@ -17,6 +16,7 @@ import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../../src/api/client";
+import { Alert } from "../../../src/context/AlertContext";
 
 export default function CustomerSignupScreen() {
   const router = useRouter();

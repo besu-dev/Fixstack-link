@@ -1,13 +1,17 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import {
   View,
   Text,
+  TextInput,
   TouchableOpacity,
   SafeAreaView,
   ScrollView,
   Image,
   StyleSheet,
   StatusBar,
+  ActivityIndicator,
+  RefreshControl,
+  Modal,
 } from "react-native";
 import {
   Feather,
@@ -16,6 +20,32 @@ import {
   FontAwesome,
 } from "@expo/vector-icons";
 import { Link, useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
+import apiClient from "../../src/api/client";
+import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
+
+interface Provider {
+  _id: string;
+  fullName: string;
+  profession: string;
+  rating?: number;
+  avatarUrl?: string;
+  subcity?: string;
+  isVerified?: boolean;
+  isFeatured?: boolean;
+  role: string;
+}
+
+const CATEGORIES = [
+  "All",
+  "Plumbing",
+  "Electrical",
+  "Carpentry",
+  "Painting",
+  "Appliance Repair",
+  "Solar Installation",
+  "HVAC & Air Condition",
+];
 
 const POPULAR_SERVICES = [
   {
@@ -27,51 +57,100 @@ const POPULAR_SERVICES = [
   },
   {
     id: "2",
-    title: "Electric work",
+    title: "Electrical",
     icon: "flash",
     iconFamily: "Ionicons",
     iconColor: "#2563EB",
   },
   {
     id: "3",
-    title: "Solar",
-    icon: "solar-power",
+    title: "Carpentry",
+    icon: "hammer",
     iconFamily: "MaterialCommunityIcons",
     iconColor: "#EAB308",
   },
   {
     id: "4",
-    title: "Air Condition",
-    icon: "air-conditioner",
+    title: "Painting",
+    icon: "format-paint",
     iconFamily: "MaterialCommunityIcons",
     iconColor: "#06B6D4",
-  },
-];
-
-const SERVICE_PROVIDERS = [
-  {
-    id: "1",
-    name: "Maskot Kota",
-    profession: "Plumber",
-    rating: 4.8,
-    imageUri:
-      "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=400",
-    bgColor: "#BAE6FD",
-  },
-  {
-    id: "2",
-    name: "Shams Jan",
-    profession: "Electrician",
-    rating: 4.8,
-    imageUri:
-      "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=400",
-    bgColor: "#E9D5FF",
   },
 ];
 
 export default function HomeScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
+  const [userName, setUserName] = useState("Customer");
+  const [providers, setProviders] = useState<Provider[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState("All");
+
+  const loadHomeData = useCallback(async () => {
+    try {
+      const userRes = await apiClient.get("/auth/me");
+      const user = userRes.data?.user || userRes.data;
+      if (user) {
+        setUserName(user.fullName?.split(" ")[0] || "Customer");
+        await SecureStore.setItemAsync("user_data", JSON.stringify(user));
+      }
+
+      const provRes = await apiClient.get("/auth/providers");
+      const dbProviders: Provider[] = Array.isArray(provRes.data)
+        ? provRes.data
+        : provRes.data?.providers || [];
+
+      setProviders(dbProviders);
+    } catch (err) {
+      console.error("Error loading home screen data:", err);
+      const cached = await SecureStore.getItemAsync("user_data");
+      if (cached) {
+        const user = JSON.parse(cached);
+        setUserName(user.fullName?.split(" ")[0] || "Customer");
+      }
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadHomeData();
+  }, [loadHomeData]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadHomeData();
+  };
+
+  const filteredProviders = useMemo(() => {
+    return providers.filter((p) => {
+      const q = searchQuery.trim().toLowerCase();
+      const matchesQuery =
+        !q ||
+        p.fullName?.toLowerCase().includes(q) ||
+        p.profession?.toLowerCase().includes(q);
+
+      const matchesCategory =
+        selectedCategory === "All" ||
+        p.profession?.toLowerCase().includes(selectedCategory.toLowerCase());
+
+      return matchesQuery && matchesCategory;
+    });
+  }, [providers, searchQuery, selectedCategory]);
+
+  const hasActiveFilters = selectedCategory !== "All";
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.centerContainer}>
+        <ActivityIndicator size="large" color="#0052CC" />
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -80,27 +159,36 @@ export default function HomeScreen() {
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
         showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.topHeader}>
-          <Image
-            source={require("../../assets/images/favicon.png")}
-            style={styles.headerLogo}
-            resizeMode="contain"
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#0052CC"]}
           />
-          <TouchableOpacity style={styles.callButton} activeOpacity={0.7}>
-            <Feather name="phone-call" size={20} color="#1E293B" />
+        }
+      >
+        {/* Direct Greeting Header with Support Shortcut */}
+        <View style={styles.greetingHeader}>
+          <View style={styles.greetingTextGroup}>
+            <Text style={styles.greetingTitle}>Hi, {userName} 👋</Text>
+            <Text style={styles.greetingSubtitle}>
+              How can we help you today?
+            </Text>
+          </View>
+          <TouchableOpacity
+            style={styles.supportButton}
+            activeOpacity={0.7}
+            onPress={() => router.push("/customer/support" as any)}
+          >
+            <Feather
+              name="phone-call"
+              size={moderateScale(18)}
+              color="#1E293B"
+            />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.greetingContainer}>
-          <Text style={styles.greetingTitle}>
-            Hi, Alex <Text>👋</Text>
-          </Text>
-          <Text style={styles.greetingSubtitle}>
-            How can we help you today?
-          </Text>
-        </View>
-
+        {/* Banner with Embedded Search */}
         <View style={styles.bannerOuterWrapper}>
           <View style={styles.bannerContainer}>
             <View style={styles.bannerTextSection}>
@@ -113,7 +201,7 @@ export default function HomeScreen() {
               <TouchableOpacity
                 style={styles.bookNowButton}
                 activeOpacity={0.8}
-                onPress={() => router.push("/services" as any)}
+                onPress={() => router.push("/(customer-tabs)/services" as any)}
               >
                 <Text style={styles.bookNowText}>Book Now</Text>
               </TouchableOpacity>
@@ -121,47 +209,72 @@ export default function HomeScreen() {
 
             <View style={styles.bannerImageSection}>
               <Image
-                source={{
-                  uri: "https://cdn-icons-png.flaticon.com/512/619/619034.png",
-                }}
+                source={require("../../assets/images/Furniture.jpg")}
                 style={styles.houseGraphic}
-                resizeMode="contain"
+                resizeMode="cover"
               />
             </View>
           </View>
 
-          <TouchableOpacity
-            activeOpacity={0.9}
-            style={styles.searchBarContainer}
-            onPress={() => router.push("/search-results" as any)}
-          >
+          {/* Search Bar & Category Filter Toggle */}
+          <View style={styles.searchBarContainer}>
             <Feather
               name="search"
-              size={20}
+              size={moderateScale(18)}
               color="#64748B"
               style={styles.searchIcon}
             />
-            <Text
-              style={[
-                styles.searchInput,
-                { color: searchQuery ? "#1E293B" : "#94A3B8" },
-              ]}
-            >
-              {searchQuery || "Search here.."}
-            </Text>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search plumber, electrician, technician..."
+              placeholderTextColor="#94A3B8"
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity
+                onPress={() => setSearchQuery("")}
+                style={styles.clearSearchBtn}
+              >
+                <Feather name="x" size={moderateScale(16)} color="#94A3B8" />
+              </TouchableOpacity>
+            )}
             <TouchableOpacity
               activeOpacity={0.7}
-              style={styles.filterButton}
-              onPress={() => router.push("/search-filter" as any)}
+              style={[
+                styles.filterButton,
+                hasActiveFilters && styles.filterButtonActive,
+              ]}
+              onPress={() => setFilterModalVisible(true)}
             >
-              <Feather name="sliders" size={18} color="#64748B" />
+              <Feather
+                name="sliders"
+                size={moderateScale(16)}
+                color={hasActiveFilters ? "#FFFFFF" : "#64748B"}
+              />
             </TouchableOpacity>
-          </TouchableOpacity>
+          </View>
+
+          {/* Active Category Filter Tag */}
+          {hasActiveFilters && (
+            <View style={styles.activeFilterRow}>
+              <View style={styles.activeFilterChip}>
+                <Text style={styles.activeFilterText}>{selectedCategory}</Text>
+                <TouchableOpacity onPress={() => setSelectedCategory("All")}>
+                  <Feather name="x" size={12} color="#0052CC" />
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity onPress={() => setSelectedCategory("All")}>
+                <Text style={styles.resetFilterText}>Reset filter</Text>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
 
+        {/* Popular Services Section */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Popular Services</Text>
-          <Link href={"/popular-services" as any} asChild>
+          <Link href={"/(customer-tabs)/services" as any} asChild>
             <TouchableOpacity activeOpacity={0.7}>
               <Text style={styles.viewAllText}>View all</Text>
             </TouchableOpacity>
@@ -176,29 +289,39 @@ export default function HomeScreen() {
           {POPULAR_SERVICES.map((service) => (
             <TouchableOpacity
               key={service.id}
-              style={styles.serviceCard}
+              style={[
+                styles.serviceCard,
+                selectedCategory.toLowerCase() ===
+                  service.title.toLowerCase() && styles.serviceCardSelected,
+              ]}
               activeOpacity={0.8}
-              onPress={() => router.push("/popular-services" as any)}
+              onPress={() =>
+                setSelectedCategory((prev) =>
+                  prev.toLowerCase() === service.title.toLowerCase()
+                    ? "All"
+                    : service.title,
+                )
+              }
             >
               <View style={styles.serviceIconCircle}>
                 {service.iconFamily === "FontAwesome" && (
                   <FontAwesome
                     name={service.icon as any}
-                    size={28}
+                    size={moderateScale(24)}
                     color={service.iconColor}
                   />
                 )}
                 {service.iconFamily === "Ionicons" && (
                   <Ionicons
                     name={service.icon as any}
-                    size={30}
+                    size={moderateScale(26)}
                     color={service.iconColor}
                   />
                 )}
                 {service.iconFamily === "MaterialCommunityIcons" && (
                   <MaterialCommunityIcons
                     name={service.icon as any}
-                    size={32}
+                    size={moderateScale(28)}
                     color={service.iconColor}
                   />
                 )}
@@ -210,11 +333,14 @@ export default function HomeScreen() {
           ))}
         </ScrollView>
 
+        {/* Top Technicians (Filtered Database Results) */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Top Technicians</Text>
-          <Link href={"/service-providers" as any} asChild>
+          <Link href={"/(customer-tabs)/services" as any} asChild>
             <TouchableOpacity activeOpacity={0.7}>
-              <Text style={styles.viewAllText}>View all</Text>
+              <Text style={styles.viewAllText}>
+                View all ({filteredProviders.length})
+              </Text>
             </TouchableOpacity>
           </Link>
         </View>
@@ -224,45 +350,138 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.horizontalListPadding}
         >
-          {SERVICE_PROVIDERS.map((provider) => (
-            <View key={provider.id} style={styles.providerCard}>
-              <View
-                style={[
-                  styles.providerImageContainer,
-                  { backgroundColor: provider.bgColor },
-                ]}
-              >
-                <Image
-                  source={{ uri: provider.imageUri }}
-                  style={styles.providerImage}
-                  resizeMode="cover"
-                />
-              </View>
+          {filteredProviders.length > 0 ? (
+            filteredProviders.map((provider) => (
+              <View key={provider._id} style={styles.providerCard}>
+                <View style={styles.providerImageContainer}>
+                  <Image
+                    source={{
+                      uri:
+                        provider.avatarUrl ||
+                        "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=400",
+                    }}
+                    style={styles.providerImage}
+                    resizeMode="cover"
+                  />
+                  {provider.isVerified && (
+                    <View style={styles.verifiedTag}>
+                      <Ionicons
+                        name="shield-checkmark"
+                        size={11}
+                        color="#16A34A"
+                      />
+                    </View>
+                  )}
+                </View>
 
-              <View style={styles.providerDetails}>
-                <Text style={styles.providerName}>{provider.name}</Text>
-                <Text style={styles.providerProfession}>
-                  {provider.profession}
-                </Text>
+                <View style={styles.providerDetails}>
+                  <Text style={styles.providerName} numberOfLines={1}>
+                    {provider.fullName}
+                  </Text>
+                  <Text style={styles.providerProfession} numberOfLines={1}>
+                    {provider.profession || "General Technician"}
+                  </Text>
 
-                <View style={styles.providerFooter}>
-                  <View style={styles.ratingBadge}>
-                    <FontAwesome name="star" size={14} color="#0052CC" />
-                    <Text style={styles.ratingText}>{provider.rating}</Text>
+                  <View style={styles.providerFooter}>
+                    <View style={styles.ratingBadge}>
+                      <FontAwesome
+                        name="star"
+                        size={moderateScale(12)}
+                        color="#F59E0B"
+                      />
+                      <Text style={styles.ratingText}>
+                        {provider.rating ? provider.rating.toFixed(1) : "5.0"}
+                      </Text>
+                    </View>
+
+                    <TouchableOpacity
+                      style={styles.detailsButton}
+                      activeOpacity={0.8}
+                      onPress={() =>
+                        router.push(
+                          `../screen/user/provider-detail/${provider._id}` as any,
+                        )
+                      }
+                    >
+                      <Text style={styles.detailsButtonText}>Details</Text>
+                    </TouchableOpacity>
                   </View>
-
-                  <TouchableOpacity
-                    style={styles.detailsButton}
-                    activeOpacity={0.8}
-                  >
-                    <Text style={styles.detailsButtonText}>Details</Text>
-                  </TouchableOpacity>
                 </View>
               </View>
+            ))
+          ) : (
+            <View style={styles.emptyProviderCard}>
+              <Feather name="user-x" size={24} color="#94A3B8" />
+              <Text style={styles.emptyProviderText}>
+                No registered service providers found for this category.
+              </Text>
             </View>
-          ))}
+          )}
         </ScrollView>
       </ScrollView>
+
+      {/* Category-Only Filter Modal */}
+      <Modal
+        visible={filterModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setFilterModalVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setFilterModalVisible(false)}
+        >
+          <View
+            style={styles.modalSheet}
+            onStartShouldSetResponder={() => true}
+          >
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Filter by Job Category</Text>
+
+            <View style={styles.filterOptionsGrid}>
+              {CATEGORIES.map((cat) => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[
+                    styles.filterChip,
+                    selectedCategory === cat && styles.filterChipSelected,
+                  ]}
+                  onPress={() => setSelectedCategory(cat)}
+                >
+                  <Text
+                    style={[
+                      styles.filterChipText,
+                      selectedCategory === cat && styles.filterChipTextSelected,
+                    ]}
+                  >
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.modalActionRow}>
+              <TouchableOpacity
+                style={styles.resetBtn}
+                onPress={() => {
+                  setSelectedCategory("All");
+                  setFilterModalVisible(false);
+                }}
+              >
+                <Text style={styles.resetBtnText}>Reset</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.applyBtn}
+                onPress={() => setFilterModalVisible(false)}
+              >
+                <Text style={styles.applyBtnText}>Apply</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -272,86 +491,93 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F8FAFC",
   },
-  scrollContainer: {
-    paddingBottom: 110,
+  centerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#FFFFFF",
   },
-  topHeader: {
+  scrollContainer: {
+    paddingBottom: scale(110),
+  },
+  greetingHeader: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 6,
+    paddingHorizontal: scale(20),
+    paddingTop: scale(18),
+    paddingBottom: scale(16),
   },
-  headerLogo: {
-    width: 44,
-    height: 44,
-  },
-  callButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#FFFFFF",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#F1F5F9",
-  },
-  greetingContainer: {
-    paddingHorizontal: 20,
-    marginTop: 10,
-    marginBottom: 16,
+  greetingTextGroup: {
+    flex: 1,
+    paddingRight: scale(10),
   },
   greetingTitle: {
-    fontSize: 22,
+    fontSize: scaledFont(24),
     fontWeight: "800",
     color: "#0052CC",
   },
   greetingSubtitle: {
-    fontSize: 14,
+    fontSize: scaledFont(14),
     color: "#64748B",
-    marginTop: 4,
+    marginTop: scale(4),
     fontWeight: "500",
   },
+  supportButton: {
+    width: moderateScale(42),
+    height: moderateScale(42),
+    borderRadius: moderateScale(21),
+    backgroundColor: "#FFFFFF",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    elevation: 2,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+  },
   bannerOuterWrapper: {
-    paddingHorizontal: 20,
-    marginBottom: 24,
+    paddingHorizontal: scale(20),
+    marginBottom: scale(24),
   },
   bannerContainer: {
     backgroundColor: "#EFF6FF",
-    borderRadius: 20,
-    padding: 18,
-    paddingBottom: 36,
+    borderRadius: moderateScale(20),
+    padding: scale(18),
+    paddingBottom: scale(36),
     flexDirection: "row",
-    position: "relative",
+    borderWidth: 1,
+    borderColor: "#DBEAFE",
   },
   bannerTextSection: {
     flex: 1.2,
   },
   bannerHeadline: {
-    fontSize: 17,
+    fontSize: scaledFont(16),
     fontWeight: "800",
     color: "#0F172A",
-    lineHeight: 22,
+    lineHeight: scaledFont(22),
   },
   bannerSubhead: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     color: "#475569",
-    marginTop: 6,
-    lineHeight: 16,
+    marginTop: scale(6),
+    lineHeight: scaledFont(15),
   },
   bookNowButton: {
     backgroundColor: "#F59E0B",
-    paddingVertical: 7,
-    paddingHorizontal: 14,
-    borderRadius: 16,
+    paddingVertical: scale(6),
+    paddingHorizontal: scale(14),
+    borderRadius: moderateScale(16),
     alignSelf: "flex-start",
-    marginTop: 12,
+    marginTop: scale(12),
   },
   bookNowText: {
     color: "#FFFFFF",
     fontWeight: "700",
-    fontSize: 12,
+    fontSize: scaledFont(11),
   },
   bannerImageSection: {
     flex: 1,
@@ -359,18 +585,19 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   houseGraphic: {
-    width: 105,
-    height: 105,
+    width: scale(95),
+    height: scale(95),
+    borderRadius: moderateScale(12),
   },
   searchBarContainer: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#FFFFFF",
-    borderRadius: 14,
-    height: 48,
-    paddingHorizontal: 14,
-    marginTop: -22,
-    marginHorizontal: 8,
+    borderRadius: moderateScale(14),
+    height: scale(48),
+    paddingHorizontal: scale(14),
+    marginTop: scale(-24),
+    marginHorizontal: scale(8),
     shadowColor: "#64748B",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
@@ -380,95 +607,145 @@ const styles = StyleSheet.create({
     borderColor: "#F1F5F9",
   },
   searchIcon: {
-    marginRight: 8,
+    marginRight: scale(8),
   },
   searchInput: {
     flex: 1,
-    fontSize: 14,
-    color: "#1E293B",
+    fontSize: scaledFont(13),
+    color: "#0F172A",
+  },
+  clearSearchBtn: {
+    padding: scale(4),
   },
   filterButton: {
-    padding: 4,
+    padding: scale(6),
+    borderRadius: moderateScale(8),
+    backgroundColor: "#F1F5F9",
+  },
+  filterButtonActive: {
+    backgroundColor: "#0052CC",
+  },
+  activeFilterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(8),
+    marginTop: scale(10),
+    paddingHorizontal: scale(8),
+  },
+  activeFilterChip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(4),
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    borderRadius: moderateScale(12),
+    paddingHorizontal: scale(10),
+    paddingVertical: scale(4),
+  },
+  activeFilterText: {
+    fontSize: scaledFont(11),
+    fontWeight: "700",
+    color: "#0052CC",
+  },
+  resetFilterText: {
+    fontSize: scaledFont(11),
+    fontWeight: "600",
+    color: "#EF4444",
   },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    marginBottom: 12,
+    paddingHorizontal: scale(20),
+    marginBottom: scale(12),
   },
   sectionTitle: {
-    fontSize: 17,
+    fontSize: scaledFont(16),
     fontWeight: "700",
     color: "#334155",
   },
   viewAllText: {
-    fontSize: 14,
+    fontSize: scaledFont(13),
     fontWeight: "700",
     color: "#0052CC",
   },
   horizontalListPadding: {
-    paddingLeft: 20,
-    paddingRight: 10,
-    marginBottom: 20,
+    paddingLeft: scale(20),
+    paddingRight: scale(10),
+    marginBottom: scale(20),
   },
   serviceCard: {
-    width: 100,
-    height: 105,
+    width: scale(96),
+    height: scale(100),
     backgroundColor: "#FFFFFF",
-    borderRadius: 14,
+    borderRadius: moderateScale(14),
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: scale(12),
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    paddingHorizontal: 6,
+    paddingHorizontal: scale(6),
+  },
+  serviceCardSelected: {
+    borderColor: "#0052CC",
+    backgroundColor: "#EFF6FF",
   },
   serviceIconCircle: {
-    width: 50,
-    height: 50,
+    width: moderateScale(46),
+    height: moderateScale(46),
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 6,
+    marginBottom: scale(6),
   },
   serviceCardTitle: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     fontWeight: "600",
     color: "#334155",
     textAlign: "center",
   },
   providerCard: {
-    width: 175,
+    width: scale(175),
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    marginRight: 14,
-    padding: 10,
+    borderRadius: moderateScale(16),
+    marginRight: scale(14),
+    padding: scale(10),
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
   providerImageContainer: {
     width: "100%",
-    height: 140,
-    borderRadius: 12,
+    height: scale(125),
+    borderRadius: moderateScale(12),
     overflow: "hidden",
+    backgroundColor: "#E2E8F0",
+    position: "relative",
   },
   providerImage: {
     width: "100%",
     height: "100%",
   },
+  verifiedTag: {
+    position: "absolute",
+    top: 6,
+    right: 6,
+    backgroundColor: "#FFFFFF",
+    borderRadius: 10,
+    padding: 3,
+  },
   providerDetails: {
-    marginTop: 8,
+    marginTop: scale(8),
   },
   providerName: {
-    fontSize: 15,
+    fontSize: scaledFont(14),
     fontWeight: "700",
     color: "#1E293B",
   },
   providerProfession: {
-    fontSize: 13,
+    fontSize: scaledFont(11),
     color: "#64748B",
-    marginTop: 2,
-    marginBottom: 8,
+    marginTop: scale(2),
+    marginBottom: scale(8),
   },
   providerFooter: {
     flexDirection: "row",
@@ -478,22 +755,120 @@ const styles = StyleSheet.create({
   ratingBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: scale(4),
   },
   ratingText: {
-    fontSize: 13,
+    fontSize: scaledFont(12),
     fontWeight: "700",
-    color: "#0052CC",
+    color: "#1E293B",
   },
   detailsButton: {
     backgroundColor: "#0052CC",
-    paddingVertical: 5,
-    paddingHorizontal: 14,
-    borderRadius: 8,
+    paddingVertical: scale(5),
+    paddingHorizontal: scale(12),
+    borderRadius: moderateScale(8),
   },
   detailsButtonText: {
     color: "#FFFFFF",
-    fontSize: 12,
+    fontSize: scaledFont(11),
     fontWeight: "600",
+  },
+  emptyProviderCard: {
+    width: scale(250),
+    padding: scale(24),
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    borderRadius: moderateScale(16),
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    gap: scale(8),
+  },
+  emptyProviderText: {
+    fontSize: scaledFont(12),
+    color: "#94A3B8",
+    textAlign: "center",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(15, 23, 42, 0.45)",
+    justifyContent: "flex-end",
+  },
+  modalSheet: {
+    backgroundColor: "#FFFFFF",
+    borderTopLeftRadius: moderateScale(24),
+    borderTopRightRadius: moderateScale(24),
+    padding: scale(20),
+    paddingBottom: scale(36),
+  },
+  modalHandle: {
+    width: scale(36),
+    height: scale(4),
+    borderRadius: scale(2),
+    backgroundColor: "#CBD5E1",
+    alignSelf: "center",
+    marginBottom: scale(14),
+  },
+  modalTitle: {
+    fontSize: scaledFont(18),
+    fontWeight: "800",
+    color: "#0F172A",
+    marginBottom: scale(16),
+  },
+  filterOptionsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: scale(8),
+    marginBottom: scale(24),
+  },
+  filterChip: {
+    paddingHorizontal: scale(14),
+    paddingVertical: scale(8),
+    borderRadius: moderateScale(16),
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  filterChipSelected: {
+    backgroundColor: "#0052CC",
+    borderColor: "#0052CC",
+  },
+  filterChipText: {
+    fontSize: scaledFont(12),
+    fontWeight: "600",
+    color: "#475569",
+  },
+  filterChipTextSelected: {
+    color: "#FFFFFF",
+  },
+  modalActionRow: {
+    flexDirection: "row",
+    gap: scale(12),
+  },
+  resetBtn: {
+    flex: 1,
+    height: scale(46),
+    borderRadius: moderateScale(10),
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  resetBtnText: {
+    fontSize: scaledFont(14),
+    fontWeight: "700",
+    color: "#475569",
+  },
+  applyBtn: {
+    flex: 2,
+    height: scale(46),
+    borderRadius: moderateScale(10),
+    backgroundColor: "#0052CC",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  applyBtnText: {
+    fontSize: scaledFont(14),
+    fontWeight: "700",
+    color: "#FFFFFF",
   },
 });

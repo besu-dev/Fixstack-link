@@ -115,9 +115,30 @@ export const getMyJobs = async (req, res) => {
         "assignedProvider",
         "fullName phone profession rating isFeatured",
       )
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .lean();
 
-    res.status(200).json(jobs);
+    // Fetch and link reviews specifically created for these jobs
+    const jobIds = jobs.map((j) => j._id);
+    const reviews = await Review.find({ job: { $in: jobIds } }).lean();
+
+    const reviewMap = {};
+    reviews.forEach((r) => {
+      reviewMap[r.job.toString()] = r;
+    });
+
+    const jobsWithReviews = jobs.map((job) => {
+      const rev = reviewMap[job._id.toString()];
+      return {
+        ...job,
+        rating: rev ? rev.rating : job.rating || null,
+        review: rev ? rev.comment : (typeof job.review === "object" ? job.review?.comment : job.review) || null,
+        reviewDetails: rev || (job.rating ? { rating: job.rating, comment: job.review } : null),
+        isReviewed: Boolean(rev || job.rating),
+      };
+    });
+
+    res.status(200).json(jobsWithReviews);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -166,11 +187,11 @@ export const markJobCompleted = async (req, res) => {
 };
 
 // @desc    Customer leaves a review and updates provider average rating
-// @route   POST /api/jobs/:id/review
+// @route   POST /api/jobs/:id/rate-review (or /api/jobs/:id/review)
 // @access  Private (Customer)
 export const reviewJob = async (req, res) => {
   try {
-    const { rating, comment } = req.body;
+    const { rating, comment, review: reviewBodyText, reviewText } = req.body;
     const job = await Job.findById(req.params.id);
 
     if (!job) {
@@ -190,13 +211,21 @@ export const reviewJob = async (req, res) => {
         .json({ message: "You have already reviewed this service" });
     }
 
+    // Support 'comment', 'review', and 'reviewText' naming from req.body
+    const finalComment = comment || reviewBodyText || reviewText || "";
+
     const review = await Review.create({
       job: job._id,
       customer: req.user._id,
       provider: job.assignedProvider,
       rating: Number(rating),
-      comment: comment || "",
+      comment: finalComment,
     });
+
+    // Also update legacy/embedded fields on Job if your schema uses them
+    job.rating = Number(rating);
+    job.review = { rating: Number(rating), comment: finalComment };
+    await job.save();
 
     // Recalculate provider average rating
     const allReviews = await Review.find({ provider: job.assignedProvider });
@@ -234,7 +263,7 @@ export const getProviderTasks = async (req, res) => {
 
     const tasksWithReviews = tasks.map((task) => ({
       ...task,
-      review: reviewMap[task._id.toString()] || null,
+      review: reviewMap[task._id.toString()] || task.review || null,
     }));
 
     res.status(200).json(tasksWithReviews);

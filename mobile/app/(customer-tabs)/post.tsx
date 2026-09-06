@@ -4,19 +4,22 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   StatusBar,
-  Alert,
   Image,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 import apiClient from "../../src/api/client";
 import BuyConnectsModal from "../../components/BuyConnectsModal";
+import { Alert } from "../../src/context/AlertContext";
+import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 const CATEGORIES = [
   "Plumbing",
@@ -30,6 +33,12 @@ const CATEGORIES = [
 
 export default function PostJobScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{
+    preferredCategory?: string;
+    preferredProviderId?: string;
+    preferredProviderName?: string;
+    serviceTitle?: string;
+  }>();
 
   const [title, setTitle] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("Plumbing");
@@ -52,15 +61,50 @@ export default function PostJobScreen() {
   const fetchWalletBalance = useCallback(async () => {
     try {
       const res = await apiClient.get("/wallet/balance");
-      setConnectsBalance(res.data.connectsBalance || 0);
-    } catch (err) {
-      console.error("Wallet balance error:", err);
+      setConnectsBalance(res.data.connectsBalance ?? 0);
+    } catch {
+      try {
+        const userRes = await apiClient.get("/auth/me");
+        const user = userRes.data?.user || userRes.data;
+        if (user?.connectsBalance !== undefined) {
+          setConnectsBalance(user.connectsBalance);
+        }
+      } catch (err) {
+        console.error("Wallet balance fetch error:", err);
+      }
     }
   }, []);
 
   useEffect(() => {
     fetchWalletBalance();
   }, [fetchWalletBalance]);
+
+  // Pre-fill form when arriving from "Request Service" on a provider or sub-service
+  useEffect(() => {
+    if (params?.serviceTitle) {
+      setTitle(`Service Request: ${params.serviceTitle}`);
+    }
+    if (params?.preferredCategory) {
+      const matched = CATEGORIES.find(
+        (cat) =>
+          cat.toLowerCase().includes(params.preferredCategory!.toLowerCase()) ||
+          params.preferredCategory!.toLowerCase().includes(cat.toLowerCase())
+      );
+      if (matched) {
+        setSelectedCategory(matched);
+      }
+    }
+    if (params?.preferredProviderName) {
+      setDescription(
+        (prev) =>
+          prev || `Preferred Technician: ${params.preferredProviderName}\n`
+      );
+    }
+  }, [
+    params?.preferredCategory,
+    params?.serviceTitle,
+    params?.preferredProviderName,
+  ]);
 
   const handlePickImage = async () => {
     if (images.length >= 3) {
@@ -127,19 +171,23 @@ export default function PostJobScreen() {
 
       images.forEach((uri, index) => {
         const filename = uri.split("/").pop() || `issue_photo_${index}.jpg`;
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : "image/jpeg";
+
         formData.append("photos", {
           uri,
           name: filename,
-          type: "image/jpeg",
+          type,
         } as any);
       });
 
       await apiClient.post("/jobs", formData, {
-        headers: { Accept: "application/json" },
-        transformRequest: (data) => data,
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
       });
 
-      setConnectsBalance((prev) => prev - connectsRequired);
+      setConnectsBalance((prev) => Math.max(0, prev - connectsRequired));
 
       Alert.alert(
         "Task Published! 🎉",
@@ -167,7 +215,7 @@ export default function PostJobScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* Screen Header */}
@@ -185,188 +233,204 @@ export default function PostJobScreen() {
           onPress={() => setShowWalletModal(true)}
           activeOpacity={0.8}
         >
-          <Feather name="zap" size={13} color="#0052CC" />
+          <Feather name="zap" size={moderateScale(13)} color="#0052CC" />
           <Text style={styles.connectsPillText}>
             {connectsBalance} Connects
           </Text>
-          <Feather name="plus-circle" size={13} color="#0052CC" />
+          <Feather
+            name="plus-circle"
+            size={moderateScale(13)}
+            color="#0052CC"
+          />
         </TouchableOpacity>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.scrollContainer}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
-        <Text style={styles.label}>Job Title</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="e.g., Leaking kitchen sink pipe"
-          placeholderTextColor="#94A3B8"
-          value={title}
-          onChangeText={setTitle}
-        />
-
-        <Text style={styles.label}>Select Category</Text>
         <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryRow}
+          contentContainerStyle={styles.scrollContainer}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
         >
-          {CATEGORIES.map((cat) => {
-            const isSelected = selectedCategory === cat;
-            return (
-              <TouchableOpacity
-                key={cat}
-                style={[
-                  styles.categoryPill,
-                  isSelected && styles.categoryPillActive,
-                ]}
-                onPress={() => setSelectedCategory(cat)}
-                activeOpacity={0.8}
-              >
-                <Text
+          <Text style={styles.label}>Job Title</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="e.g., Leaking kitchen sink pipe"
+            placeholderTextColor="#94A3B8"
+            value={title}
+            onChangeText={setTitle}
+          />
+
+          <Text style={styles.label}>Select Category</Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryRow}
+          >
+            {CATEGORIES.map((cat) => {
+              const isSelected = selectedCategory === cat;
+              return (
+                <TouchableOpacity
+                  key={cat}
                   style={[
-                    styles.categoryText,
-                    isSelected && styles.categoryTextActive,
+                    styles.categoryPill,
+                    isSelected && styles.categoryPillActive,
                   ]}
+                  onPress={() => setSelectedCategory(cat)}
+                  activeOpacity={0.8}
                 >
-                  {cat}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+                  <Text
+                    style={[
+                      styles.categoryText,
+                      isSelected && styles.categoryTextActive,
+                    ]}
+                  >
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
 
-        <Text style={styles.label}>Describe the Issue</Text>
-        <TextInput
-          style={[styles.input, styles.textArea]}
-          placeholder="Provide clear details (what happened, required materials, timing)..."
-          placeholderTextColor="#94A3B8"
-          multiline
-          numberOfLines={4}
-          value={description}
-          onChangeText={setDescription}
-          textAlignVertical="top"
-        />
+          <Text style={styles.label}>Describe the Issue</Text>
+          <TextInput
+            style={[styles.input, styles.textArea]}
+            placeholder="Provide clear details (what happened, required materials, timing)..."
+            placeholderTextColor="#94A3B8"
+            multiline
+            numberOfLines={4}
+            value={description}
+            onChangeText={setDescription}
+            textAlignVertical="top"
+          />
 
-        {/* Urgency Selection */}
-        <Text style={styles.label}>Priority / Urgency</Text>
-        <View style={styles.urgencyRow}>
-          {(["Flexible", "Today", "Emergency"] as const).map((level) => {
-            const isSelected = urgency === level;
-            const isEmergency = level === "Emergency";
-            return (
-              <TouchableOpacity
-                key={level}
-                style={[
-                  styles.urgencyPill,
-                  isSelected && styles.urgencyPillActive,
-                  isEmergency && styles.urgencyEmergency,
-                  isEmergency && isSelected && styles.urgencyEmergencyActive,
-                ]}
-                onPress={() => setUrgency(level)}
-                activeOpacity={0.8}
-              >
-                <Text
+          {/* Urgency Selection */}
+          <Text style={styles.label}>Priority / Urgency</Text>
+          <View style={styles.urgencyRow}>
+            {(["Flexible", "Today", "Emergency"] as const).map((level) => {
+              const isSelected = urgency === level;
+              const isEmergency = level === "Emergency";
+              return (
+                <TouchableOpacity
+                  key={level}
                   style={[
-                    styles.urgencyText,
-                    isSelected && styles.urgencyTextActive,
-                    isEmergency && !isSelected && styles.urgencyEmergencyText,
+                    styles.urgencyPill,
+                    isSelected && styles.urgencyPillActive,
+                    isEmergency && styles.urgencyEmergency,
+                    isEmergency && isSelected && styles.urgencyEmergencyActive,
                   ]}
+                  onPress={() => setUrgency(level)}
+                  activeOpacity={0.8}
                 >
-                  {isEmergency ? "🚨 Emergency (+5)" : level}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-
-        <View style={styles.row}>
-          <View style={styles.halfCol}>
-            <Text style={styles.label}>Location / Subcity</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g., Bole"
-              placeholderTextColor="#94A3B8"
-              value={location}
-              onChangeText={setLocation}
-            />
+                  <Text
+                    style={[
+                      styles.urgencyText,
+                      isSelected && styles.urgencyTextActive,
+                      isEmergency && !isSelected && styles.urgencyEmergencyText,
+                    ]}
+                  >
+                    {isEmergency ? "🚨 Emergency (+5)" : level}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
-          <View style={styles.halfCol}>
-            <Text style={styles.label}>Budget (ETB)</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="e.g., 1000"
-              placeholderTextColor="#94A3B8"
-              keyboardType="numeric"
-              value={budget}
-              onChangeText={setBudget}
-            />
-          </View>
-        </View>
-
-        <Text style={styles.label}>Attach Photos (Optional)</Text>
-        <View style={styles.attachmentRow}>
-          {images.map((uri, index) => (
-            <View key={index} style={styles.imagePreviewWrapper}>
-              <Image source={{ uri }} style={styles.imagePreview} />
-              <TouchableOpacity
-                style={styles.removeBadge}
-                onPress={() => handleRemoveImage(index)}
-              >
-                <Feather name="x" size={12} color="#FFFFFF" />
-              </TouchableOpacity>
+          <View style={styles.row}>
+            <View style={styles.halfCol}>
+              <Text style={styles.label}>Location / Subcity</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g., Bole"
+                placeholderTextColor="#94A3B8"
+                value={location}
+                onChangeText={setLocation}
+              />
             </View>
-          ))}
 
-          {images.length < 3 && (
-            <TouchableOpacity
-              style={styles.uploadBox}
-              onPress={handlePickImage}
-              activeOpacity={0.7}
-            >
-              <Feather name="camera" size={20} color="#0052CC" />
-              <Text style={styles.uploadText}>Add Photo</Text>
-            </TouchableOpacity>
-          )}
-        </View>
+            <View style={styles.halfCol}>
+              <Text style={styles.label}>Budget (ETB)</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="e.g., 1000"
+                placeholderTextColor="#94A3B8"
+                keyboardType="numeric"
+                value={budget}
+                onChangeText={setBudget}
+              />
+            </View>
+          </View>
 
-        {/* Cost Summary Notice */}
-        <View style={styles.costSummary}>
-          <Feather name="info" size={14} color="#64748B" />
-          <Text style={styles.costSummaryText}>
-            Publishing this task will deduct{" "}
-            <Text style={styles.costHighlight}>
-              {connectsRequired} Connects
-            </Text>{" "}
-            from your virtual wallet.
-          </Text>
-        </View>
+          <Text style={styles.label}>Attach Photos (Optional)</Text>
+          <View style={styles.attachmentRow}>
+            {images.map((uri, index) => (
+              <View key={index} style={styles.imagePreviewWrapper}>
+                <Image source={{ uri }} style={styles.imagePreview} />
+                <TouchableOpacity
+                  style={styles.removeBadge}
+                  onPress={() => handleRemoveImage(index)}
+                >
+                  <Feather name="x" size={moderateScale(12)} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+            ))}
 
-        <TouchableOpacity
-          style={styles.postBtn}
-          onPress={handlePostTask}
-          disabled={loading}
-          activeOpacity={0.85}
-        >
-          {loading ? (
-            <ActivityIndicator color="#FFFFFF" />
-          ) : (
-            <Text style={styles.postBtnText}>
-              Publish Job Request ({connectsRequired} Connects)
+            {images.length < 3 && (
+              <TouchableOpacity
+                style={styles.uploadBox}
+                onPress={handlePickImage}
+                activeOpacity={0.7}
+              >
+                <Feather
+                  name="camera"
+                  size={moderateScale(20)}
+                  color="#0052CC"
+                />
+                <Text style={styles.uploadText}>Add Photo</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {/* Cost Summary Notice */}
+          <View style={styles.costSummary}>
+            <Feather name="info" size={moderateScale(14)} color="#64748B" />
+            <Text style={styles.costSummaryText}>
+              Publishing this task will deduct{" "}
+              <Text style={styles.costHighlight}>
+                {connectsRequired} Connects
+              </Text>{" "}
+              from your virtual wallet.
             </Text>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
+          </View>
+
+          <TouchableOpacity
+            style={[styles.postBtn, loading && styles.postBtnDisabled]}
+            onPress={handlePostTask}
+            disabled={loading}
+            activeOpacity={0.85}
+          >
+            {loading ? (
+              <ActivityIndicator color="#FFFFFF" />
+            ) : (
+              <Text style={styles.postBtnText}>
+                Publish Job Request ({connectsRequired} Connects)
+              </Text>
+            )}
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
 
       {/* Buy Connects Modal */}
       <BuyConnectsModal
         visible={showWalletModal}
         onClose={() => setShowWalletModal(false)}
         currentBalance={connectsBalance}
-        onSuccess={(newBalance) => setConnectsBalance(newBalance)}
+        onSuccess={(newBalance) => {
+          setConnectsBalance(newBalance);
+          setShowWalletModal(false);
+        }}
       />
     </SafeAreaView>
   );
@@ -375,85 +439,90 @@ export default function PostJobScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
+    backgroundColor: "#FFFFFF",
+  },
+  flex: {
+    flex: 1,
     backgroundColor: "#F8FAFC",
   },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 14,
+    paddingHorizontal: scale(20),
+    paddingTop: scale(8),
+    paddingBottom: scale(12),
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
   },
   headerTitleWrap: {
     flex: 1,
-    paddingRight: 10,
+    paddingRight: scale(10),
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: scaledFont(18),
     fontWeight: "800",
     color: "#0F172A",
   },
   headerSubtitle: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     color: "#64748B",
-    marginTop: 2,
+    marginTop: scale(2),
   },
   connectsPill: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
+    gap: scale(5),
     backgroundColor: "#EFF6FF",
     borderWidth: 1,
     borderColor: "#BFDBFE",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 20,
+    paddingHorizontal: scale(10),
+    paddingVertical: scale(6),
+    borderRadius: moderateScale(20),
   },
   connectsPillText: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     fontWeight: "800",
     color: "#0052CC",
   },
   scrollContainer: {
-    paddingHorizontal: 20,
-    paddingTop: 16,
-    paddingBottom: 110,
+    paddingHorizontal: scale(20),
+    paddingTop: scale(14),
+    paddingBottom: scale(120),
   },
   label: {
-    fontSize: 13,
+    fontSize: scaledFont(11),
     fontWeight: "700",
     color: "#1E293B",
-    marginTop: 14,
-    marginBottom: 8,
+    marginTop: scale(14),
+    marginBottom: scale(6),
     textTransform: "uppercase",
+    letterSpacing: 0.5,
   },
   input: {
-    height: 48,
+    height: scale(46),
     borderWidth: 1,
     borderColor: "#CBD5E1",
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    fontSize: 14,
+    borderRadius: moderateScale(10),
+    paddingHorizontal: scale(14),
+    fontSize: scaledFont(13),
     color: "#0F172A",
     backgroundColor: "#FFFFFF",
   },
   textArea: {
-    height: 100,
-    paddingTop: 12,
+    height: scale(95),
+    paddingTop: scale(10),
   },
   categoryRow: {
     flexDirection: "row",
-    gap: 8,
-    paddingBottom: 4,
+    gap: scale(8),
+    paddingBottom: scale(4),
   },
   categoryPill: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: scale(14),
+    paddingVertical: scale(7),
+    borderRadius: moderateScale(20),
     backgroundColor: "#FFFFFF",
     borderWidth: 1,
     borderColor: "#CBD5E1",
@@ -463,7 +532,7 @@ const styles = StyleSheet.create({
     borderColor: "#0052CC",
   },
   categoryText: {
-    fontSize: 13,
+    fontSize: scaledFont(12),
     fontWeight: "600",
     color: "#475569",
   },
@@ -472,12 +541,12 @@ const styles = StyleSheet.create({
   },
   urgencyRow: {
     flexDirection: "row",
-    gap: 8,
+    gap: scale(8),
   },
   urgencyPill: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: scale(9),
+    borderRadius: moderateScale(10),
     borderWidth: 1,
     borderColor: "#CBD5E1",
     alignItems: "center",
@@ -499,7 +568,7 @@ const styles = StyleSheet.create({
     color: "#DC2626",
   },
   urgencyText: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     fontWeight: "700",
     color: "#475569",
   },
@@ -508,31 +577,31 @@ const styles = StyleSheet.create({
   },
   row: {
     flexDirection: "row",
-    gap: 12,
+    gap: scale(12),
   },
   halfCol: {
     flex: 1,
   },
   attachmentRow: {
     flexDirection: "row",
-    gap: 12,
+    gap: scale(12),
     alignItems: "center",
-    marginTop: 4,
+    marginTop: scale(4),
   },
   uploadBox: {
-    width: 85,
-    height: 85,
-    borderRadius: 10,
+    width: scale(80),
+    height: scale(80),
+    borderRadius: moderateScale(10),
     borderWidth: 1.5,
     borderColor: "#0052CC",
     borderStyle: "dashed",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#EFF6FF",
-    gap: 4,
+    gap: scale(4),
   },
   uploadText: {
-    fontSize: 11,
+    fontSize: scaledFont(10),
     fontWeight: "600",
     color: "#0052CC",
   },
@@ -540,17 +609,17 @@ const styles = StyleSheet.create({
     position: "relative",
   },
   imagePreview: {
-    width: 85,
-    height: 85,
-    borderRadius: 10,
+    width: scale(80),
+    height: scale(80),
+    borderRadius: moderateScale(10),
   },
   removeBadge: {
     position: "absolute",
-    top: -6,
-    right: -6,
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    top: scale(-6),
+    right: scale(-6),
+    width: scale(20),
+    height: scale(20),
+    borderRadius: scale(10),
     backgroundColor: "#EF4444",
     alignItems: "center",
     justifyContent: "center",
@@ -558,33 +627,37 @@ const styles = StyleSheet.create({
   costSummary: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: scale(6),
     backgroundColor: "#F1F5F9",
-    borderRadius: 8,
-    padding: 10,
-    marginTop: 16,
+    borderRadius: moderateScale(8),
+    padding: scale(10),
+    marginTop: scale(16),
   },
   costSummaryText: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     color: "#64748B",
     flex: 1,
+    lineHeight: scaledFont(16),
   },
   costHighlight: {
     fontWeight: "700",
     color: "#0F172A",
   },
   postBtn: {
-    height: 50,
+    height: scale(48),
     backgroundColor: "#0052CC",
-    borderRadius: 12,
+    borderRadius: moderateScale(12),
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 20,
+    marginTop: scale(20),
     elevation: 2,
+  },
+  postBtnDisabled: {
+    backgroundColor: "#94A3B8",
   },
   postBtnText: {
     color: "#FFFFFF",
-    fontSize: 15,
+    fontSize: scaledFont(14),
     fontWeight: "700",
   },
 });

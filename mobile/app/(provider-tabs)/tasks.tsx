@@ -3,25 +3,26 @@ import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   FlatList,
   StyleSheet,
   StatusBar,
-  Alert,
   ActivityIndicator,
   RefreshControl,
   Linking,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import apiClient from "../../src/api/client";
+import { Alert } from "../../src/context/AlertContext";
+import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 type TaskStatus = "In Progress" | "Upcoming" | "Completed";
 
 interface CustomerInfo {
   _id: string;
   fullName: string;
-  phone: string;
+  phone?: string;
 }
 
 interface ReviewInfo {
@@ -57,7 +58,10 @@ export default function ProviderTasksScreen() {
   const fetchTasks = useCallback(async () => {
     try {
       const response = await apiClient.get("/jobs/provider-tasks");
-      setTasks(response.data);
+      const list = Array.isArray(response.data)
+        ? response.data
+        : response.data?.tasks || [];
+      setTasks(list);
     } catch (err: any) {
       console.error(
         "Failed to load tasks:",
@@ -98,6 +102,7 @@ export default function ProviderTasksScreen() {
         jobId: task._id,
         recipientName: task.customer?.fullName || "Customer",
         receiverId: task.customer?._id,
+        recipientPhone: task.customer?.phone,
       },
     });
   };
@@ -131,19 +136,23 @@ export default function ProviderTasksScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* Screen Header */}
       <View style={styles.header}>
-        <View>
+        <View style={styles.headerTextWrap}>
           <Text style={styles.headerTitle}>My Tasks</Text>
           <Text style={styles.headerSubtitle}>
             Manage accepted bookings and on-site appointments
           </Text>
         </View>
-        <TouchableOpacity style={styles.refreshIconBtn} onPress={onRefresh}>
-          <Feather name="refresh-cw" size={17} color="#0052CC" />
+        <TouchableOpacity
+          style={styles.refreshIconBtn}
+          onPress={onRefresh}
+          activeOpacity={0.8}
+        >
+          <Feather name="refresh-cw" size={moderateScale(16)} color="#0052CC" />
         </TouchableOpacity>
       </View>
 
@@ -228,26 +237,42 @@ export default function ProviderTasksScreen() {
                     style={styles.actionCircleBtn}
                     onPress={() => handleCallCustomer(item.customer?.phone)}
                   >
-                    <Feather name="phone" size={15} color="#0052CC" />
+                    <Feather
+                      name="phone"
+                      size={moderateScale(14)}
+                      color="#0052CC"
+                    />
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.actionCircleBtn}
                     onPress={() => handleOpenChat(item)}
                   >
-                    <Feather name="message-square" size={15} color="#0052CC" />
+                    <Feather
+                      name="message-square"
+                      size={moderateScale(14)}
+                      color="#0052CC"
+                    />
                   </TouchableOpacity>
                 </View>
               </View>
 
               {/* Location & Time */}
               <View style={styles.detailRow}>
-                <Feather name="map-pin" size={14} color="#64748B" />
+                <Feather
+                  name="map-pin"
+                  size={moderateScale(13)}
+                  color="#64748B"
+                />
                 <Text style={styles.detailText}>{item.subcity}</Text>
               </View>
 
               {item.specificLocation ? (
                 <View style={styles.landmarkBox}>
-                  <Feather name="navigation" size={12} color="#0284C7" />
+                  <Feather
+                    name="navigation"
+                    size={moderateScale(11)}
+                    color="#0284C7"
+                  />
                   <Text style={styles.landmarkText} numberOfLines={1}>
                     {item.specificLocation}
                   </Text>
@@ -263,7 +288,7 @@ export default function ProviderTasksScreen() {
                         <FontAwesome
                           key={star}
                           name="star"
-                          size={13}
+                          size={moderateScale(12)}
                           color={
                             star <= (item.review?.rating || 0)
                               ? "#F59E0B"
@@ -301,12 +326,20 @@ export default function ProviderTasksScreen() {
 
                 {item.status === "completed" ? (
                   <View style={styles.paidBadge}>
-                    <Feather name="check" size={13} color="#16A34A" />
+                    <Feather
+                      name="check"
+                      size={moderateScale(12)}
+                      color="#16A34A"
+                    />
                     <Text style={styles.paidText}>Settled</Text>
                   </View>
                 ) : (
                   <View style={styles.inProgressBadge}>
-                    <Feather name="clock" size={12} color="#0052CC" />
+                    <Feather
+                      name="clock"
+                      size={moderateScale(11)}
+                      color="#0052CC"
+                    />
                     <Text style={styles.inProgressText}>In Service</Text>
                   </View>
                 )}
@@ -315,7 +348,11 @@ export default function ProviderTasksScreen() {
           )}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Feather name="clipboard" size={44} color="#CBD5E1" />
+              <Feather
+                name="clipboard"
+                size={moderateScale(44)}
+                color="#CBD5E1"
+              />
               <Text style={styles.emptyTitle}>
                 No {activeTab.toLowerCase()} tasks
               </Text>
@@ -331,24 +368,33 @@ export default function ProviderTasksScreen() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: "#F8FAFC" },
+  safeArea: { flex: 1, backgroundColor: "#FFFFFF" },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 12,
+    paddingHorizontal: scale(20),
+    paddingTop: scale(8),
+    paddingBottom: scale(10),
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
   },
-  headerTitle: { fontSize: 22, fontWeight: "800", color: "#0F172A" },
-  headerSubtitle: { fontSize: 12, color: "#64748B", marginTop: 2 },
+  headerTextWrap: { flex: 1, paddingRight: scale(10) },
+  headerTitle: {
+    fontSize: scaledFont(20),
+    fontWeight: "800",
+    color: "#0F172A",
+  },
+  headerSubtitle: {
+    fontSize: scaledFont(11),
+    color: "#64748B",
+    marginTop: scale(2),
+  },
   refreshIconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: moderateScale(34),
+    height: moderateScale(34),
+    borderRadius: moderateScale(17),
     backgroundColor: "#EFF6FF",
     alignItems: "center",
     justifyContent: "center",
@@ -356,91 +402,103 @@ const styles = StyleSheet.create({
   tabBar: {
     flexDirection: "row",
     backgroundColor: "#FFFFFF",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    gap: 8,
+    paddingHorizontal: scale(16),
+    paddingVertical: scale(8),
+    gap: scale(8),
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
   },
   tabItem: {
     flex: 1,
-    paddingVertical: 8,
-    borderRadius: 10,
+    paddingVertical: scale(8),
+    borderRadius: moderateScale(10),
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#F1F5F9",
   },
   tabItemActive: { backgroundColor: "#0052CC" },
-  tabText: { fontSize: 12, fontWeight: "700", color: "#64748B" },
+  tabText: { fontSize: scaledFont(11), fontWeight: "700", color: "#64748B" },
   tabTextActive: { color: "#FFFFFF" },
   centerContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
-  loadingText: { marginTop: 10, fontSize: 13, color: "#64748B" },
-  listContent: { padding: 16, paddingBottom: 110 },
+  loadingText: {
+    marginTop: scale(10),
+    fontSize: scaledFont(12),
+    color: "#64748B",
+  },
+  listContent: { padding: scale(16), paddingBottom: scale(110) },
   taskCard: {
     backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 14,
+    borderRadius: moderateScale(16),
+    padding: scale(15),
+    marginBottom: scale(12),
     borderWidth: 1,
     borderColor: "#E2E8F0",
     elevation: 2,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 4,
   },
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: scale(8),
   },
   categoryTag: {
     backgroundColor: "#EFF6FF",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(3),
+    borderRadius: moderateScale(6),
   },
-  categoryTagText: { fontSize: 11, fontWeight: "700", color: "#0052CC" },
+  categoryTagText: {
+    fontSize: scaledFont(10),
+    fontWeight: "700",
+    color: "#0052CC",
+  },
   statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(3),
+    borderRadius: moderateScale(6),
   },
   badgeActive: { backgroundColor: "#EFF6FF" },
   badgeCompleted: { backgroundColor: "#DCFCE7" },
-  statusText: { fontSize: 11, fontWeight: "700" },
+  statusText: { fontSize: scaledFont(10), fontWeight: "700" },
   statusTextActive: { color: "#0052CC" },
   statusTextCompleted: { color: "#16A34A" },
   serviceTitle: {
-    fontSize: 15,
+    fontSize: scaledFont(15),
     fontWeight: "700",
     color: "#0F172A",
-    marginBottom: 10,
+    marginBottom: scale(8),
   },
   customerBox: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
     backgroundColor: "#F8FAFC",
-    padding: 10,
-    borderRadius: 10,
-    marginBottom: 10,
+    padding: scale(10),
+    borderRadius: moderateScale(10),
+    marginBottom: scale(10),
   },
   customerInfo: { flex: 1 },
   customerLabel: {
-    fontSize: 10,
+    fontSize: scaledFont(9),
     fontWeight: "600",
     color: "#94A3B8",
     textTransform: "uppercase",
   },
   customerName: {
-    fontSize: 13,
+    fontSize: scaledFont(13),
     fontWeight: "700",
     color: "#1E293B",
     marginTop: 2,
   },
-  customerActions: { flexDirection: "row", gap: 8 },
+  customerActions: { flexDirection: "row", gap: scale(8) },
   actionCircleBtn: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: moderateScale(32),
+    height: moderateScale(32),
+    borderRadius: moderateScale(16),
     backgroundColor: "#EFF6FF",
     alignItems: "center",
     justifyContent: "center",
@@ -448,27 +506,31 @@ const styles = StyleSheet.create({
   detailRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
-    marginBottom: 4,
+    gap: scale(6),
+    marginBottom: scale(4),
   },
-  detailText: { fontSize: 12, color: "#475569" },
+  detailText: { fontSize: scaledFont(11), color: "#475569" },
   landmarkBox: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: scale(6),
     backgroundColor: "#F0F9FF",
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-    marginTop: 4,
-    marginBottom: 4,
+    paddingHorizontal: scale(10),
+    paddingVertical: scale(5),
+    borderRadius: moderateScale(6),
+    marginTop: scale(3),
+    marginBottom: scale(4),
   },
-  landmarkText: { fontSize: 11, color: "#0369A1", fontWeight: "500" },
+  landmarkText: {
+    fontSize: scaledFont(10),
+    color: "#0369A1",
+    fontWeight: "500",
+  },
   ratingCardContainer: {
     backgroundColor: "#FFFBEB",
-    borderRadius: 10,
-    padding: 12,
-    marginTop: 10,
+    borderRadius: moderateScale(10),
+    padding: scale(10),
+    marginTop: scale(10),
     borderWidth: 1,
     borderColor: "#FDE68A",
   },
@@ -480,88 +542,92 @@ const styles = StyleSheet.create({
   starsWrapper: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 3,
+    gap: scale(3),
   },
   ratingValueText: {
-    fontSize: 13,
+    fontSize: scaledFont(12),
     fontWeight: "800",
     color: "#B45309",
-    marginLeft: 6,
+    marginLeft: scale(4),
   },
   clientReviewedTag: {
-    fontSize: 10,
+    fontSize: scaledFont(9),
     fontWeight: "700",
     color: "#92400E",
     backgroundColor: "#FEF3C7",
-    paddingHorizontal: 7,
-    paddingVertical: 2,
-    borderRadius: 6,
+    paddingHorizontal: scale(7),
+    paddingVertical: scale(2),
+    borderRadius: moderateScale(6),
   },
   reviewCommentText: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     fontStyle: "italic",
     color: "#78350F",
-    marginTop: 6,
-    lineHeight: 18,
+    marginTop: scale(6),
+    lineHeight: scale(16),
   },
   noReviewText: {
-    fontSize: 11,
+    fontSize: scaledFont(10),
     fontStyle: "italic",
     color: "#B45309",
-    marginTop: 4,
+    marginTop: scale(4),
   },
   cardFooter: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 12,
-    paddingTop: 10,
+    marginTop: scale(10),
+    paddingTop: scale(10),
     borderTopWidth: 1,
     borderTopColor: "#F1F5F9",
   },
   feeLabel: {
-    fontSize: 10,
+    fontSize: scaledFont(9),
     fontWeight: "600",
     color: "#94A3B8",
     textTransform: "uppercase",
   },
-  feeAmount: { fontSize: 14, fontWeight: "800", color: "#0F172A" },
+  feeAmount: { fontSize: scaledFont(14), fontWeight: "800", color: "#0F172A" },
   paidBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 4,
+    gap: scale(4),
     backgroundColor: "#DCFCE7",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(4),
+    borderRadius: moderateScale(6),
   },
-  paidText: { fontSize: 12, fontWeight: "700", color: "#16A34A" },
+  paidText: { fontSize: scaledFont(11), fontWeight: "700", color: "#16A34A" },
   inProgressBadge: {
     flexDirection: "row",
     alignItems: "center",
-    gap: 5,
+    gap: scale(4),
     backgroundColor: "#EFF6FF",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(4),
+    borderRadius: moderateScale(6),
   },
-  inProgressText: { fontSize: 11, fontWeight: "700", color: "#0052CC" },
+  inProgressText: {
+    fontSize: scaledFont(10),
+    fontWeight: "700",
+    color: "#0052CC",
+  },
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: 70,
-    paddingHorizontal: 20,
+    marginTop: scale(60),
+    paddingHorizontal: scale(20),
   },
   emptyTitle: {
-    fontSize: 16,
+    fontSize: scaledFont(15),
     fontWeight: "700",
     color: "#334155",
-    marginTop: 12,
+    marginTop: scale(12),
   },
   emptySubtitle: {
-    fontSize: 13,
+    fontSize: scaledFont(12),
     color: "#94A3B8",
     textAlign: "center",
-    marginTop: 4,
+    marginTop: scale(4),
   },
 });

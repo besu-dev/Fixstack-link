@@ -38,6 +38,8 @@ const jobSchema = new mongoose.Schema(
       ref: "User",
       default: null,
     },
+    rating: { type: Number, default: null },
+    review: { type: mongoose.Schema.Types.Mixed, default: null },
   },
   { timestamps: true },
 );

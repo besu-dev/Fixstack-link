@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   Image,
   StyleSheet,
@@ -13,11 +12,14 @@ import {
   RefreshControl,
   Modal,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../src/api/client";
 import BuyConnectsModal from "../../components/BuyConnectsModal";
+import { AppAlert } from "../../src/context/AlertContext";
+import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 interface CustomerData {
   _id: string;
@@ -45,17 +47,17 @@ export default function CustomerProfileScreen() {
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [logoutModalVisible, setLogoutModalVisible] = useState(false);
   const [buyModalVisible, setBuyModalVisible] = useState(false);
 
   const fetchProfileData = useCallback(async () => {
     try {
       const userRes = await apiClient.get("/auth/me");
-      setProfile(userRes.data);
-      await SecureStore.setItemAsync("user_data", JSON.stringify(userRes.data));
+      const user = userRes.data?.user || userRes.data;
+      setProfile(user);
+      await SecureStore.setItemAsync("user_data", JSON.stringify(user));
 
-      const jobsRes = await apiClient.get("/jobs/my-requests");
-      const jobs = jobsRes.data || [];
+      const jobsRes = await apiClient.get("/jobs/my-jobs");
+      const jobs = Array.isArray(jobsRes.data) ? jobsRes.data : [];
 
       const completedCount = jobs.filter(
         (j: any) => j.status === "completed",
@@ -95,24 +97,33 @@ export default function CustomerProfileScreen() {
     );
   };
 
-  const confirmLogout = async () => {
-    setLogoutModalVisible(false);
-    await SecureStore.deleteItemAsync("user_token");
-    await SecureStore.deleteItemAsync("user_role");
-    await SecureStore.deleteItemAsync("user_data");
-    router.replace("/screen/login");
+  const handleLogout = () => {
+    AppAlert.confirm(
+      "Sign Out",
+      "Are you sure you want to log out of your FixLink account?",
+      async () => {
+        await SecureStore.deleteItemAsync("user_token");
+        await SecureStore.deleteItemAsync("user_role");
+        await SecureStore.deleteItemAsync("user_data");
+        router.replace("/screen/login");
+      },
+      undefined,
+      "Log Out",
+      "Cancel",
+      true,
+    );
   };
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.centerContainer}>
+      <SafeAreaView style={styles.centerContainer} edges={["top"]}>
         <ActivityIndicator size="large" color="#0052CC" />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
       {/* Top Header with Edit Shortcut */}
@@ -123,7 +134,7 @@ export default function CustomerProfileScreen() {
           onPress={() => router.push("/screen/user/edit-profile" as any)}
           activeOpacity={0.8}
         >
-          <Feather name="edit-3" size={18} color="#0052CC" />
+          <Feather name="edit-3" size={moderateScale(16)} color="#0052CC" />
         </TouchableOpacity>
       </View>
 
@@ -154,7 +165,7 @@ export default function CustomerProfileScreen() {
               activeOpacity={0.8}
               onPress={() => router.push("/screen/user/edit-profile" as any)}
             >
-              <Feather name="camera" size={12} color="#FFFFFF" />
+              <Feather name="camera" size={moderateScale(11)} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
           <Text style={styles.userName}>
@@ -195,7 +206,7 @@ export default function CustomerProfileScreen() {
               <Text style={styles.walletUnit}>Connects</Text>
             </Text>
             <Text style={styles.walletSub}>
-              Use credits for bookings and direct features
+              Use credits for bookings and urgent requests
             </Text>
           </View>
           <TouchableOpacity
@@ -203,7 +214,11 @@ export default function CustomerProfileScreen() {
             onPress={() => setBuyModalVisible(true)}
             activeOpacity={0.85}
           >
-            <Ionicons name="wallet-outline" size={15} color="#0052CC" />
+            <Ionicons
+              name="wallet-outline"
+              size={moderateScale(15)}
+              color="#0052CC"
+            />
             <Text style={styles.rechargeBtnText}>Add Funds</Text>
           </TouchableOpacity>
         </View>
@@ -217,7 +232,7 @@ export default function CustomerProfileScreen() {
             onPress={() => router.push("/screen/user/edit-profile" as any)}
           >
             <View style={[styles.menuIconBox, { backgroundColor: "#EFF6FF" }]}>
-              <Feather name="user" size={18} color="#0052CC" />
+              <Feather name="user" size={moderateScale(17)} color="#0052CC" />
             </View>
             <View style={styles.menuTextCol}>
               <Text style={styles.menuTitle}>Edit Profile Information</Text>
@@ -225,7 +240,11 @@ export default function CustomerProfileScreen() {
                 Name, phone number, and location
               </Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#94A3B8" />
+            <Feather
+              name="chevron-right"
+              size={moderateScale(17)}
+              color="#94A3B8"
+            />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -233,7 +252,11 @@ export default function CustomerProfileScreen() {
             onPress={() => setBuyModalVisible(true)}
           >
             <View style={[styles.menuIconBox, { backgroundColor: "#FEF3C7" }]}>
-              <Ionicons name="card-outline" size={18} color="#D97706" />
+              <Ionicons
+                name="card-outline"
+                size={moderateScale(17)}
+                color="#D97706"
+              />
             </View>
             <View style={styles.menuTextCol}>
               <Text style={styles.menuTitle}>Billing & Telebirr Top-Up</Text>
@@ -241,7 +264,11 @@ export default function CustomerProfileScreen() {
                 Recharge your FixLink wallet
               </Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#94A3B8" />
+            <Feather
+              name="chevron-right"
+              size={moderateScale(17)}
+              color="#94A3B8"
+            />
           </TouchableOpacity>
         </View>
 
@@ -251,10 +278,14 @@ export default function CustomerProfileScreen() {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => router.push("/screen/user/my-requests" as any)}
+            onPress={() => router.push("/(customer-tabs)/orders" as any)}
           >
             <View style={[styles.menuIconBox, { backgroundColor: "#EFF6FF" }]}>
-              <Feather name="clipboard" size={18} color="#0052CC" />
+              <Feather
+                name="clipboard"
+                size={moderateScale(17)}
+                color="#0052CC"
+              />
             </View>
             <View style={styles.menuTextCol}>
               <Text style={styles.menuTitle}>My Service Requests</Text>
@@ -262,7 +293,11 @@ export default function CustomerProfileScreen() {
                 Track open requests & technician quotes
               </Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#94A3B8" />
+            <Feather
+              name="chevron-right"
+              size={moderateScale(17)}
+              color="#94A3B8"
+            />
           </TouchableOpacity>
         </View>
 
@@ -272,7 +307,7 @@ export default function CustomerProfileScreen() {
 
           <View style={styles.menuItem}>
             <View style={[styles.menuIconBox, { backgroundColor: "#F3E8FF" }]}>
-              <Feather name="bell" size={18} color="#7C3AED" />
+              <Feather name="bell" size={moderateScale(17)} color="#7C3AED" />
             </View>
             <View style={styles.menuTextCol}>
               <Text style={styles.menuTitle}>Push Notifications</Text>
@@ -293,7 +328,11 @@ export default function CustomerProfileScreen() {
             onPress={() => router.push("/customer/support" as any)}
           >
             <View style={[styles.menuIconBox, { backgroundColor: "#DCFCE7" }]}>
-              <Feather name="help-circle" size={18} color="#16A34A" />
+              <Feather
+                name="help-circle"
+                size={moderateScale(17)}
+                color="#16A34A"
+              />
             </View>
             <View style={styles.menuTextCol}>
               <Text style={styles.menuTitle}>Help & Support</Text>
@@ -301,7 +340,11 @@ export default function CustomerProfileScreen() {
                 FAQs, guides & customer assistance
               </Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#94A3B8" />
+            <Feather
+              name="chevron-right"
+              size={moderateScale(17)}
+              color="#94A3B8"
+            />
           </TouchableOpacity>
 
           <TouchableOpacity
@@ -309,7 +352,11 @@ export default function CustomerProfileScreen() {
             onPress={() => router.replace("/(provider-tabs)/jobs" as any)}
           >
             <View style={[styles.menuIconBox, { backgroundColor: "#E0F2FE" }]}>
-              <Feather name="refresh-cw" size={18} color="#0284C7" />
+              <Feather
+                name="refresh-cw"
+                size={moderateScale(17)}
+                color="#0284C7"
+              />
             </View>
             <View style={styles.menuTextCol}>
               <Text style={styles.menuTitle}>Switch Role (Provider)</Text>
@@ -317,67 +364,29 @@ export default function CustomerProfileScreen() {
                 Bid on local jobs and earn
               </Text>
             </View>
-            <Feather name="chevron-right" size={18} color="#94A3B8" />
+            <Feather
+              name="chevron-right"
+              size={moderateScale(17)}
+              color="#94A3B8"
+            />
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity
           style={styles.logoutBtn}
-          onPress={() => setLogoutModalVisible(true)}
+          onPress={handleLogout}
           activeOpacity={0.8}
         >
-          <Feather name="log-out" size={18} color="#EF4444" />
+          <Feather name="log-out" size={moderateScale(17)} color="#EF4444" />
           <Text style={styles.logoutText}>Log Out</Text>
         </TouchableOpacity>
       </ScrollView>
 
-      
       <BuyConnectsModal
         visible={buyModalVisible}
         onClose={() => setBuyModalVisible(false)}
         onSuccess={handleConnectsUpdated}
       />
-
-      {/* Styled Bottom Sheet Modal for Customer Log Out */}
-      <Modal
-        visible={logoutModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setLogoutModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setLogoutModalVisible(false)}
-        >
-          <View
-            style={styles.modalSheet}
-            onStartShouldSetResponder={() => true}
-          >
-            <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>Sign Out</Text>
-            <Text style={styles.modalMessage}>
-              Are you sure you want to log out of your FixLink account?
-            </Text>
-
-            <TouchableOpacity
-              style={styles.modalConfirmBtn}
-              onPress={confirmLogout}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.modalConfirmText}>Log Out</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.modalCancelBtn}
-              onPress={() => setLogoutModalVisible(false)}
-              activeOpacity={0.85}
-            >
-              <Text style={styles.modalCancelText}>Cancel</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableOpacity>
-      </Modal>
     </SafeAreaView>
   );
 }
@@ -397,49 +406,49 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    paddingHorizontal: 20,
-    paddingTop: 14,
-    paddingBottom: 10,
+    paddingHorizontal: scale(20),
+    paddingTop: scale(8),
+    paddingBottom: scale(10),
     backgroundColor: "#FFFFFF",
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: scaledFont(20),
     fontWeight: "800",
     color: "#0F172A",
   },
   editBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: moderateScale(36),
+    height: moderateScale(36),
+    borderRadius: moderateScale(18),
     backgroundColor: "#EFF6FF",
     alignItems: "center",
     justifyContent: "center",
   },
   scrollContent: {
-    paddingHorizontal: 20,
-    paddingBottom: 110,
+    paddingHorizontal: scale(20),
+    paddingBottom: scale(110),
   },
   userCard: {
     alignItems: "center",
-    paddingVertical: 18,
+    paddingVertical: scale(16),
   },
   avatarWrapper: {
     position: "relative",
-    marginBottom: 10,
+    marginBottom: scale(10),
   },
   avatar: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
+    width: moderateScale(84),
+    height: moderateScale(84),
+    borderRadius: moderateScale(42),
     backgroundColor: "#E2E8F0",
   },
   cameraBadge: {
     position: "absolute",
-    bottom: 2,
-    right: 2,
-    width: 26,
-    height: 26,
-    borderRadius: 13,
+    bottom: scale(2),
+    right: scale(2),
+    width: moderateScale(26),
+    height: moderateScale(26),
+    borderRadius: moderateScale(13),
     backgroundColor: "#0052CC",
     alignItems: "center",
     justifyContent: "center",
@@ -447,24 +456,24 @@ const styles = StyleSheet.create({
     borderColor: "#FFFFFF",
   },
   userName: {
-    fontSize: 18,
+    fontSize: scaledFont(18),
     fontWeight: "800",
     color: "#0F172A",
   },
   userEmail: {
-    fontSize: 13,
+    fontSize: scaledFont(13),
     color: "#64748B",
-    marginTop: 2,
+    marginTop: scale(2),
   },
   roleBadge: {
     backgroundColor: "#EFF6FF",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginTop: 8,
+    paddingHorizontal: scale(12),
+    paddingVertical: scale(4),
+    borderRadius: moderateScale(12),
+    marginTop: scale(8),
   },
   roleBadgeText: {
-    fontSize: 12,
+    fontSize: scaledFont(11),
     fontWeight: "700",
     color: "#0052CC",
   },
@@ -473,9 +482,9 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-around",
     backgroundColor: "#F8FAFC",
-    borderRadius: 16,
-    paddingVertical: 14,
-    marginBottom: 16,
+    borderRadius: moderateScale(16),
+    paddingVertical: scale(14),
+    marginBottom: scale(16),
     borderWidth: 1,
     borderColor: "#E2E8F0",
   },
@@ -484,29 +493,29 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   statNumber: {
-    fontSize: 17,
+    fontSize: scaledFont(17),
     fontWeight: "800",
     color: "#0052CC",
   },
   statLabel: {
-    fontSize: 12,
+    fontSize: scaledFont(12),
     color: "#64748B",
-    marginTop: 2,
+    marginTop: scale(2),
     fontWeight: "500",
   },
   statDivider: {
     width: 1,
-    height: 24,
+    height: scale(24),
     backgroundColor: "#E2E8F0",
   },
   walletCard: {
     backgroundColor: "#0052CC",
-    borderRadius: 16,
-    padding: 16,
+    borderRadius: moderateScale(16),
+    padding: scale(16),
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 20,
+    marginBottom: scale(20),
     elevation: 2,
     shadowColor: "#0052CC",
     shadowOffset: { width: 0, height: 2 },
@@ -515,96 +524,96 @@ const styles = StyleSheet.create({
   },
   walletDetails: {
     flex: 1,
-    paddingRight: 10,
+    paddingRight: scale(10),
   },
   walletLabel: {
     color: "#BFDBFE",
-    fontSize: 11,
+    fontSize: scaledFont(11),
     fontWeight: "700",
     textTransform: "uppercase",
     letterSpacing: 0.5,
   },
   walletAmount: {
     color: "#FFFFFF",
-    fontSize: 26,
+    fontSize: scaledFont(24),
     fontWeight: "800",
-    marginVertical: 2,
+    marginVertical: scale(2),
   },
   walletUnit: {
-    fontSize: 14,
+    fontSize: scaledFont(13),
     fontWeight: "600",
     color: "#DBEAFE",
   },
   walletSub: {
     color: "#E0E7FF",
-    fontSize: 11,
-    marginTop: 2,
+    fontSize: scaledFont(11),
+    marginTop: scale(2),
   },
   rechargeBtn: {
     backgroundColor: "#FFFFFF",
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingHorizontal: scale(14),
+    paddingVertical: scale(9),
+    borderRadius: moderateScale(10),
     flexDirection: "row",
     alignItems: "center",
-    gap: 6,
+    gap: scale(6),
   },
   rechargeBtnText: {
     color: "#0052CC",
-    fontSize: 13,
+    fontSize: scaledFont(12),
     fontWeight: "800",
   },
   section: {
-    marginBottom: 20,
+    marginBottom: scale(18),
   },
   sectionHeader: {
-    fontSize: 13,
+    fontSize: scaledFont(11),
     fontWeight: "700",
     color: "#94A3B8",
     textTransform: "uppercase",
     letterSpacing: 0.5,
-    marginBottom: 8,
+    marginBottom: scale(8),
   },
   menuItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 12,
+    paddingVertical: scale(12),
     borderBottomWidth: 1,
     borderBottomColor: "#F8FAFC",
   },
   menuIconBox: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
+    width: moderateScale(36),
+    height: moderateScale(36),
+    borderRadius: moderateScale(10),
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    marginRight: scale(12),
   },
   menuTextCol: {
     flex: 1,
   },
   menuTitle: {
-    fontSize: 14,
+    fontSize: scaledFont(14),
     fontWeight: "700",
     color: "#1E293B",
   },
   menuSubtitle: {
-    fontSize: 11,
+    fontSize: scaledFont(11),
     color: "#64748B",
-    marginTop: 1,
+    marginTop: scale(1),
   },
   logoutBtn: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 8,
-    paddingVertical: 14,
-    borderRadius: 12,
+    gap: scale(8),
+    paddingVertical: scale(14),
+    borderRadius: moderateScale(12),
     backgroundColor: "#FEF2F2",
-    marginTop: 10,
+    marginTop: scale(8),
   },
   logoutText: {
-    fontSize: 15,
+    fontSize: scaledFont(14),
     fontWeight: "700",
     color: "#EF4444",
   },
@@ -615,58 +624,58 @@ const styles = StyleSheet.create({
   },
   modalSheet: {
     backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 32,
+    borderTopLeftRadius: moderateScale(20),
+    borderTopRightRadius: moderateScale(20),
+    paddingHorizontal: scale(20),
+    paddingTop: scale(12),
+    paddingBottom: scale(32),
     alignItems: "center",
   },
   modalHandle: {
-    width: 36,
-    height: 4,
-    borderRadius: 2,
+    width: scale(36),
+    height: scale(4),
+    borderRadius: scale(2),
     backgroundColor: "#CBD5E1",
-    marginBottom: 16,
+    marginBottom: scale(16),
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: scaledFont(18),
     fontWeight: "800",
     color: "#0F172A",
-    marginBottom: 6,
+    marginBottom: scale(6),
   },
   modalMessage: {
-    fontSize: 13,
+    fontSize: scaledFont(13),
     color: "#64748B",
     textAlign: "center",
-    marginBottom: 20,
-    lineHeight: 18,
+    marginBottom: scale(20),
+    lineHeight: scale(18),
   },
   modalConfirmBtn: {
     width: "100%",
-    height: 46,
+    height: scale(46),
     backgroundColor: "#EF4444",
-    borderRadius: 10,
+    borderRadius: moderateScale(10),
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 10,
+    marginBottom: scale(10),
   },
   modalConfirmText: {
     color: "#FFFFFF",
-    fontSize: 15,
+    fontSize: scaledFont(14),
     fontWeight: "700",
   },
   modalCancelBtn: {
     width: "100%",
-    height: 46,
+    height: scale(46),
     backgroundColor: "#F1F5F9",
-    borderRadius: 10,
+    borderRadius: moderateScale(10),
     alignItems: "center",
     justifyContent: "center",
   },
   modalCancelText: {
     color: "#475569",
-    fontSize: 14,
+    fontSize: scaledFont(14),
     fontWeight: "700",
   },
 });

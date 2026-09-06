@@ -6,11 +6,11 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import apiClient from "../src/api/client";
+import { Alert } from "../src/context/AlertContext";
 
 interface BuyConnectsModalProps {
   visible: boolean;
