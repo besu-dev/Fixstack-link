@@ -429,37 +429,11 @@ export default function ProviderProfileScreen() {
               color="#94A3B8"
             />
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push("/screen/buy-connects" as any)}
-          >
-            <View style={[styles.menuIconBox, { backgroundColor: "#FEF3C7" }]}>
-              <Ionicons
-                name="star-outline"
-                size={moderateScale(17)}
-                color="#D97706"
-              />
-            </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>7-Day Top Featured Status</Text>
-              <Text style={styles.menuSubtitle}>
-                {profile?.isFeatured
-                  ? "Active Top Placement"
-                  : "Upgrade for 150 ETB"}
-              </Text>
-            </View>
-            <Feather
-              name="chevron-right"
-              size={moderateScale(17)}
-              color="#94A3B8"
-            />
-          </TouchableOpacity>
         </View>
 
-        {/* Account & Preferences */}
+        {/* Preferences & Support */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>Preferences & Account</Text>
+          <Text style={styles.sectionHeader}>Preferences & Support</Text>
 
           <TouchableOpacity
             style={styles.menuItem}
@@ -517,6 +491,31 @@ export default function ProviderProfileScreen() {
               onValueChange={handleToggleNotifications}
               trackColor={{ false: "#CBD5E1", true: "#0052CC" }}
               thumbColor="#FFFFFF"
+            />
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.menuItem}
+            onPress={() => router.push("/customer/support" as any)}
+            activeOpacity={0.7}
+          >
+            <View style={[styles.menuIconBox, { backgroundColor: "#DCFCE7" }]}>
+              <Feather
+                name="help-circle"
+                size={moderateScale(17)}
+                color="#16A34A"
+              />
+            </View>
+            <View style={styles.menuTextContainer}>
+              <Text style={styles.menuTitle}>Help & Support</Text>
+              <Text style={styles.menuSubtitle}>
+                FAQs, guides & customer assistance
+              </Text>
+            </View>
+            <Feather
+              name="chevron-right"
+              size={moderateScale(17)}
+              color="#94A3B8"
             />
           </TouchableOpacity>
         </View>
