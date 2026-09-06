@@ -28,6 +28,7 @@ import {
   scaledFont,
 } from "../../src/utils/responsive";
 import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
+import UserAvatar from "../../components/common/UserAvatar";
 
 interface MessageItem {
   _id: string;
@@ -358,12 +359,10 @@ export default function ProviderMessageScreen() {
                 }
                 activeOpacity={0.7}
               >
-                <Image
-                  source={{
-                    uri:
-                      item.client.avatarUrl ||
-                      "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200",
-                  }}
+                <UserAvatar
+                  avatarUrl={item.client?.avatarUrl}
+                  name={item.client?.fullName || "Client"}
+                  size={moderateScale(46)}
                   style={styles.avatarImage}
                 />
 
@@ -506,12 +505,10 @@ export default function ProviderMessageScreen() {
                 >
                   {/* Incoming Client Profile Avatar */}
                   {!isMine && (
-                    <Image
-                      source={{
-                        uri:
-                          item.sender?.avatarUrl ||
-                          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150",
-                      }}
+                    <UserAvatar
+                      avatarUrl={item.sender?.avatarUrl}
+                      name={item.sender?.fullName || recipientName}
+                      size={moderateScale(28)}
                       style={styles.msgAvatar}
                     />
                   )}

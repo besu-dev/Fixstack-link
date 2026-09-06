@@ -195,7 +195,7 @@ export const getJobs = async (req, res) => {
 
     // Emergency jobs appear first, followed by newest
     const jobs = await Job.find(filter)
-      .populate("customer", "fullName phone")
+      .populate("customer", "fullName phone avatarUrl")
       .sort({ urgency: -1, createdAt: -1 });
 
     res.status(200).json(jobs);
@@ -212,7 +212,7 @@ export const getMyJobs = async (req, res) => {
     const jobs = await Job.find({ customer: req.user._id })
       .populate(
         "assignedProvider",
-        "fullName phone profession rating isFeatured",
+        "fullName phone profession rating isFeatured avatarUrl",
       )
       .sort({ createdAt: -1 })
       .lean();
@@ -249,10 +249,10 @@ export const getMyJobs = async (req, res) => {
 export const getJobById = async (req, res) => {
   try {
     const job = await Job.findById(req.params.id)
-      .populate("customer", "fullName phone")
+      .populate("customer", "fullName phone avatarUrl")
       .populate(
         "assignedProvider",
-        "fullName phone profession rating isFeatured",
+        "fullName phone profession rating isFeatured avatarUrl",
       );
 
     if (!job) {
@@ -348,7 +348,7 @@ export const reviewJob = async (req, res) => {
 export const getProviderTasks = async (req, res) => {
   try {
     const tasks = await Job.find({ assignedProvider: req.user._id })
-      .populate("customer", "fullName phone")
+      .populate("customer", "fullName phone avatarUrl")
       .sort({ updatedAt: -1 })
       .lean();
 

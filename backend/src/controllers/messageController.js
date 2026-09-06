@@ -27,7 +27,7 @@ export const getMessagesByJob = async (req, res) => {
     }
 
     const messages = await Message.find(query)
-      .populate("sender", "fullName role")
+      .populate("sender", "fullName role avatarUrl")
       .sort({ createdAt: 1 });
 
     // Mark messages received by the current user in this chat as read
@@ -58,7 +58,7 @@ export const getUnreadCount = async (req, res) => {
       receiver: req.user._id,
       read: false,
     });
-    return res.status(200).json({ count });
+    return res.status(200).json({ unreadCount: count });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
@@ -70,13 +70,14 @@ export const getUnreadCount = async (req, res) => {
 export const markConversationAsRead = async (req, res) => {
   try {
     const { senderId } = req.params;
-    if (senderId && mongoose.Types.ObjectId.isValid(senderId)) {
-      await Message.updateMany(
-        { receiver: req.user._id, sender: senderId, read: false },
-        { read: true },
-      );
-    }
-
+    await Message.updateMany(
+      {
+        receiver: req.user._id,
+        sender: senderId,
+        read: false,
+      },
+      { read: true },
+    );
     return res.status(200).json({ success: true });
   } catch (error) {
     return res.status(500).json({ message: error.message });
@@ -104,7 +105,7 @@ export const sendMessage = async (req, res) => {
       read: false,
     });
 
-    const populated = await newMessage.populate("sender", "fullName role");
+    const populated = await newMessage.populate("sender", "fullName role avatarUrl");
     return res.status(201).json(populated);
   } catch (error) {
     return res.status(500).json({ message: error.message });
