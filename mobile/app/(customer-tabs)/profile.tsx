@@ -379,30 +379,6 @@ export default function CustomerProfileScreen() {
               color="#94A3B8"
             />
           </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.replace("/(provider-tabs)/jobs" as any)}
-          >
-            <View style={[styles.menuIconBox, { backgroundColor: "#E0F2FE" }]}>
-              <Feather
-                name="refresh-cw"
-                size={moderateScale(17)}
-                color="#0284C7"
-              />
-            </View>
-            <View style={styles.menuTextCol}>
-              <Text style={styles.menuTitle}>Switch Role (Provider)</Text>
-              <Text style={styles.menuSubtitle}>
-                Bid on local jobs and earn
-              </Text>
-            </View>
-            <Feather
-              name="chevron-right"
-              size={moderateScale(17)}
-              color="#94A3B8"
-            />
-          </TouchableOpacity>
         </View>
 
         <TouchableOpacity

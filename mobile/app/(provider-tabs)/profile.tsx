@@ -65,7 +65,6 @@ export default function ProviderProfileScreen() {
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [isAvailable, setIsAvailable] = useState(true);
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [buyModalVisible, setBuyModalVisible] = useState(false);
 
@@ -94,7 +93,6 @@ export default function ProviderProfileScreen() {
       const res = await apiClient.get("/auth/me");
       const user = res.data?.user || res.data;
       setProfile(user);
-      setIsAvailable(user?.isAvailable ?? true);
       setNotificationsEnabled(user?.notificationsEnabled ?? true);
       await SecureStore.setItemAsync("user_data", JSON.stringify(user));
 
@@ -124,7 +122,6 @@ export default function ProviderProfileScreen() {
       if (cachedUser) {
         const parsed = JSON.parse(cachedUser);
         setProfile(parsed);
-        setIsAvailable(parsed?.isAvailable ?? true);
         setNotificationsEnabled(parsed?.notificationsEnabled ?? true);
       }
     } finally {
@@ -171,16 +168,6 @@ export default function ProviderProfileScreen() {
 
   const handleNavigateToEdit = () => {
     router.push("../screen/service-provider/edit-profile");
-  };
-
-  const handleToggleAvailability = async (value: boolean) => {
-    setIsAvailable(value);
-    try {
-      await apiClient.put("/auth/profile", { isAvailable: value });
-      setProfile((prev) => (prev ? { ...prev, isAvailable: value } : prev));
-    } catch {
-      setIsAvailable(!value);
-    }
   };
 
   const handleToggleNotifications = async (value: boolean) => {
@@ -332,34 +319,6 @@ export default function ProviderProfileScreen() {
               </Text>
             </View>
           )}
-        </View>
-
-        {/* Availability Toggle Box */}
-        <View style={styles.availabilityBox}>
-          <View style={styles.availabilityInfo}>
-            <View style={styles.statusDotRow}>
-              <View
-                style={[
-                  styles.statusDot,
-                  { backgroundColor: isAvailable ? "#16A34A" : "#94A3B8" },
-                ]}
-              />
-              <Text style={styles.availabilityTitle}>
-                {isAvailable ? "Available for New Jobs" : "Offline / On Break"}
-              </Text>
-            </View>
-            <Text style={styles.availabilitySubtitle}>
-              {isAvailable
-                ? "Your profile is active on the map and customer search"
-                : "Turn on to receive emergency and scheduled bids"}
-            </Text>
-          </View>
-          <Switch
-            value={isAvailable}
-            onValueChange={handleToggleAvailability}
-            trackColor={{ false: "#CBD5E1", true: "#0052CC" }}
-            thumbColor="#FFFFFF"
-          />
         </View>
 
         {/* Live Metrics: Active & Completed Jobs */}
@@ -558,30 +517,6 @@ export default function ProviderProfileScreen() {
               onValueChange={handleToggleNotifications}
               trackColor={{ false: "#CBD5E1", true: "#0052CC" }}
               thumbColor="#FFFFFF"
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.replace("/(customer-tabs)/services" as any)}
-          >
-            <View style={[styles.menuIconBox, { backgroundColor: "#E0F2FE" }]}>
-              <Feather
-                name="refresh-cw"
-                size={moderateScale(17)}
-                color="#0284C7"
-              />
-            </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Switch to Customer Mode</Text>
-              <Text style={styles.menuSubtitle}>
-                Request services for your personal home
-              </Text>
-            </View>
-            <Feather
-              name="chevron-right"
-              size={moderateScale(17)}
-              color="#94A3B8"
             />
           </TouchableOpacity>
         </View>
@@ -806,42 +741,6 @@ const styles = StyleSheet.create({
     fontSize: scaledFont(11),
     fontWeight: "700",
     color: "#B45309",
-  },
-  availabilityBox: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#FFFFFF",
-    borderRadius: moderateScale(16),
-    padding: scale(15),
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    marginBottom: scale(14),
-  },
-  availabilityInfo: {
-    flex: 1,
-    marginRight: scale(10),
-  },
-  statusDotRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: scale(8),
-  },
-  statusDot: {
-    width: moderateScale(9),
-    height: moderateScale(9),
-    borderRadius: moderateScale(4.5),
-  },
-  availabilityTitle: {
-    fontSize: scaledFont(13),
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-  availabilitySubtitle: {
-    fontSize: scaledFont(11),
-    color: "#64748B",
-    marginTop: 2,
-    lineHeight: scale(15),
   },
   statsCard: {
     flexDirection: "row",
