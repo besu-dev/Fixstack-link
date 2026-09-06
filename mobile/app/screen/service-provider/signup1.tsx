@@ -29,9 +29,6 @@ const SERVICE_TAXONOMY: Record<string, string[]> = {
   ],
   "Electrical & Power": [
     "House Wiring",
-    "Generator",
-    "Solar System",
-    "Breaker Fix",
   ],
   "Appliances & Electronics": [
     "Washing Machine",

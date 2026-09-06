@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   ImageSourcePropType,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Feather } from "@expo/vector-icons";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
@@ -19,10 +19,16 @@ interface ServiceItem {
   id: string;
   name: string;
   image: ImageSourcePropType;
+  iconName: keyof typeof Ionicons.glyphMap;
 }
 
 interface ServiceCategory {
   title: string;
+  shortName: string;
+  iconName: keyof typeof Ionicons.glyphMap;
+  accentColor: string;
+  accentLight: string;
+  tagline: string;
   bannerImage: ImageSourcePropType;
   items: ServiceItem[];
 }
@@ -30,6 +36,11 @@ interface ServiceCategory {
 const CATEGORIES: ServiceCategory[] = [
   {
     title: "Plumbing & Water Systems",
+    shortName: "Plumbing",
+    iconName: "water",
+    accentColor: "#0284C7",
+    accentLight: "#E0F2FE",
+    tagline: "Leak repairs, pumps, heaters & bathroom fittings",
     bannerImage: {
       uri: "https://images.unsplash.com/photo-1585704032915-c3400ca199e7?auto=format&fit=crop&q=80&w=800",
     },
@@ -37,13 +48,15 @@ const CATEGORIES: ServiceCategory[] = [
       {
         id: "p1",
         name: "Tanker Pump",
+        iconName: "water-outline",
         image: {
-          uri: "https://images.unsplash.com/photo-1541888946425-d0fbb18086f6?auto=format&fit=crop&q=80&w=400",
+          uri: "https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&q=80&w=400",
         },
       },
       {
         id: "p2",
         name: "Pipe Leak",
+        iconName: "build-outline",
         image: {
           uri: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&q=80&w=400",
         },
@@ -51,6 +64,7 @@ const CATEGORIES: ServiceCategory[] = [
       {
         id: "p3",
         name: "Water Heater",
+        iconName: "flame-outline",
         image: {
           uri: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=400",
         },
@@ -58,6 +72,7 @@ const CATEGORIES: ServiceCategory[] = [
       {
         id: "p4",
         name: "Bathroom Fit",
+        iconName: "construct-outline",
         image: {
           uri: "https://images.unsplash.com/photo-1620626011761-996317b8d101?auto=format&fit=crop&q=80&w=400",
         },
@@ -66,6 +81,11 @@ const CATEGORIES: ServiceCategory[] = [
   },
   {
     title: "Electrical & Power",
+    shortName: "Electrical",
+    iconName: "flash",
+    accentColor: "#D97706",
+    accentLight: "#FEF3C7",
+    tagline: "Certified wiring, backup generators & solar systems",
     bannerImage: {
       uri: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=800",
     },
@@ -73,71 +93,79 @@ const CATEGORIES: ServiceCategory[] = [
       {
         id: "e1",
         name: "House Wiring",
-        image: {
-          uri: "https://images.unsplash.com/photo-1558494949-ef010cbdcc31?auto=format&fit=crop&q=80&w=400",
-        },
+        iconName: "flash-outline",
+        image: require("../../assets/images/House-Wiring.jpg"),
       },
       {
         id: "e2",
         name: "Generator",
+        iconName: "hardware-chip-outline",
         image: {
-          uri: "https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&q=80&w=400",
+          uri: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=400",
         },
       },
       {
         id: "e3",
         name: "Solar System",
+        iconName: "sunny-outline",
         image: {
-          uri: "https://images.unsplash.com/photo-1509391365360-2e959784a276?auto=format&fit=crop&q=80&w=400",
+          uri: "https://images.unsplash.com/photo-1508873696983-2df5703bc225?auto=format&fit=crop&q=80&w=400",
         },
       },
       {
         id: "e4",
         name: "Breaker Fix",
+        iconName: "shield-checkmark-outline",
         image: {
-          uri: "https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&q=80&w=400",
+          uri: "https://images.unsplash.com/photo-1555664424-778a1e5e1b48?auto=format&fit=crop&q=80&w=400",
         },
       },
     ],
   },
   {
     title: "Appliances & Electronics",
+    shortName: "Appliances",
+    iconName: "tv",
+    accentColor: "#7C3AED",
+    accentLight: "#F3E8FF",
+    tagline: "Diagnostics & repair for home appliances",
     bannerImage: {
-      uri: "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?auto=format&fit=crop&q=80&w=800",
+      uri: "https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&q=80&w=800",
     },
     items: [
       {
         id: "a1",
         name: "Washing Machine",
-        image: {
-          uri: "https://images.unsplash.com/photo-1626806787461-102c1bfaaea1?auto=format&fit=crop&q=80&w=400",
-        },
+        iconName: "sync-outline",
+        image: require("../../assets/images/washing-machine.jpg"),
       },
       {
         id: "a2",
         name: "Refrigerator",
-        image: {
-          uri: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?auto=format&fit=crop&q=80&w=400",
-        },
+        iconName: "snow-outline",
+        image: require("../../assets/images/Refrigerator.jpg"),
       },
       {
         id: "a3",
         name: "TV & Satellite",
-        image: {
-          uri: "https://images.unsplash.com/photo-1593784991095-a205069470b6?auto=format&fit=crop&q=80&w=400",
-        },
+        iconName: "tv-outline",
+        image: require("../../assets/images/TV-Satellite.jpg"),
       },
       {
         id: "a4",
         name: "Electric Stove",
-        image: {
-          uri: "https://images.unsplash.com/photo-1588854337236-6889d631faa8?auto=format&fit=crop&q=80&w=400",
-        },
+        iconName: "restaurant-outline",
+        image: require("../../assets/images/Electric-Stove.jpg"),
       },
     ],
   },
   {
     title: "Carpentry & Metalwork",
+    shortName: "Carpentry",
+    iconName: "hammer",
+    accentColor: "#EA580C",
+    accentLight: "#FFEDD5",
+    tagline: "Gates, security locks, roofs & custom wood fixtures",
     bannerImage: {
       uri: "https://images.unsplash.com/photo-1504148455328-c376907d081c?auto=format&fit=crop&q=80&w=800",
     },
@@ -145,35 +173,36 @@ const CATEGORIES: ServiceCategory[] = [
       {
         id: "c1",
         name: "Compound Gate",
-        image: {
-          uri: "https://images.unsplash.com/photo-1533750349088-cd871a92f312?auto=format&fit=crop&q=80&w=400",
-        },
+        iconName: "business-outline",
+        image: require("../../assets/images/gate.jpg"),
       },
       {
         id: "c2",
         name: "Lock & Key",
-        image: {
-          uri: "https://images.unsplash.com/photo-1582139329536-e7284fece509?auto=format&fit=crop&q=80&w=400",
-        },
+        iconName: "key-outline",
+        image: require("../../assets/images/Lock-Key.jpg"),
       },
       {
         id: "c3",
         name: "Furniture",
-        image: {
-          uri: "https://images.unsplash.com/photo-1538688525198-9b88f6f53126?auto=format&fit=crop&q=80&w=400",
-        },
+        iconName: "file-tray-full-outline",
+        image: require("../../assets/images/Furniture.jpg"),
       },
       {
         id: "c4",
         name: "Roof Sheet",
-        image: {
-          uri: "https://images.unsplash.com/photo-1632759145351-1d592919f522?auto=format&fit=crop&q=80&w=400",
-        },
+        iconName: "home-outline",
+        image: require("../../assets/images/Roof-Sheet.jpg"),
       },
     ],
   },
   {
     title: "Finishing & Cleaning",
+    shortName: "Finishing",
+    iconName: "sparkles",
+    accentColor: "#16A34A",
+    accentLight: "#DCFCE7",
+    tagline: "Interior painting, tiling, deep cleaning & logistics",
     bannerImage: {
       uri: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&q=80&w=800",
     },
@@ -181,20 +210,19 @@ const CATEGORIES: ServiceCategory[] = [
       {
         id: "h1",
         name: "Wall Painting",
-        image: {
-          uri: "https://images.unsplash.com/photo-1589939705384-5185137a7f0f?auto=format&fit=crop&q=80&w=400",
-        },
+        iconName: "color-palette-outline",
+        image: require("../../assets/images/painting.jpg"),
       },
       {
         id: "h2",
         name: "Tile Repair",
-        image: {
-          uri: "https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&q=80&w=400",
-        },
+        iconName: "grid-outline",
+        image: require("../../assets/images/tile.jpg"),
       },
       {
         id: "h3",
         name: "Deep Cleaning",
+        iconName: "sparkles-outline",
         image: {
           uri: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?auto=format&fit=crop&q=80&w=400",
         },
@@ -202,18 +230,28 @@ const CATEGORIES: ServiceCategory[] = [
       {
         id: "h4",
         name: "Moving & Loading",
-        image: {
-          uri: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=400",
-        },
+        iconName: "car-outline",
+        image: require("../../assets/images/Moving-Loading.jpg"),
       },
     ],
   },
+];
+
+const FILTER_CHIPS = [
+  "All",
+  "Plumbing",
+  "Electrical",
+  "Appliances",
+  "Carpentry",
+  "Finishing",
 ];
 
 export default function ServicesScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ category?: string }>();
   const [search, setSearch] = useState("");
+  const [selectedFilter, setSelectedFilter] = useState("All");
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   useEffect(() => {
     if (params?.category) {
@@ -228,34 +266,70 @@ export default function ServicesScreen() {
     } as any);
   };
 
-  const filteredCategories = CATEGORIES.map((cat) => ({
-    ...cat,
-    items: cat.items.filter(
-      (item) =>
-        item.name.toLowerCase().includes(search.toLowerCase()) ||
-        cat.title.toLowerCase().includes(search.toLowerCase()),
-    ),
-  })).filter((cat) => cat.items.length > 0);
+  const filteredCategories = useMemo(() => {
+    return CATEGORIES.map((cat) => {
+      // Check if category matches filter chip
+      const matchesFilter =
+        selectedFilter === "All" ||
+        cat.shortName.toLowerCase() === selectedFilter.toLowerCase();
+
+      if (!matchesFilter) {
+        return { ...cat, items: [] };
+      }
+
+      // Filter items matching search term
+      const matchedItems = cat.items.filter(
+        (item) =>
+          item.name.toLowerCase().includes(search.toLowerCase()) ||
+          cat.title.toLowerCase().includes(search.toLowerCase()) ||
+          cat.shortName.toLowerCase().includes(search.toLowerCase()),
+      );
+
+      return {
+        ...cat,
+        items: matchedItems,
+      };
+    }).filter((cat) => cat.items.length > 0);
+  }, [search, selectedFilter]);
+
+  const totalResultsCount = useMemo(() => {
+    return filteredCategories.reduce((sum, cat) => sum + cat.items.length, 0);
+  }, [filteredCategories]);
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Header */}
+      {/* Modern Header */}
       <View style={styles.header}>
+        <View style={styles.topBadgeRow}>
+          <View style={styles.topBadge}>
+            <Ionicons
+              name="shield-checkmark"
+              size={moderateScale(12)}
+              color="#0052CC"
+            />
+            <Text style={styles.topBadgeText}>FixLink Pro Directory</Text>
+          </View>
+        </View>
         <Text style={styles.headerTitle}>Services Catalog</Text>
         <Text style={styles.headerSub}>
-          Select a repair specialty to request bids
+          Select a repair specialty to request instant technician bids
         </Text>
       </View>
 
-      {/* Search Input Bar */}
+      {/* Search Bar & Filter Chips Wrapper */}
       <View style={styles.searchWrapper}>
-        <View style={styles.searchBar}>
+        <View
+          style={[
+            styles.searchBar,
+            isSearchFocused && styles.searchBarFocused,
+          ]}
+        >
           <Feather
             name="search"
-            size={moderateScale(18)}
-            color="#94A3B8"
+            size={moderateScale(17)}
+            color={isSearchFocused ? "#0052CC" : "#94A3B8"}
             style={styles.searchIcon}
           />
           <TextInput
@@ -264,47 +338,146 @@ export default function ServicesScreen() {
             placeholderTextColor="#94A3B8"
             value={search}
             onChangeText={setSearch}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setIsSearchFocused(false)}
+            returnKeyType="search"
           />
           {search.length > 0 && (
             <TouchableOpacity
               onPress={() => setSearch("")}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
-              <Feather name="x" size={moderateScale(18)} color="#94A3B8" />
+              <Ionicons
+                name="close-circle"
+                size={moderateScale(18)}
+                color="#94A3B8"
+              />
             </TouchableOpacity>
           )}
         </View>
+
+        {/* Quick Category Filter Chips */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.chipsScroll}
+          contentContainerStyle={styles.chipsContainer}
+        >
+          {FILTER_CHIPS.map((chip) => {
+            const isActive = selectedFilter === chip;
+            return (
+              <TouchableOpacity
+                key={chip}
+                style={[styles.chip, isActive && styles.chipActive]}
+                activeOpacity={0.75}
+                onPress={() => setSelectedFilter(chip)}
+              >
+                {isActive && (
+                  <View style={styles.activeDot} />
+                )}
+                <Text
+                  style={[
+                    styles.chipText,
+                    isActive && styles.chipTextActive,
+                  ]}
+                >
+                  {chip}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
       </View>
 
+      {/* Main Content */}
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        {search.length > 0 && (
+          <View style={styles.resultsCounterRow}>
+            <Text style={styles.resultsCounterText}>
+              Found <Text style={styles.resultsCounterHighlight}>{totalResultsCount}</Text> {totalResultsCount === 1 ? "service" : "services"}
+            </Text>
+          </View>
+        )}
+
         {filteredCategories.length > 0 ? (
           filteredCategories.map((section) => (
             <View key={section.title} style={styles.section}>
-              {/* Category Title */}
+              {/* Category Header Row */}
               <View style={styles.sectionHeaderRow}>
-                <Text style={styles.sectionTitle}>{section.title}</Text>
+                <View style={styles.sectionTitleGroup}>
+                  <View
+                    style={[
+                      styles.categoryIconBox,
+                      { backgroundColor: section.accentLight },
+                    ]}
+                  >
+                    <Ionicons
+                      name={section.iconName}
+                      size={moderateScale(17)}
+                      color={section.accentColor}
+                    />
+                  </View>
+                  <View>
+                    <Text style={styles.sectionTitle}>{section.title}</Text>
+                    <Text style={styles.sectionSubtitle}>
+                      {section.items.length} {section.items.length === 1 ? "specialty" : "specialties"} available
+                    </Text>
+                  </View>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.exploreBtn}
+                  activeOpacity={0.7}
+                  onPress={() => handleSelect(section.items[0]?.name || section.title)}
+                >
+                  <Text style={styles.exploreText}>View All</Text>
+                  <Ionicons
+                    name="chevron-forward"
+                    size={moderateScale(13)}
+                    color="#0052CC"
+                  />
+                </TouchableOpacity>
               </View>
 
-              {/* Work Category Banner */}
-              <View style={styles.bannerContainer}>
+              {/* Work Category Banner Card */}
+              <TouchableOpacity
+                style={styles.bannerContainer}
+                activeOpacity={0.92}
+                onPress={() => handleSelect(section.items[0]?.name || section.title)}
+              >
                 <Image
                   source={section.bannerImage}
                   style={styles.bannerImage}
                 />
                 <View style={styles.bannerOverlay} />
-                <View style={styles.bannerTag}>
+
+                {/* Top Badge */}
+                <View style={styles.bannerTopBadge}>
+                  <Ionicons
+                    name="shield-checkmark"
+                    size={moderateScale(12)}
+                    color="#0052CC"
+                  />
                   <Text style={styles.bannerTagText}>Verified Technicians</Text>
                 </View>
-              </View>
+
+                {/* Bottom Tagline & Callout */}
+                <View style={styles.bannerContent}>
+                  <Text style={styles.bannerTitle}>{section.title}</Text>
+                  <Text style={styles.bannerSubtitle} numberOfLines={1}>
+                    {section.tagline}
+                  </Text>
+                </View>
+              </TouchableOpacity>
 
               {/* Horizontal Scroll Service Cards */}
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.row}
+                contentContainerStyle={styles.cardsRow}
               >
                 {section.items.map((item) => (
                   <TouchableOpacity
@@ -313,12 +486,41 @@ export default function ServicesScreen() {
                     activeOpacity={0.85}
                     onPress={() => handleSelect(item.name)}
                   >
-                    <Image source={item.image} style={styles.cardImage} />
-                    <View style={styles.cardImageOverlay} />
-                    <View style={styles.cardContent}>
+                    {/* Top Image Container */}
+                    <View
+                      style={[
+                        styles.cardImageWrapper,
+                        { backgroundColor: section.accentLight },
+                      ]}
+                    >
+                      <Image source={item.image} style={styles.cardImage} />
+
+                      {/* Floating Micro Icon Badge */}
+                      <View style={styles.cardIconBadge}>
+                        <Ionicons
+                          name={item.iconName}
+                          size={moderateScale(13)}
+                          color={section.accentColor}
+                        />
+                      </View>
+                    </View>
+
+                    {/* Bottom Content Body */}
+                    <View style={styles.cardBody}>
                       <Text style={styles.cardTitle} numberOfLines={2}>
                         {item.name}
                       </Text>
+
+                      <View style={styles.cardFooterRow}>
+                        <Text style={styles.cardActionText}>Find Pros</Text>
+                        <View style={styles.cardArrowCircle}>
+                          <Ionicons
+                            name="arrow-forward"
+                            size={moderateScale(10)}
+                            color="#0052CC"
+                          />
+                        </View>
+                      </View>
                     </View>
                   </TouchableOpacity>
                 ))}
@@ -327,11 +529,29 @@ export default function ServicesScreen() {
           ))
         ) : (
           <View style={styles.emptyContainer}>
-            <Feather name="search" size={moderateScale(38)} color="#CBD5E1" />
+            <View style={styles.emptyIconCircle}>
+              <Ionicons
+                name="search-outline"
+                size={moderateScale(36)}
+                color="#0052CC"
+              />
+            </View>
             <Text style={styles.emptyTitle}>No matching services found</Text>
             <Text style={styles.emptySubtitle}>
-              {`Try searching for another keyword like "Pipe", "Solar", or "Gate"`}
+              {search
+                ? `No repair specialties matched "${search}". Try searching for another keyword.`
+                : "No services available in this category."}
             </Text>
+            <TouchableOpacity
+              style={styles.resetBtn}
+              activeOpacity={0.8}
+              onPress={() => {
+                setSearch("");
+                setSelectedFilter("All");
+              }}
+            >
+              <Text style={styles.resetBtnText}>View All Services</Text>
+            </TouchableOpacity>
           </View>
         )}
       </ScrollView>
@@ -346,14 +566,35 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingHorizontal: scale(20),
-    paddingTop: scale(4),
-    paddingBottom: scale(6),
+    paddingTop: scale(6),
+    paddingBottom: scale(8),
     backgroundColor: "#FFFFFF",
+  },
+  topBadgeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: scale(4),
+  },
+  topBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(4),
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(3),
+    borderRadius: moderateScale(12),
+  },
+  topBadgeText: {
+    fontSize: scaledFont(10),
+    fontWeight: "700",
+    color: "#0052CC",
+    letterSpacing: 0.2,
   },
   headerTitle: {
     fontSize: scaledFont(22),
     fontWeight: "800",
-    color: "#0052CC",
+    color: "#0F172A",
+    letterSpacing: -0.3,
   },
   headerSub: {
     fontSize: scaledFont(12),
@@ -362,7 +603,8 @@ const styles = StyleSheet.create({
   },
   searchWrapper: {
     paddingHorizontal: scale(20),
-    paddingVertical: scale(8),
+    paddingTop: scale(8),
+    paddingBottom: scale(10),
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
     borderBottomColor: "#F1F5F9",
@@ -370,10 +612,16 @@ const styles = StyleSheet.create({
   searchBar: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#F1F5F9",
-    borderRadius: moderateScale(12),
+    backgroundColor: "#F8FAFC",
+    borderRadius: moderateScale(13),
     paddingHorizontal: scale(12),
     height: scale(42),
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  searchBarFocused: {
+    borderColor: "#0052CC",
+    backgroundColor: "#FFFFFF",
   },
   searchIcon: {
     marginRight: scale(8),
@@ -382,30 +630,119 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: scaledFont(13),
     color: "#0F172A",
+    height: "100%",
+  },
+  chipsScroll: {
+    marginTop: scale(10),
+  },
+  chipsContainer: {
+    gap: scale(8),
+    paddingRight: scale(12),
+  },
+  chip: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(5),
+    paddingHorizontal: scale(13),
+    paddingVertical: scale(6),
+    borderRadius: moderateScale(20),
+    backgroundColor: "#F1F5F9",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  chipActive: {
+    backgroundColor: "#0052CC",
+    borderColor: "#0052CC",
+  },
+  activeDot: {
+    width: moderateScale(6),
+    height: moderateScale(6),
+    borderRadius: moderateScale(3),
+    backgroundColor: "#FFFFFF",
+  },
+  chipText: {
+    fontSize: scaledFont(11.5),
+    fontWeight: "600",
+    color: "#475569",
+  },
+  chipTextActive: {
+    color: "#FFFFFF",
+    fontWeight: "700",
+  },
+  resultsCounterRow: {
+    paddingHorizontal: scale(20),
+    marginBottom: scale(10),
+  },
+  resultsCounterText: {
+    fontSize: scaledFont(12),
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  resultsCounterHighlight: {
+    fontWeight: "700",
+    color: "#0052CC",
   },
   scrollContent: {
     paddingTop: scale(14),
     paddingBottom: scale(110),
   },
   section: {
-    marginBottom: scale(22),
+    marginBottom: scale(24),
   },
   sectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: scale(20),
-    marginBottom: scale(8),
+    marginBottom: scale(10),
+  },
+  sectionTitleGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(10),
+  },
+  categoryIconBox: {
+    width: moderateScale(34),
+    height: moderateScale(34),
+    borderRadius: moderateScale(10),
+    alignItems: "center",
+    justifyContent: "center",
   },
   sectionTitle: {
     fontSize: scaledFont(15),
     fontWeight: "800",
-    color: "#1E293B",
+    color: "#0F172A",
+  },
+  sectionSubtitle: {
+    fontSize: scaledFont(11),
+    color: "#64748B",
+    fontWeight: "500",
+    marginTop: 1,
+  },
+  exploreBtn: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(2),
+  },
+  exploreText: {
+    fontSize: scaledFont(12),
+    fontWeight: "700",
+    color: "#0052CC",
   },
   bannerContainer: {
     marginHorizontal: scale(20),
-    height: scale(115),
-    borderRadius: moderateScale(14),
+    height: scale(118),
+    borderRadius: moderateScale(16),
     overflow: "hidden",
     position: "relative",
     marginBottom: scale(12),
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+    elevation: 2,
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
   },
   bannerImage: {
     width: "100%",
@@ -414,15 +751,18 @@ const styles = StyleSheet.create({
   },
   bannerOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(15, 23, 42, 0.25)",
+    backgroundColor: "rgba(15, 23, 42, 0.42)",
   },
-  bannerTag: {
+  bannerTopBadge: {
     position: "absolute",
-    bottom: scale(10),
-    left: scale(10),
+    top: scale(10),
+    left: scale(12),
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(4),
     backgroundColor: "rgba(255, 255, 255, 0.95)",
-    paddingHorizontal: scale(10),
-    paddingVertical: scale(4),
+    paddingHorizontal: scale(9),
+    paddingVertical: scale(3.5),
     borderRadius: moderateScale(20),
   },
   bannerTagText: {
@@ -430,63 +770,144 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#0052CC",
   },
-  row: {
+  bannerContent: {
+    position: "absolute",
+    bottom: scale(10),
+    left: scale(12),
+    right: scale(12),
+  },
+  bannerTitle: {
+    fontSize: scaledFont(15),
+    fontWeight: "800",
+    color: "#FFFFFF",
+    textShadowColor: "rgba(0, 0, 0, 0.4)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
+  },
+  bannerSubtitle: {
+    fontSize: scaledFont(11),
+    color: "#E2E8F0",
+    marginTop: scale(2),
+    fontWeight: "500",
+  },
+  cardsRow: {
     paddingLeft: scale(20),
     paddingRight: scale(8),
     gap: scale(12),
   },
   card: {
-    width: scale(115),
-    height: scale(115),
-    borderRadius: moderateScale(14),
+    width: scale(138),
+    height: scale(158),
+    borderRadius: moderateScale(16),
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
     overflow: "hidden",
-    position: "relative",
-    backgroundColor: "#E2E8F0",
     elevation: 2,
     shadowColor: "#0F172A",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+  },
+  cardImageWrapper: {
+    width: "100%",
+    height: scale(96),
+    position: "relative",
+    backgroundColor: "#F1F5F9",
   },
   cardImage: {
     width: "100%",
     height: "100%",
     resizeMode: "cover",
   },
-  cardImageOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(15, 23, 42, 0.38)",
-  },
-  cardContent: {
+  cardIconBadge: {
     position: "absolute",
-    bottom: scale(8),
-    left: scale(8),
-    right: scale(8),
+    top: scale(7),
+    right: scale(7),
+    width: moderateScale(24),
+    height: moderateScale(24),
+    borderRadius: moderateScale(12),
+    backgroundColor: "rgba(255, 255, 255, 0.94)",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.8)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 1,
+  },
+  cardBody: {
+    flex: 1,
+    paddingHorizontal: scale(10),
+    paddingVertical: scale(8),
+    justifyContent: "space-between",
+    backgroundColor: "#FFFFFF",
   },
   cardTitle: {
-    fontSize: scaledFont(11),
+    fontSize: scaledFont(12),
     fontWeight: "700",
-    color: "#FFFFFF",
-    textShadowColor: "rgba(0, 0, 0, 0.6)",
-    textShadowOffset: { width: 0, height: 1 },
-    textShadowRadius: 3,
+    color: "#0F172A",
+    lineHeight: scale(15),
+  },
+  cardFooterRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: scale(2),
+  },
+  cardActionText: {
+    fontSize: scaledFont(10),
+    fontWeight: "700",
+    color: "#0052CC",
+  },
+  cardArrowCircle: {
+    width: moderateScale(18),
+    height: moderateScale(18),
+    borderRadius: moderateScale(9),
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
   },
   emptyContainer: {
     alignItems: "center",
     justifyContent: "center",
     marginTop: scale(50),
-    paddingHorizontal: scale(20),
+    paddingHorizontal: scale(30),
+  },
+  emptyIconCircle: {
+    width: moderateScale(70),
+    height: moderateScale(70),
+    borderRadius: moderateScale(35),
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: scale(14),
   },
   emptyTitle: {
-    fontSize: scaledFont(15),
-    fontWeight: "700",
-    color: "#334155",
-    marginTop: scale(12),
+    fontSize: scaledFont(16),
+    fontWeight: "800",
+    color: "#0F172A",
+    textAlign: "center",
   },
   emptySubtitle: {
     fontSize: scaledFont(12),
-    color: "#94A3B8",
+    color: "#64748B",
     marginTop: scale(4),
     textAlign: "center",
+    lineHeight: scale(18),
+  },
+  resetBtn: {
+    backgroundColor: "#0052CC",
+    paddingHorizontal: scale(20),
+    paddingVertical: scale(10),
+    borderRadius: moderateScale(10),
+    marginTop: scale(18),
+  },
+  resetBtnText: {
+    color: "#FFFFFF",
+    fontSize: scaledFont(12.5),
+    fontWeight: "700",
   },
 });
