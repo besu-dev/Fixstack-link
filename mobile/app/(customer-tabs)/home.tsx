@@ -23,6 +23,8 @@ import { Link, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../src/api/client";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
+import UserAvatar from "../../components/common/UserAvatar";
+import { getAvatarUri } from "../../src/utils/avatar";
 
 interface Provider {
   _id: string;
@@ -354,15 +356,21 @@ export default function HomeScreen() {
             filteredProviders.map((provider) => (
               <View key={provider._id} style={styles.providerCard}>
                 <View style={styles.providerImageContainer}>
-                  <Image
-                    source={{
-                      uri:
-                        provider.avatarUrl ||
-                        "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=400",
-                    }}
-                    style={styles.providerImage}
-                    resizeMode="cover"
-                  />
+                  {getAvatarUri(provider.avatarUrl) ? (
+                    <Image
+                      source={{
+                        uri: getAvatarUri(provider.avatarUrl)!,
+                      }}
+                      style={styles.providerImage}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <UserAvatar
+                      avatarUrl={null}
+                      name={provider.fullName}
+                      size={moderateScale(68)}
+                    />
+                  )}
                   {provider.isVerified && (
                     <View style={styles.verifiedTag}>
                       <Ionicons
@@ -718,8 +726,10 @@ const styles = StyleSheet.create({
     height: scale(125),
     borderRadius: moderateScale(12),
     overflow: "hidden",
-    backgroundColor: "#E2E8F0",
+    backgroundColor: "#F1F5F9",
     position: "relative",
+    alignItems: "center",
+    justifyContent: "center",
   },
   providerImage: {
     width: "100%",

@@ -3,6 +3,7 @@ import {
   register,
   login,
   getProviders,
+  getProviderById,
   getMe,
   updateProfile,
 } from "../controllers/authController.js";
@@ -28,17 +29,7 @@ router.post("/login", login);
 router.get("/providers", getProviders);
 
 // Fetch public profile details of a specific technician
-router.get("/provider/:id", async (req, res) => {
-  try {
-    const provider = await User.findById(req.params.id).select("-password");
-    if (!provider) {
-      return res.status(404).json({ message: "Provider not found" });
-    }
-    res.status(200).json({ user: provider });
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-});
+router.get("/provider/:id", getProviderById);
 
 // Authenticated user profile routes
 router.get("/me", protect, getMe);

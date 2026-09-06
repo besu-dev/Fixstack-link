@@ -1,5 +1,7 @@
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
+import Job from "../models/Job.js";
+import Review from "../models/Review.js";
 import { generateToken } from "../config/jwt.js";
 
 const isEmail = (input) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
@@ -392,3 +394,71 @@ export const getProviders = async (req, res) => {
     return res.status(500).json({ message: error.message });
   }
 };
+
+// @desc    Get public technician details with real database metrics
+// @route   GET /api/auth/provider/:id
+// @access  Public
+export const getProviderById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const provider = await User.findById(id).select("-password").lean();
+    if (!provider) {
+      return res.status(404).json({ message: "Provider not found" });
+    }
+
+    // Real number of completed jobs from the database
+    const completedOrders = await Job.countDocuments({
+      assignedProvider: id,
+      status: "completed",
+    });
+
+    // Real ratings from reviews
+    const reviews = await Review.find({ provider: id }).lean();
+    let realRating = null;
+    let reviewCount = reviews.length;
+
+    if (reviewCount > 0) {
+      const sum = reviews.reduce((acc, r) => acc + Number(r.rating || 0), 0);
+      realRating = parseFloat((sum / reviewCount).toFixed(1));
+    } else {
+      // Check if any completed jobs have embedded rating
+      const ratedJobs = await Job.find({
+        assignedProvider: id,
+        rating: { $exists: true, $ne: null, $gt: 0 },
+      }).lean();
+
+      if (ratedJobs.length > 0) {
+        reviewCount = ratedJobs.length;
+        const sum = ratedJobs.reduce((acc, j) => acc + Number(j.rating || 0), 0);
+        realRating = parseFloat((sum / reviewCount).toFixed(1));
+      }
+    }
+
+    // Safely normalize skills array
+    let skills = provider.skills || [];
+    if (typeof skills === "string") {
+      try {
+        skills = JSON.parse(skills);
+      } catch {
+        skills = skills.split(",").map((s) => s.trim()).filter(Boolean);
+      }
+    }
+    if (!Array.isArray(skills)) {
+      skills = [];
+    }
+
+    return res.status(200).json({
+      user: {
+        ...provider,
+        completedOrders,
+        rating: realRating,
+        reviewCount,
+        skills,
+      },
+    });
+  } catch (error) {
+    console.error("--> getProviderById error:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+

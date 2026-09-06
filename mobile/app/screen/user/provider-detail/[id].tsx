@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   View,
   Text,
@@ -20,17 +20,20 @@ import {
   moderateScale,
   scaledFont,
 } from "../../../../src/utils/responsive";
+import UserAvatar from "../../../../components/common/UserAvatar";
+import { getAvatarUri } from "../../../../src/utils/avatar";
 
 interface ProviderProfile {
   _id: string;
   fullName: string;
   phone?: string;
   profession?: string;
-  rating?: number;
+  subcity?: string;
+  rating?: number | null;
+  reviewCount?: number;
   completedOrders?: number;
   experience?: string;
   skills?: string[];
-  bio?: string;
   avatarUrl?: string;
   isVerified?: boolean;
 }
@@ -41,6 +44,11 @@ export default function ProviderDetailScreen() {
 
   const [provider, setProvider] = useState<ProviderProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [imageError, setImageError] = useState(false);
+
+  useEffect(() => {
+    setImageError(false);
+  }, [provider?.avatarUrl]);
 
   useEffect(() => {
     const fetchProviderDetail = async () => {
@@ -59,6 +67,19 @@ export default function ProviderDetailScreen() {
       fetchProviderDetail();
     }
   }, [id]);
+
+  const resolvedAvatarUri = getAvatarUri(provider?.avatarUrl);
+  const showImage = Boolean(resolvedAvatarUri) && !imageError;
+
+  const displayedSkills = useMemo(() => {
+    if (Array.isArray(provider?.skills) && provider.skills.length > 0) {
+      return provider.skills;
+    }
+    if (provider?.profession) {
+      return [provider.profession];
+    }
+    return [];
+  }, [provider?.skills, provider?.profession]);
 
   const handleCall = () => {
     if (!provider?.phone) {
@@ -112,17 +133,23 @@ export default function ProviderDetailScreen() {
       >
         {/* Avatar Header Block */}
         <View style={styles.avatarCard}>
-          <Image
-            source={{
-              uri:
-                provider?.avatarUrl ||
-                "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=400",
-            }}
-            style={styles.providerAvatar}
-          />
+          {showImage && resolvedAvatarUri ? (
+            <Image
+              source={{ uri: resolvedAvatarUri }}
+              style={styles.providerAvatar}
+              resizeMode="cover"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <UserAvatar
+              avatarUrl={null}
+              name={provider?.fullName || "Technician"}
+              size={moderateScale(120)}
+            />
+          )}
         </View>
 
-        {/* Name, Profession & Direct Call Action */}
+        {/* Name, Profession, Location & Direct Call Action */}
         <View style={styles.nameRow}>
           <View style={styles.nameCol}>
             <View style={styles.titleWithVerify}>
@@ -137,9 +164,24 @@ export default function ProviderDetailScreen() {
                 />
               )}
             </View>
-            <Text style={styles.providerProfession}>
-              {provider?.profession || "General Maintenance"}
-            </Text>
+            <View style={styles.metaRow}>
+              <Text style={styles.providerProfession}>
+                {provider?.profession || "General Maintenance"}
+              </Text>
+              {provider?.subcity ? (
+                <>
+                  <Text style={styles.metaDot}>•</Text>
+                  <View style={styles.locationContainer}>
+                    <Feather
+                      name="map-pin"
+                      size={moderateScale(12)}
+                      color="#64748B"
+                    />
+                    <Text style={styles.locationText}>{provider.subcity}</Text>
+                  </View>
+                </>
+              ) : null}
+            </View>
           </View>
 
           <TouchableOpacity
@@ -157,10 +199,16 @@ export default function ProviderDetailScreen() {
             <View style={styles.statIconRow}>
               <Ionicons name="star" size={moderateScale(15)} color="#F59E0B" />
               <Text style={styles.statNumber}>
-                {provider?.rating ? provider.rating.toFixed(1) : "4.8"}
+                {provider?.rating != null
+                  ? Number(provider.rating).toFixed(1)
+                  : "New"}
               </Text>
             </View>
-            <Text style={styles.statLabel}>Rating</Text>
+            <Text style={styles.statLabel}>
+              {provider?.reviewCount && provider.reviewCount > 0
+                ? `Rating (${provider.reviewCount})`
+                : "Rating"}
+            </Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
@@ -171,7 +219,7 @@ export default function ProviderDetailScreen() {
                 color="#16A34A"
               />
               <Text style={styles.statNumber}>
-                {provider?.completedOrders ?? 56}
+                {provider?.completedOrders ?? 0}
               </Text>
             </View>
             <Text style={styles.statLabel}>Orders Completed</Text>
@@ -181,7 +229,7 @@ export default function ProviderDetailScreen() {
             <View style={styles.statIconRow}>
               <Feather name="award" size={moderateScale(14)} color="#0052CC" />
               <Text style={styles.statNumber}>
-                {provider?.experience || "4 Years"}
+                {provider?.experience || "General"}
               </Text>
             </View>
             <Text style={styles.statLabel}>Experience</Text>
@@ -189,11 +237,11 @@ export default function ProviderDetailScreen() {
         </View>
 
         {/* Skills Section */}
-        {provider?.skills && provider.skills.length > 0 && (
+        {displayedSkills.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionHeader}>Skills</Text>
             <View style={styles.skillsGrid}>
-              {provider.skills.map((skill, index) => (
+              {displayedSkills.map((skill, index) => (
                 <View key={index} style={styles.skillPill}>
                   <Text style={styles.skillText}>{skill}</Text>
                 </View>
@@ -215,15 +263,6 @@ export default function ProviderDetailScreen() {
           />
           <Text style={styles.messageBtnText}>Message</Text>
         </TouchableOpacity>
-
-        {/* Bio Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>Bio</Text>
-          <Text style={styles.bioText}>
-            {provider?.bio ||
-              `I'm ${provider?.fullName}, a dedicated maintenance professional with a passion for delivering top-notch service to ensure your home runs smoothly.`}
-          </Text>
-        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -251,8 +290,9 @@ const styles = StyleSheet.create({
   scrollContent: { paddingHorizontal: scale(20), paddingBottom: scale(40) },
   avatarCard: {
     alignItems: "center",
+    justifyContent: "center",
     marginTop: scale(12),
-    backgroundColor: "#EFF6FF",
+    backgroundColor: "#F1F5F9",
     borderRadius: moderateScale(20),
     overflow: "hidden",
     height: scale(240),
@@ -260,7 +300,6 @@ const styles = StyleSheet.create({
   providerAvatar: {
     width: "100%",
     height: "100%",
-    resizeMode: "cover",
   },
   nameRow: {
     flexDirection: "row",
@@ -279,11 +318,31 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     color: "#0F172A",
   },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: scale(4),
+    flexWrap: "wrap",
+    gap: scale(6),
+  },
   providerProfession: {
     fontSize: scaledFont(14),
     color: "#64748B",
-    marginTop: scale(2),
     fontWeight: "600",
+  },
+  metaDot: {
+    fontSize: scaledFont(13),
+    color: "#94A3B8",
+  },
+  locationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(3),
+  },
+  locationText: {
+    fontSize: scaledFont(13),
+    color: "#64748B",
+    fontWeight: "500",
   },
   phoneCallBtn: {
     width: moderateScale(46),
@@ -354,10 +413,5 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: scaledFont(15),
     fontWeight: "700",
-  },
-  bioText: {
-    fontSize: scaledFont(13),
-    color: "#475569",
-    lineHeight: scale(20),
   },
 });
