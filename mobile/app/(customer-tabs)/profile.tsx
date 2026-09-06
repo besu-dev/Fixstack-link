@@ -14,10 +14,11 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../src/api/client";
 import BuyConnectsModal from "../../components/BuyConnectsModal";
+import UserAvatar from "../../components/common/UserAvatar";
 import { AppAlert } from "../../src/context/AlertContext";
 import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
@@ -88,6 +89,12 @@ export default function CustomerProfileScreen() {
     fetchProfileData();
   }, [fetchProfileData]);
 
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfileData();
+    }, [fetchProfileData]),
+  );
+
   const onRefresh = () => {
     setRefreshing(true);
     fetchProfileData();
@@ -154,13 +161,10 @@ export default function CustomerProfileScreen() {
         {/* User Card */}
         <View style={styles.userCard}>
           <View style={styles.avatarWrapper}>
-            <Image
-              source={{
-                uri:
-                  profile?.avatarUrl ||
-                  "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300",
-              }}
-              style={styles.avatar}
+            <UserAvatar
+              avatarUrl={profile?.avatarUrl}
+              name={profile?.fullName || "Customer"}
+              size={moderateScale(84)}
             />
             <TouchableOpacity
               style={styles.cameraBadge}

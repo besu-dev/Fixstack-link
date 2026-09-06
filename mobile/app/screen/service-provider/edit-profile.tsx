@@ -24,6 +24,7 @@ import {
   moderateScale,
   scaledFont,
 } from "../../../src/utils/responsive";
+import UserAvatar from "../../../components/common/UserAvatar";
 
 const PROFESSIONS = [
   "Plumbing",
@@ -41,6 +42,7 @@ export default function ProviderEditProfileScreen() {
   const router = useRouter();
 
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [avatarPicked, setAvatarPicked] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -104,6 +106,7 @@ export default function ProviderEditProfileScreen() {
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       setAvatarUri(result.assets[0].uri);
+      setAvatarPicked(true);
     }
   };
 
@@ -126,7 +129,7 @@ export default function ProviderEditProfileScreen() {
       formData.append("subcity", subcity.trim());
       formData.append("experience", experience);
 
-      if (avatarUri && !avatarUri.startsWith("http")) {
+      if (avatarPicked && avatarUri) {
         const filename = avatarUri.split("/").pop() || "provider_avatar.jpg";
         const match = /\.(\w+)$/.exec(filename);
         const type = match ? `image/${match[1]}` : "image/jpeg";
@@ -202,13 +205,10 @@ export default function ProviderEditProfileScreen() {
           {/* Avatar Section */}
           <View style={styles.avatarSection}>
             <View style={styles.avatarWrapper}>
-              <Image
-                source={{
-                  uri:
-                    avatarUri ||
-                    "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=300",
-                }}
-                style={styles.avatar}
+              <UserAvatar
+                avatarUrl={avatarUri}
+                name={fullName || "Provider"}
+                size={moderateScale(92)}
               />
               <TouchableOpacity
                 style={styles.cameraBadge}

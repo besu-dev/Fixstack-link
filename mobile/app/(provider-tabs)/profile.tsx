@@ -15,13 +15,14 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
+import { useRouter, useFocusEffect } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { io, Socket } from "socket.io-client";
 import apiClient from "../../src/api/client";
 import notificationsApi from "../../src/api/notifications";
 import JobNotificationsModal from "../../components/provider/JobNotificationsModal";
 import BuyConnectsModal from "../../components/BuyConnectsModal";
+import UserAvatar from "../../components/common/UserAvatar";
 import { AppAlert } from "../../src/context/AlertContext";
 import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
@@ -134,6 +135,12 @@ export default function ProviderProfileScreen() {
     fetchProfile();
     fetchUnreadCount();
   }, [fetchProfile, fetchUnreadCount]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile();
+    }, [fetchProfile]),
+  );
 
   // Real-time socket listener for incoming new job notifications
   useEffect(() => {
@@ -254,13 +261,10 @@ export default function ProviderProfileScreen() {
         {/* Profile Card */}
         <View style={styles.profileCard}>
           <View style={styles.avatarWrapper}>
-            <Image
-              source={{
-                uri:
-                  profile?.avatarUrl ||
-                  "https://images.unsplash.com/photo-1540569014015-19a7be504e3a?auto=format&fit=crop&q=80&w=300",
-              }}
-              style={styles.avatar}
+            <UserAvatar
+              avatarUrl={profile?.avatarUrl}
+              name={profile?.fullName || "Provider"}
+              size={moderateScale(84)}
             />
             <TouchableOpacity
               style={styles.cameraBadge}

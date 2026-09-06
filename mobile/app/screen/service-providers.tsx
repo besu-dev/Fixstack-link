@@ -17,6 +17,7 @@ import { Feather, FontAwesome } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { usersApi } from "../../src/api";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
+import UserAvatar from "../../components/common/UserAvatar";
 
 interface Provider {
   _id: string;
@@ -218,20 +219,11 @@ export default function ServiceProvidersScreen() {
                 <View style={styles.cardMain}>
                   {/* Profile Photo */}
                   <View style={styles.avatarContainer}>
-                    {avatarUri ? (
-                      <Image
-                        source={{ uri: avatarUri }}
-                        style={styles.avatarImage}
-                      />
-                    ) : (
-                      <View style={styles.avatarFallback}>
-                        <Feather
-                          name="tool"
-                          size={moderateScale(20)}
-                          color="#0052CC"
-                        />
-                      </View>
-                    )}
+                    <UserAvatar
+                      avatarUrl={item.avatarUrl}
+                      name={item.fullName}
+                      size={moderateScale(56)}
+                    />
                   </View>
 
                   {/* Info Column */}

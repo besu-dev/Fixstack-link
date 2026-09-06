@@ -24,11 +24,13 @@ import {
   moderateScale,
   scaledFont,
 } from "../../../src/utils/responsive";
+import UserAvatar from "../../../components/common/UserAvatar";
 
 export default function EditProfileScreen() {
   const router = useRouter();
 
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
+  const [avatarPicked, setAvatarPicked] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -87,6 +89,7 @@ export default function EditProfileScreen() {
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       setAvatarUri(result.assets[0].uri);
+      setAvatarPicked(true);
     }
   };
 
@@ -103,7 +106,7 @@ export default function EditProfileScreen() {
       formData.append("phone", phoneNumber.trim());
       formData.append("subcity", address.trim());
 
-      if (avatarUri && !avatarUri.startsWith("http")) {
+      if (avatarPicked && avatarUri) {
         const filename = avatarUri.split("/").pop() || "avatar.jpg";
         const match = /\.(\w+)$/.exec(filename);
         const type = match ? `image/${match[1]}` : "image/jpeg";
@@ -178,15 +181,10 @@ export default function EditProfileScreen() {
           {/* Avatar Section */}
           <View style={styles.avatarSection}>
             <View style={styles.avatarWrapper}>
-              <Image
-                source={
-                  avatarUri
-                    ? { uri: avatarUri }
-                    : {
-                        uri: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=300",
-                      }
-                }
-                style={styles.avatar}
+              <UserAvatar
+                avatarUrl={avatarUri}
+                name={fullName || "Customer"}
+                size={moderateScale(90)}
               />
               <TouchableOpacity
                 style={styles.cameraBadge}

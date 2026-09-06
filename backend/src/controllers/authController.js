@@ -152,6 +152,7 @@ export const register = async (req, res) => {
         subcity: newUser.subcity,
         experience: newUser.experience,
         skills: newUser.skills,
+        avatarUrl: newUser.avatarUrl || "",
         connectsBalance: newUser.connectsBalance,
       },
     });
@@ -217,6 +218,7 @@ export const login = async (req, res) => {
         subcity: user.subcity,
         experience: user.experience,
         skills: user.skills,
+        avatarUrl: user.avatarUrl || "",
         connectsBalance: user.connectsBalance,
         isFeatured: user.isFeatured || false,
       },
@@ -248,16 +250,28 @@ export const getMe = async (req, res) => {
 // @access  Private
 export const updateProfile = async (req, res) => {
   try {
-    const { fullName, phone, subcity } = req.body;
+    const { fullName, phone, subcity, profession, experience, skills } = req.body;
     const updateFields = {};
 
     if (fullName && fullName.trim()) updateFields.fullName = fullName.trim();
     if (phone && phone.trim()) updateFields.phone = formatPhone(phone.trim());
     if (subcity && subcity.trim()) updateFields.subcity = subcity.trim();
+    if (profession && profession.trim()) updateFields.profession = profession.trim();
+    if (experience && experience.trim()) updateFields.experience = experience.trim();
+
+    if (skills) {
+      try {
+        updateFields.skills = typeof skills === "string" ? JSON.parse(skills) : skills;
+      } catch {
+        updateFields.skills = Array.isArray(skills) ? skills : [skills];
+      }
+    }
 
     // Check if avatar file was uploaded via multer
     if (req.file) {
-      updateFields.avatarUrl = req.file.path;
+      updateFields.avatarUrl = `/uploads/${req.file.filename}`;
+    } else if (req.body.avatarUrl) {
+      updateFields.avatarUrl = req.body.avatarUrl;
     }
 
     const updatedUser = await User.findByIdAndUpdate(
