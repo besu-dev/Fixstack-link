@@ -190,7 +190,7 @@ export default function ContactPage({ onShowToast }) {
                     </div>
 
                     <div className="form-group">
-                      <label className="form-label" htmlFor="phone">Ethiopian Phone Number *</label>
+                      <label className="form-label" htmlFor="phone">Phone Number *</label>
                       <input 
                         type="tel" 
                         id="phone"
