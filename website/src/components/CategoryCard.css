@@ -1,0 +1,171 @@
+/* ==========================================================================
+   Category Card Styles
+   ========================================================================== */
+
+.category-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: all var(--transition-base);
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.category-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: var(--card-accent, var(--brand-blue));
+  opacity: 0.8;
+  transition: height var(--transition-fast);
+}
+
+.category-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 32px -4px rgba(0, 43, 73, 0.12);
+  border-color: rgba(0, 82, 204, 0.25);
+}
+
+.category-card:hover::before {
+  height: 6px;
+}
+
+.cat-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.cat-icon-container {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform var(--transition-base);
+}
+
+.category-card:hover .cat-icon-container {
+  transform: scale(1.08);
+}
+
+.popular-badge {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background: var(--brand-orange-light);
+  color: var(--brand-orange);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+}
+
+.cat-card-title {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--brand-navy);
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+}
+
+.cat-card-tagline {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--card-accent, var(--brand-blue));
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+
+.cat-card-desc {
+  font-size: 0.92rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.cat-subservices-section {
+  padding-top: 16px;
+  border-top: 1px dashed var(--border-light);
+  margin-bottom: 24px;
+}
+
+.subservices-heading {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-subtle);
+  margin-bottom: 10px;
+}
+
+.subskills-tags-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.subskill-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-subtle);
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  transition: all var(--transition-fast);
+}
+
+.category-card:hover .subskill-pill {
+  background: #FFFFFF;
+  border-color: var(--border-light);
+}
+
+.check-bullet {
+  color: var(--card-accent, var(--brand-blue));
+}
+
+.cat-card-footer {
+  padding-top: 16px;
+  border-top: 1px solid var(--border-light);
+}
+
+.cat-explore-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: transparent;
+  border: none;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--brand-blue);
+  cursor: pointer;
+  padding: 6px 0;
+  transition: all var(--transition-fast);
+}
+
+.cat-explore-btn:hover {
+  color: var(--brand-blue-hover);
+}
+
+.btn-arrow {
+  transition: transform var(--transition-fast);
+}
+
+.cat-explore-btn:hover .btn-arrow {
+  transform: translateX(4px);
+}

@@ -1,0 +1,179 @@
+/* ==========================================================================
+   Mobile App Banner Styles
+   ========================================================================== */
+
+.app-banner-section {
+  padding: 60px 0;
+}
+
+.app-banner-card {
+  background: linear-gradient(135deg, var(--brand-navy) 0%, #001E36 60%, var(--brand-blue) 100%);
+  border-radius: var(--radius-xl);
+  padding: 56px 48px;
+  color: #FFFFFF;
+  display: grid;
+  grid-template-columns: 1.3fr 0.7fr;
+  gap: 48px;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
+  box-shadow: var(--shadow-xl);
+}
+
+.app-banner-card::before {
+  content: '';
+  position: absolute;
+  top: -120px;
+  right: -100px;
+  width: 380px;
+  height: 380px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(249, 115, 22, 0.2) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.app-tag-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #38BDF8;
+  margin-bottom: 20px;
+}
+
+.app-banner-title {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  color: #FFFFFF;
+  line-height: 1.2;
+  margin-bottom: 18px;
+}
+
+.app-banner-desc {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  color: #CBD5E1;
+  margin-bottom: 32px;
+  max-width: 600px;
+}
+
+.app-features-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 36px;
+}
+
+.app-feat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #E2E8F0;
+}
+
+.feat-icon {
+  color: var(--brand-orange);
+  flex-shrink: 0;
+}
+
+.app-store-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.store-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  background: #000000;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 10px 20px;
+  border-radius: var(--radius-md);
+  color: #FFFFFF;
+  transition: all var(--transition-fast);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.store-btn:hover {
+  background: #111827;
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.store-icon {
+  color: #FFFFFF;
+}
+
+.store-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.store-small {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: #9CA3AF;
+  letter-spacing: 0.05em;
+}
+
+.store-big {
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: var(--font-display);
+}
+
+/* QR Mockup */
+.app-banner-mockup {
+  display: flex;
+  justify-content: center;
+}
+
+.qr-box {
+  background: #FFFFFF;
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: var(--brand-navy);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  text-align: center;
+}
+
+.qr-svg {
+  color: var(--brand-navy);
+  margin-bottom: 12px;
+}
+
+.qr-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+
+.qr-sublabel {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .app-banner-card {
+    grid-template-columns: 1fr;
+    padding: 36px 28px;
+    gap: 36px;
+  }
+  .app-features-grid {
+    grid-template-columns: 1fr;
+  }
+}

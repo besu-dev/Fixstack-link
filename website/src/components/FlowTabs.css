@@ -1,0 +1,212 @@
+/* ==========================================================================
+   Flow Tabs Styles
+   ========================================================================== */
+
+.flow-tabs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 36px;
+}
+
+/* Tab Switcher */
+.flow-tab-nav {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  padding: 8px;
+  border-radius: var(--radius-pill);
+  max-width: 680px;
+  margin: 0 auto;
+}
+
+.flow-tab-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: transparent;
+  border: none;
+  padding: 12px 24px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  transition: all var(--transition-base);
+  text-align: left;
+}
+
+.flow-tab-btn:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+.flow-tab-btn.active {
+  background: #FFFFFF;
+  box-shadow: var(--shadow-md);
+}
+
+.tab-pill-icon {
+  font-size: 1.5rem;
+}
+
+.tab-btn-text {
+  display: flex;
+  flex-direction: column;
+}
+
+.tab-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--brand-navy);
+}
+
+.tab-subtitle {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.flow-tab-btn.active .tab-title {
+  color: var(--brand-blue);
+}
+
+/* Steps Grid */
+.steps-flow-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  position: relative;
+}
+
+.flow-step-card {
+  background: #FFFFFF;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-sm);
+  position: relative;
+  transition: all var(--transition-base);
+}
+
+.flow-step-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 32px -4px rgba(0, 43, 73, 0.1);
+  border-color: rgba(0, 82, 204, 0.3);
+}
+
+.step-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.step-number {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: #CBD5E1;
+  line-height: 1;
+}
+
+.flow-step-card:hover .step-number {
+  color: var(--brand-orange);
+}
+
+.step-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--bg-surface-tint);
+  color: var(--brand-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.flow-step-card:hover .step-icon-wrap {
+  background: var(--brand-blue);
+  color: #FFFFFF;
+}
+
+.step-highlight-tag {
+  display: inline-block;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--brand-orange);
+  margin-bottom: 8px;
+}
+
+.step-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--brand-navy);
+  margin-bottom: 12px;
+  line-height: 1.35;
+}
+
+.step-description {
+  font-size: 0.88rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.step-connector-arrow {
+  display: none; /* Can be enabled on large screens if desired */
+}
+
+/* Bottom Notice */
+.flow-bottom-cta {
+  background: var(--bg-surface-tint);
+  border: 1px solid rgba(0, 82, 204, 0.15);
+  border-radius: var(--radius-md);
+  padding: 18px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.flow-cta-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--brand-navy);
+}
+
+.cta-phone-icon {
+  color: var(--brand-blue);
+  flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .steps-flow-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .flow-tab-nav {
+    flex-direction: column;
+    border-radius: var(--radius-lg);
+  }
+  .flow-tab-btn {
+    border-radius: var(--radius-md);
+  }
+  .steps-flow-grid {
+    grid-template-columns: 1fr;
+  }
+  .flow-bottom-cta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .flow-bottom-cta .btn {
+    width: 100%;
+  }
+}
