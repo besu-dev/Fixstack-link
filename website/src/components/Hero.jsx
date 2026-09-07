@@ -1,12 +1,8 @@
 import React from 'react';
-import { 
-  ShieldCheck, 
-  ArrowRight, 
-  CheckCircle2 
-} from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import './Hero.css';
 
-export default function Hero({ onExploreServices, onHowItWorks, totalProviders = 7, isBackendLive = false }) {
+export default function Hero({ onExploreServices, onHowItWorks }) {
   return (
     <section className="hero-section">
       {/* Background Decorative Blobs */}
@@ -16,25 +12,14 @@ export default function Hero({ onExploreServices, onHowItWorks, totalProviders =
 
       <div className="container hero-container">
         <div className="hero-content">
-          {/* Tagline Badge */}
-          <div className="hero-tag-badge">
-            <span className="ethiopia-flag">🇪🇹</span>
-            <span className="tag-text">Ethiopia's Household Repair Platform</span>
-            {isBackendLive && (
-              <span className="live-pulse-badge">
-                <span className="pulse-dot"></span> Live API Active
-              </span>
-            )}
-          </div>
-
           {/* Main Headline */}
           <h1 className="hero-title">
-            Reliable Household Repairs in Ethiopia, <span className="text-gradient">Solved with Confidence.</span>
+            Reliable Household Repairs in Ethiopia, <span className="text-gradient">Made Simple.</span>
           </h1>
 
           {/* Subheading */}
           <p className="hero-subtitle">
-            FixLink bridges Ethiopian homeowners, tenants, and property managers with verified, skilled local technicians. From burst water pipes in Bole to solar wiring in Megenagna—get repairs done right.
+            FixLink connects homeowners, tenants, and property managers with skilled local technicians for trusted household repairs. From plumbing and electrical work to appliance repairs and more, find the right professional to get the job done right.
           </p>
 
           {/* Action CTAs */}
@@ -54,22 +39,6 @@ export default function Hero({ onExploreServices, onHowItWorks, totalProviders =
             >
               <span>How It Works</span>
             </button>
-          </div>
-
-          {/* Trust Guarantees */}
-          <div className="hero-guarantees">
-            <div className="guarantee-item">
-              <CheckCircle2 size={18} className="guarantee-icon" />
-              <span>Verified Kebele ID & Skills</span>
-            </div>
-            <div className="guarantee-item">
-              <CheckCircle2 size={18} className="guarantee-icon" />
-              <span>Addis Ababa Subcity Coverage</span>
-            </div>
-            <div className="guarantee-item">
-              <CheckCircle2 size={18} className="guarantee-icon" />
-              <span>Mobile-First Convenience</span>
-            </div>
           </div>
         </div>
       </div>

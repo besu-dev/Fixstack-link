@@ -8,7 +8,6 @@ import {
   MapPin, 
   Bell, 
   Briefcase,
-  Smartphone,
   ArrowRight
 } from 'lucide-react';
 import './FlowTabs.css';
@@ -134,22 +133,6 @@ export default function FlowTabs({ onExploreServices }) {
             </div>
           );
         })}
-      </div>
-
-      {/* App Notice Banner at bottom of flow */}
-      <div className="flow-bottom-cta">
-        <div className="flow-cta-info">
-          <Smartphone size={22} className="cta-phone-icon" />
-          <span>
-            {activeTab === 'seeker'
-              ? 'Ready to get repairs completed? Download the FixLink Mobile App to post your job in seconds.'
-              : 'Skilled technician in Addis Ababa? Register on the FixLink Mobile App to start receiving job requests today.'}
-          </span>
-        </div>
-        <button className="btn btn-primary btn-sm" onClick={onExploreServices}>
-          <span>Explore Services</span>
-          <ArrowRight size={16} />
-        </button>
       </div>
     </div>
   );

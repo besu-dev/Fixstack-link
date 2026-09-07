@@ -138,36 +138,12 @@
   align-items: center;
   justify-content: center;
   gap: 16px;
-  margin-bottom: 44px;
+  margin-bottom: 0;
 }
 
 .hero-btn {
   padding: 15px 32px;
   font-size: 1.05rem;
-}
-
-.hero-guarantees {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 28px;
-  padding-top: 32px;
-  border-top: 1px solid var(--border-light);
-  width: 100%;
-}
-
-.guarantee-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.92rem;
-  font-weight: 600;
-  color: var(--text-muted);
-}
-
-.guarantee-icon {
-  color: var(--brand-blue);
-  flex-shrink: 0;
 }
 
 /* Responsive */
@@ -182,10 +158,5 @@
   }
   .hero-btn {
     width: 100%;
-  }
-  .hero-guarantees {
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
   }
 }

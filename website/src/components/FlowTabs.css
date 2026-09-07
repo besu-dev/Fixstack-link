@@ -158,32 +158,6 @@
   display: none; /* Can be enabled on large screens if desired */
 }
 
-/* Bottom Notice */
-.flow-bottom-cta {
-  background: var(--bg-surface-tint);
-  border: 1px solid rgba(0, 82, 204, 0.15);
-  border-radius: var(--radius-md);
-  padding: 18px 24px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-}
-
-.flow-cta-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  font-size: 0.95rem;
-  font-weight: 600;
-  color: var(--brand-navy);
-}
-
-.cta-phone-icon {
-  color: var(--brand-blue);
-  flex-shrink: 0;
-}
-
 /* Responsive */
 @media (max-width: 1024px) {
   .steps-flow-grid {
@@ -201,12 +175,5 @@
   }
   .steps-flow-grid {
     grid-template-columns: 1fr;
-  }
-  .flow-bottom-cta {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-  .flow-bottom-cta .btn {
-    width: 100%;
   }
 }
