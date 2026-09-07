@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   Image,
   StyleSheet,
@@ -13,6 +12,7 @@ import {
   RefreshControl,
   Modal,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Feather,
   Ionicons,
@@ -151,14 +151,14 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.centerContainer}>
+      <SafeAreaView style={styles.centerContainer} edges={["top"]}>
         <ActivityIndicator size="large" color="#0052CC" />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
+    <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#F8FAFC" />
 
       <ScrollView
@@ -180,25 +180,12 @@ export default function HomeScreen() {
               How can we help you today?
             </Text>
           </View>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: scale(10) }}>
-            <TouchableOpacity
-              style={styles.supportButton}
-              activeOpacity={0.7}
-              onPress={() => router.push("/customer/support" as any)}
-            >
-              <Feather
-                name="phone-call"
-                size={moderateScale(18)}
-                color="#1E293B"
-              />
-            </TouchableOpacity>
-            <UserAvatar
-              avatarUrl={userAvatarUrl}
-              name={userName}
-              size={moderateScale(40)}
-              onPress={() => router.push("/(customer-tabs)/profile" as any)}
-            />
-          </View>
+          <UserAvatar
+            avatarUrl={userAvatarUrl}
+            name={userName}
+            size={moderateScale(42)}
+            onPress={() => router.push("/(customer-tabs)/profile" as any)}
+          />
         </View>
 
         {/* Banner with Embedded Search */}
@@ -514,8 +501,8 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "space-between",
     paddingHorizontal: scale(20),
-    paddingTop: scale(18),
-    paddingBottom: scale(16),
+    paddingTop: scale(10),
+    paddingBottom: scale(14),
   },
   greetingTextGroup: {
     flex: 1,
@@ -532,21 +519,7 @@ const styles = StyleSheet.create({
     marginTop: scale(4),
     fontWeight: "500",
   },
-  supportButton: {
-    width: moderateScale(42),
-    height: moderateScale(42),
-    borderRadius: moderateScale(21),
-    backgroundColor: "#FFFFFF",
-    alignItems: "center",
-    justifyContent: "center",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    elevation: 2,
-    shadowColor: "#0F172A",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
+
   bannerOuterWrapper: {
     paddingHorizontal: scale(20),
     marginBottom: scale(24),
@@ -619,10 +592,11 @@ const styles = StyleSheet.create({
     marginRight: scale(8),
   },
   searchInput: {
-    marginTop: 20,
     flex: 1,
     fontSize: scaledFont(13),
     color: "#0F172A",
+    height: "100%",
+    paddingVertical: 0,
   },
   clearSearchBtn: {
     padding: scale(4),

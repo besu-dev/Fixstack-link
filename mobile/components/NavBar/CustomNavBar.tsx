@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedStyle,
   withTiming,
 } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
 
 const PRIMARY_COLOR = "#0052CC";
@@ -80,10 +81,12 @@ export default function CustomNavBar({
   descriptors,
   navigation,
 }: BottomTabBarProps) {
+  const insets = useSafeAreaInsets();
   const { unreadMessageCount } = useUnreadMessages();
+  const bottomOffset = insets.bottom > 0 ? insets.bottom + 8 : 20;
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { bottom: bottomOffset }]}>
       {state.routes.map((route, index) => {
         if (["_sitemap", "+not-found"].includes(route.name)) {
           return null;
