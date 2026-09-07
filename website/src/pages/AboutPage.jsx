@@ -92,7 +92,6 @@ export default function AboutPage({ onNavigate, setActivePage }) {
                   </div>
                   <div className="floating-badge-text">
                     <strong>Verified Technicians</strong>
-                    <span>Kebele ID & trade checked</span>
                   </div>
                 </div>
               </div>

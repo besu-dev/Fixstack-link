@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ShieldAlert, Wrench, ChevronRight } from 'lucide-react';
+import { Menu, X, Wrench, ChevronRight } from 'lucide-react';
 import './Navbar.css';
 
 export default function Navbar({ 
@@ -88,7 +88,6 @@ export default function Navbar({
             id="admin-login-nav-btn"
             type="button"
           >
-            <ShieldAlert size={16} />
             <span>Admin Login</span>
           </button>
 
@@ -136,7 +135,6 @@ export default function Navbar({
               className="btn btn-primary w-full"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <ShieldAlert size={18} />
               <span>Admin Dashboard Login</span>
             </button>
           </div>

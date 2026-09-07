@@ -4,8 +4,7 @@ import {
   Phone, 
   Mail, 
   MapPin, 
-  ShieldCheck, 
-  ShieldAlert 
+  ShieldCheck 
 } from 'lucide-react';
 import './Footer.css';
 
@@ -116,15 +115,7 @@ export default function Footer({ onNavigate, setActivePage }) {
                   Contact Support
                 </button>
               </li>
-              <li>
-                <button 
-                  className="footer-link-btn admin-link" 
-                  type="button"
-                >
-                  <ShieldAlert size={14} />
-                  <span>Admin Login</span>
-                </button>
-              </li>
+
             </ul>
           </div>
 

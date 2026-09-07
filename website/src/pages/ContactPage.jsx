@@ -4,7 +4,6 @@ import {
   Mail, 
   Send, 
   CheckCircle2, 
-  ShieldAlert,
   Share2
 } from 'lucide-react';
 import './ContactPage.css';
@@ -154,17 +153,7 @@ export default function ContactPage({ onShowToast }) {
                 </div>
               </div>
 
-              {/* Admin Gateway Notice */}
-              <div className="contact-admin-box">
-                <ShieldAlert size={20} className="admin-box-icon" />
-                <div>
-                  <strong>Platform Administrator?</strong>
-                  <p>Operations staff can access verification consoles directly.</p>
-                </div>
-                <button className="btn btn-admin btn-sm" type="button">
-                  Admin Login
-                </button>
-              </div>
+
             </div>
 
             {/* Right Column: Interactive Form */}
