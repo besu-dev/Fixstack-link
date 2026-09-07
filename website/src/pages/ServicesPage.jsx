@@ -146,7 +146,6 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
                           <p className="cat-tagline">{category.tagline}</p>
                         </div>
                       </div>
-                      <p className="cat-description-long">{category.description}</p>
                     </div>
 
                     {/* Subskills Cards Grid */}
