@@ -1,5 +1,5 @@
 /* ==========================================================================
-   About Page Styles - Modern Bento-Grid Architecture
+   About Page Styles - Clean, Modern & Minimal Two-Column Layout
    ========================================================================== */
 
 .about-page {
@@ -8,481 +8,246 @@
   background: #FFFFFF;
 }
 
-/* Header Section */
-.about-hero-header {
-  background: linear-gradient(180deg, #F0F7FF 0%, #FFFFFF 100%);
-  padding: 64px 0 44px;
-  text-align: center;
-  border-bottom: 1px solid var(--border-light);
-}
-
-.about-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(0, 82, 204, 0.08);
-  color: var(--brand-blue);
-  border: 1px solid rgba(0, 82, 204, 0.18);
-  padding: 6px 16px;
-  border-radius: var(--radius-pill);
-  font-size: 0.85rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  margin-bottom: 18px;
-}
-
-.about-badge-icon {
-  color: var(--brand-orange);
-}
-
-.about-main-title {
-  font-size: clamp(2.2rem, 3.8vw, 3.2rem);
-  color: var(--brand-navy);
-  font-weight: 900;
-  letter-spacing: -0.02em;
-  margin-bottom: 16px;
-  max-width: 820px;
-  margin-left: auto;
-  margin-right: auto;
-  line-height: 1.2;
-}
-
-.about-hero-subtitle {
-  font-size: 1.15rem;
-  color: var(--text-secondary);
-  max-width: 720px;
-  margin: 0 auto;
-  line-height: 1.65;
-}
-
-/* Bento-Style Section */
-.about-bento-section {
-  padding: 48px 0 64px;
-  background: #FFFFFF;
-}
-
-.about-bento-grid {
-  display: grid;
-  grid-template-columns: repeat(12, 1fr);
-  gap: 24px;
-}
-
-/* Base Bento Card */
-.bento-card {
-  background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: var(--radius-xl);
-  padding: 36px;
-  box-shadow: 0 4px 20px rgba(0, 43, 73, 0.04);
-  transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
+.about-minimal-section {
+  padding: 80px 0 96px;
   position: relative;
+}
+
+/* Two-Column Grid */
+.about-layout-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.95fr;
+  gap: 64px;
+  align-items: center;
+  animation: aboutFadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Left Content Column */
+.about-content-col {
   display: flex;
   flex-direction: column;
 }
 
-.bento-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 12px 30px rgba(0, 43, 73, 0.08);
-  border-color: rgba(0, 82, 204, 0.22);
+.about-kicker-wrap {
+  margin-bottom: 16px;
 }
 
-/* Bento Tags */
-.bento-tag {
+.about-section-kicker {
   display: inline-block;
-  font-size: 0.75rem;
+  font-size: 0.82rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  padding: 4px 10px;
-  border-radius: 6px;
-  margin-bottom: 12px;
-}
-
-.bento-tag.orange {
-  background: var(--brand-orange-light);
-  color: var(--brand-orange);
-}
-
-.bento-tag.blue {
-  background: var(--brand-sky-light);
+  letter-spacing: 0.07em;
   color: var(--brand-blue);
+  background: var(--brand-sky-light);
+  border: 1px solid rgba(0, 82, 204, 0.15);
+  padding: 5px 14px;
+  border-radius: var(--radius-pill);
 }
 
-.bento-tag.teal {
-  background: #ECFDF5;
-  color: #059669;
-}
-
-.bento-card-title {
-  font-size: 1.65rem;
+.about-tagline {
+  font-size: clamp(2rem, 3.2vw, 2.75rem);
+  font-weight: 900;
   color: var(--brand-navy);
-  font-weight: 800;
   line-height: 1.25;
-  margin-bottom: 18px;
+  letter-spacing: -0.02em;
+  margin: 0 0 20px 0;
 }
 
-/* Card 1: Story Card (Span 7) */
-.bento-story-card {
-  grid-column: span 7;
-  background: linear-gradient(180deg, #FFFFFF 0%, #FAFBFD 100%);
-}
-
-.bento-story-body {
+.about-description {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  font-size: 1rem;
+  gap: 12px;
+  margin-bottom: 28px;
+}
+
+.about-description p {
+  font-size: 1.05rem;
   color: var(--text-secondary);
-  line-height: 1.65;
-  margin-bottom: 22px;
+  line-height: 1.7;
+  margin: 0;
 }
 
-.bento-highlight-banner {
-  background: rgba(0, 82, 204, 0.04);
-  border-left: 4px solid var(--brand-blue);
-  padding: 14px 18px;
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-  margin-bottom: 24px;
-  font-size: 0.95rem;
-  color: var(--brand-navy);
-  line-height: 1.6;
-}
-
-.bento-tags-row {
+/* Service Focus Chips */
+.about-services-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
-  margin-top: auto;
+  margin-bottom: 36px;
 }
 
-.bento-pill {
+.about-service-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: #FFFFFF;
+  gap: 7px;
+  background: var(--bg-surface);
   border: 1px solid var(--border-light);
-  padding: 6px 14px;
+  padding: 8px 14px;
   border-radius: var(--radius-pill);
-  font-size: 0.84rem;
+  font-size: 0.88rem;
   font-weight: 600;
   color: var(--brand-navy);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+  transition: all var(--transition-fast);
 }
 
-.pill-check {
-  color: #10B981;
-}
-
-/* Card 2: Metrics Card (Span 5) */
-.bento-metrics-card {
-  grid-column: span 5;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F0F7FF 100%);
-  border-color: rgba(0, 82, 204, 0.16);
-}
-
-.metrics-2x2-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 24px;
-}
-
-.metric-cell {
-  background: #FFFFFF;
-  border: 1px solid rgba(226, 232, 240, 0.9);
-  border-radius: var(--radius-lg);
-  padding: 20px 16px;
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  box-shadow: var(--shadow-xs);
-  transition: transform var(--transition-fast), border-color var(--transition-fast);
-}
-
-.metric-cell:hover {
-  transform: translateY(-2px);
-  border-color: var(--brand-blue);
-}
-
-.metric-number-wrap {
-  margin-bottom: 6px;
-}
-
-.metric-number {
-  font-family: var(--font-display);
-  font-size: 2.1rem;
-  font-weight: 900;
+.about-service-chip:hover {
+  background: var(--brand-sky-light);
+  border-color: rgba(0, 82, 204, 0.25);
   color: var(--brand-blue);
-  line-height: 1;
+  transform: translateY(-1px);
 }
 
-.metric-label {
-  font-size: 0.92rem;
-  color: var(--brand-navy);
-  font-weight: 800;
-  margin-bottom: 3px;
-}
-
-.metric-subtext {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  line-height: 1.35;
-}
-
-.metrics-footer-note {
-  margin-top: auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #FFFFFF;
-  border: 1px dashed rgba(0, 82, 204, 0.25);
-  padding: 12px 16px;
-  border-radius: var(--radius-sm);
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: var(--brand-navy);
-}
-
-.metric-pin-icon {
-  color: var(--brand-orange);
+.chip-icon {
+  color: var(--brand-blue);
   flex-shrink: 0;
 }
 
-/* Card 3: Mission Card (Span 6) */
-.bento-mission-card {
-  grid-column: span 6;
-  background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+/* Action Button */
+.about-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
-/* Card 4: Vision Card (Span 6) */
-.bento-vision-card {
-  grid-column: span 6;
-  background: linear-gradient(180deg, #FFFFFF 0%, #FFFDF9 100%);
+/* Right Media Column */
+.about-media-col {
+  position: relative;
+  display: flex;
+  justify-content: center;
 }
 
-.mv-card-icon-box {
-  width: 54px;
-  height: 54px;
+.about-image-wrapper {
+  position: relative;
+  width: 100%;
+  max-width: 500px;
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  box-shadow: 0 16px 36px rgba(0, 43, 73, 0.09);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  background: #FFFFFF;
+}
+
+.about-image {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  display: block;
+  transition: transform var(--transition-base);
+}
+
+.about-image-wrapper:hover .about-image {
+  transform: scale(1.02);
+}
+
+/* Floating Trust Badge */
+.about-floating-badge {
+  position: absolute;
+  bottom: 18px;
+  left: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  padding: 10px 16px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 16px;
+  gap: 12px;
+  box-shadow: 0 8px 24px rgba(0, 43, 73, 0.12);
 }
 
-.mv-card-icon-box.blue {
+.floating-badge-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   background: var(--brand-sky-light);
   color: var(--brand-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
 
-.mv-card-icon-box.orange {
-  background: var(--brand-orange-light);
-  color: var(--brand-orange);
+.floating-badge-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
 }
 
-.mv-mini-tag {
-  font-size: 0.75rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--brand-blue);
-  margin-bottom: 6px;
-}
-
-.mv-mini-tag.orange {
-  color: var(--brand-orange);
-}
-
-.mv-card-heading {
-  font-size: 1.45rem;
-  font-weight: 800;
-  color: var(--brand-navy);
-  margin-bottom: 12px;
-}
-
-.mv-card-desc {
-  font-size: 0.98rem;
-  color: var(--text-secondary);
-  line-height: 1.65;
-  margin-bottom: 20px;
-}
-
-.mv-bottom-strip {
-  margin-top: auto;
-  padding: 12px 16px;
-  border-radius: var(--radius-sm);
+.floating-badge-text strong {
   font-size: 0.88rem;
-  font-weight: 600;
-}
-
-.mv-bottom-strip.blue {
-  background: #FFFFFF;
-  border: 1px dashed rgba(0, 82, 204, 0.3);
-  color: var(--brand-blue);
-}
-
-.mv-bottom-strip.orange {
-  background: #FFFFFF;
-  border: 1px dashed rgba(249, 115, 22, 0.35);
-  color: var(--brand-orange);
-}
-
-/* Card 5: Pillars Strip (Span 12) */
-.bento-pillars-card {
-  grid-column: span 12;
-  background: #FFFFFF;
-}
-
-.pillars-header {
-  margin-bottom: 24px;
-}
-
-.pillars-title {
-  font-size: 1.55rem;
-  font-weight: 800;
   color: var(--brand-navy);
-}
-
-.pillars-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-}
-
-.pillar-item {
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  padding: 26px 22px;
-  transition: transform var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.pillar-item:hover {
-  transform: translateY(-3px);
-  box-shadow: var(--shadow-sm);
-}
-
-.pillar-item.pillar-blue:hover {
-  border-color: var(--brand-blue);
-}
-
-.pillar-item.pillar-orange:hover {
-  border-color: var(--brand-orange);
-}
-
-.pillar-item.pillar-teal:hover {
-  border-color: #10B981;
-}
-
-.pillar-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
-.pillar-icon-box {
-  width: 46px;
-  height: 46px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.pillar-icon-box.blue {
-  background: var(--brand-sky-light);
-  color: var(--brand-blue);
-}
-
-.pillar-icon-box.orange {
-  background: var(--brand-orange-light);
-  color: var(--brand-orange);
-}
-
-.pillar-icon-box.teal {
-  background: #ECFDF5;
-  color: #059669;
-}
-
-.pillar-badge {
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 3px 8px;
-  border-radius: 6px;
-}
-
-.pillar-badge.blue {
-  background: rgba(0, 82, 204, 0.08);
-  color: var(--brand-blue);
-}
-
-.pillar-badge.orange {
-  background: rgba(249, 115, 22, 0.1);
-  color: var(--brand-orange);
-}
-
-.pillar-badge.teal {
-  background: rgba(16, 185, 129, 0.1);
-  color: #059669;
-}
-
-.pillar-heading {
-  font-size: 1.15rem;
   font-weight: 700;
-  color: var(--brand-navy);
-  margin-bottom: 8px;
 }
 
-.pillar-desc {
-  font-size: 0.9rem;
+.floating-badge-text span {
+  font-size: 0.74rem;
   color: var(--text-muted);
-  line-height: 1.6;
 }
 
-/* Responsive Breakpoints */
-@media (max-width: 1024px) {
-  .bento-story-card {
-    grid-column: span 12;
+/* Subtle Entrance Animation */
+@keyframes aboutFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
   }
-  .bento-metrics-card {
-    grid-column: span 12;
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-@media (max-width: 868px) {
-  .bento-mission-card,
-  .bento-vision-card {
-    grid-column: span 12;
+/* Responsive Media Queries */
+@media (max-width: 968px) {
+  .about-minimal-section {
+    padding: 60px 0 72px;
   }
 
-  .pillars-grid {
+  .about-layout-grid {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 44px;
   }
 
-  .bento-card {
-    padding: 24px 20px;
+  .about-media-col {
+    order: 2;
+  }
+
+  .about-content-col {
+    order: 1;
+  }
+
+  .about-image-wrapper {
+    max-width: 100%;
   }
 }
 
-@media (max-width: 640px) {
-  .metrics-2x2-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
+@media (max-width: 600px) {
+  .about-minimal-section {
+    padding: 48px 0 56px;
   }
 
-  .bento-tags-row {
-    flex-direction: column;
-    align-items: flex-start;
+  .about-tagline {
+    font-size: 1.85rem;
   }
 
-  .about-hero-header {
-    padding: 44px 0 32px;
+  .about-description p {
+    font-size: 0.98rem;
+  }
+
+  .about-services-chips {
+    gap: 8px;
+    margin-bottom: 28px;
+  }
+
+  .about-service-chip {
+    font-size: 0.82rem;
+    padding: 6px 12px;
+  }
+
+  .about-floating-badge {
+    bottom: 12px;
+    left: 12px;
+    right: 12px;
   }
 }
