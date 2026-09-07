@@ -12,12 +12,16 @@ import {
 } from 'lucide-react';
 import './Footer.css';
 
-export default function Footer({ setActivePage, onOpenAdminModal }) {
+export default function Footer({ onNavigate, setActivePage, onOpenAdminModal }) {
   const currentYear = new Date().getFullYear();
 
   const handleNav = (page) => {
-    setActivePage(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (onNavigate) {
+      onNavigate(page);
+    } else if (setActivePage) {
+      setActivePage(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (

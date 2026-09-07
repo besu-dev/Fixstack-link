@@ -3,7 +3,6 @@ import { SERVICE_CATEGORIES } from '../api/services';
 import { 
   Search, 
   Filter, 
-  Info, 
   Smartphone, 
   ArrowRight, 
   CheckCircle, 
@@ -24,7 +23,7 @@ const ICON_MAP = {
   Sparkles: Sparkles,
 };
 
-export default function ServicesPage({ onShowToast, setActivePage }) {
+export default function ServicesPage({ onShowToast, onNavigate, setActivePage }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -56,25 +55,11 @@ export default function ServicesPage({ onShowToast, setActivePage }) {
       {/* Services Header */}
       <section className="services-hero-header">
         <div className="container">
-          <span className="section-tag">Repair Services Directory</span>
-          <h1 className="services-main-title">Professional Household Services in Ethiopia</h1>
+          <span className="section-tag">Our Services</span>
+          <h1 className="services-main-title">Household Repair & Maintenance Services</h1>
           <p className="services-hero-desc">
-            Explore verified repair services available across Addis Ababa. From complex electrical rewiring to delicate kitchen appliance repairs, our technicians are certified and ready.
+            Browse our verified repair categories and specialties across Addis Ababa. To request a service, receive quotes, and book a technician, please use the FixLink mobile app.
           </p>
-
-          {/* Important Informational Notice Banner */}
-          <div className="info-notice-banner">
-            <Info size={22} className="info-banner-icon" />
-            <div className="info-banner-text">
-              <strong>Informational Catalog Notice:</strong>
-              <span>
-                Users cannot book services directly through this website. All price estimates, technician bidding, and job execution are managed safely within the <strong>FixLink Mobile App</strong>.
-              </span>
-            </div>
-            <button className="btn btn-primary btn-sm" onClick={() => setActivePage('how-it-works')}>
-              <span>How Booking Works</span>
-            </button>
-          </div>
 
           {/* Search & Filter Toolbar */}
           <div className="services-toolbar">
@@ -221,7 +206,7 @@ export default function ServicesPage({ onShowToast, setActivePage }) {
                 <p>Post your job in the FixLink mobile app to receive competitive bids from Addis Ababa's verified technicians.</p>
               </div>
             </div>
-            <button className="btn btn-white" onClick={() => setActivePage('how-it-works')}>
+            <button className="btn btn-white" onClick={() => (onNavigate ? onNavigate('how-it-works') : setActivePage && setActivePage('how-it-works'))}>
               <span>View How It Works</span>
               <ArrowRight size={16} />
             </button>

@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import './HowItWorksPage.css';
 
-export default function HowItWorksPage({ setActivePage }) {
+export default function HowItWorksPage({ onNavigate, setActivePage }) {
   const [openFaq, setOpenFaq] = useState(null);
 
   const toggleFaq = (index) => {
@@ -63,7 +63,7 @@ export default function HowItWorksPage({ setActivePage }) {
       {/* Main Flow Section */}
       <section className="section hiw-flow-section">
         <div className="container">
-          <FlowTabs onExploreServices={() => setActivePage('services')} />
+          <FlowTabs onExploreServices={() => (onNavigate ? onNavigate('services') : setActivePage && setActivePage('services'))} />
         </div>
       </section>
 

@@ -1,6 +1,10 @@
 /* ==========================================================================
-   App Root Layout
+   App Root Layout - Single-Page Portfolio Structure
    ========================================================================== */
+
+html {
+  scroll-behavior: smooth;
+}
 
 .app-root {
   min-height: 100vh;
@@ -11,4 +15,19 @@
 
 .main-content {
   flex: 1;
+}
+
+/* Section Scrolling Anchors & Sticky Navbar Offset */
+.page-section {
+  scroll-margin-top: 75px;
+  position: relative;
+  width: 100%;
+}
+
+/* Seamless Flow: Remove standalone top padding on continuous sections */
+.services-page,
+.how-it-works-page,
+.about-page,
+.contact-page {
+  padding-top: 0;
 }

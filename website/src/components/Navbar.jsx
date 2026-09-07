@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, ShieldAlert, Wrench, ChevronRight, ExternalLink } from 'lucide-react';
+import { Menu, X, ShieldAlert, Wrench, ChevronRight } from 'lucide-react';
 import './Navbar.css';
 
-export default function Navbar({ activePage, setActivePage, onOpenAdminModal }) {
+export default function Navbar({ 
+  activeSection, 
+  activePage, 
+  onNavigate, 
+  setActivePage, 
+  onOpenAdminModal 
+}) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
+  const currentActive = activeSection || activePage || 'home';
+
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > 20) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      setIsScrolled(window.scrollY > 20);
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -27,9 +31,12 @@ export default function Navbar({ activePage, setActivePage, onOpenAdminModal }) 
   ];
 
   const handleNavClick = (id) => {
-    setActivePage(id);
+    if (onNavigate) {
+      onNavigate(id);
+    } else if (setActivePage) {
+      setActivePage(id);
+    }
     setMobileMenuOpen(false);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -40,6 +47,7 @@ export default function Navbar({ activePage, setActivePage, onOpenAdminModal }) 
           className="brand-logo" 
           onClick={() => handleNavClick('home')}
           aria-label="FixLink Home"
+          type="button"
         >
           <div className="brand-icon-wrapper">
             <div className="brand-orange-ring"></div>
@@ -54,30 +62,33 @@ export default function Navbar({ activePage, setActivePage, onOpenAdminModal }) 
           </div>
         </button>
 
-        {/* Desktop Navigation */}
+        {/* Desktop Navigation - Smooth Single-Page Unified Track */}
         <nav className="desktop-nav" aria-label="Main Navigation">
           <ul className="nav-list">
             {navLinks.map((link) => (
               <li key={link.id} className="nav-item">
                 <button
-                  className={`nav-link ${activePage === link.id ? 'active' : ''}`}
+                  type="button"
+                  className={`nav-link ${currentActive === link.id ? 'active' : ''}`}
                   onClick={() => handleNavClick(link.id)}
+                  aria-current={currentActive === link.id ? 'true' : undefined}
                 >
-                  {link.label}
-                  {activePage === link.id && <span className="nav-active-pill" />}
+                  <span className="nav-link-text">{link.label}</span>
+                  {currentActive === link.id && <span className="nav-active-indicator" />}
                 </button>
               </li>
             ))}
           </ul>
         </nav>
 
-        {/* Right Action: Admin Login Button */}
+        {/* Right Action: Admin Login Button (Visually Separate) */}
         <div className="navbar-actions">
           <button 
             className="btn btn-admin btn-sm"
             onClick={onOpenAdminModal}
             title="Administrator Portal"
             id="admin-login-nav-btn"
+            type="button"
           >
             <ShieldAlert size={16} />
             <span>Admin Login</span>
@@ -89,6 +100,7 @@ export default function Navbar({ activePage, setActivePage, onOpenAdminModal }) 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle Navigation Menu"
             aria-expanded={mobileMenuOpen}
+            type="button"
           >
             {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
           </button>
@@ -103,7 +115,8 @@ export default function Navbar({ activePage, setActivePage, onOpenAdminModal }) 
               {navLinks.map((link) => (
                 <li key={link.id} className="mobile-nav-item">
                   <button
-                    className={`mobile-nav-link ${activePage === link.id ? 'active' : ''}`}
+                    type="button"
+                    className={`mobile-nav-link ${currentActive === link.id ? 'active' : ''}`}
                     onClick={() => handleNavClick(link.id)}
                   >
                     <span>{link.label}</span>
@@ -121,6 +134,7 @@ export default function Navbar({ activePage, setActivePage, onOpenAdminModal }) 
             </div>
             
             <button 
+              type="button"
               className="btn btn-primary w-full"
               onClick={() => {
                 setMobileMenuOpen(false);

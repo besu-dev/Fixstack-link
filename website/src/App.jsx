@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import AdminLoginModal from './components/AdminLoginModal';
@@ -9,11 +9,10 @@ import ServicesPage from './pages/ServicesPage';
 import HowItWorksPage from './pages/HowItWorksPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
-import AdminLoginPage from './pages/AdminLoginPage';
 import './App.css';
 
 export default function App() {
-  const [activePage, setActivePage] = useState('home');
+  const [activeSection, setActiveSection] = useState('home');
   const [adminModalOpen, setAdminModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -21,47 +20,95 @@ export default function App() {
     setToast({ message, type });
   };
 
-  const renderPage = () => {
-    switch (activePage) {
-      case 'services':
-        return <ServicesPage onShowToast={showToast} setActivePage={setActivePage} />;
-      case 'how-it-works':
-        return <HowItWorksPage setActivePage={setActivePage} />;
-      case 'about':
-        return <AboutPage setActivePage={setActivePage} />;
-      case 'contact':
-        return <ContactPage onShowToast={showToast} onOpenAdminModal={() => setAdminModalOpen(true)} />;
-      case 'admin':
-        return <AdminLoginPage setActivePage={setActivePage} />;
-      case 'home':
-      default:
-        return (
-          <HomePage 
-            setActivePage={setActivePage} 
-            onOpenAdminModal={() => setAdminModalOpen(true)} 
-            onShowToast={showToast} 
-          />
-        );
+  const scrollToSection = (sectionId) => {
+    const element = document.getElementById(sectionId);
+    if (element) {
+      const navOffset = 75;
+      const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+      window.scrollTo({
+        top: sectionId === 'home' ? 0 : Math.max(0, elementPosition - navOffset),
+        behavior: 'smooth'
+      });
+      setActiveSection(sectionId);
     }
   };
 
+  // ScrollSpy: Automatically detect which section is in viewport while scrolling
+  useEffect(() => {
+    const sections = ['home', 'services', 'how-it-works', 'about', 'contact'];
+
+    const handleScroll = () => {
+      const scrollY = window.pageYOffset;
+      const windowHeight = window.innerHeight;
+      const docHeight = document.documentElement.scrollHeight;
+
+      // Bottom of page detection -> highlight Contact
+      if (windowHeight + scrollY >= docHeight - 100) {
+        setActiveSection('contact');
+        return;
+      }
+
+      // Top of page detection -> highlight Home
+      if (scrollY < 200) {
+        setActiveSection('home');
+        return;
+      }
+
+      // Loop through sections from bottom to top to find the first one in view
+      for (let i = sections.length - 1; i >= 0; i--) {
+        const sectionId = sections[i];
+        const el = document.getElementById(sectionId);
+        if (el) {
+          const top = el.offsetTop - 120;
+          if (scrollY >= top) {
+            setActiveSection(sectionId);
+            break;
+          }
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial check on mount
+
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   return (
     <div className="app-root">
-      {/* Top Navbar */}
+      {/* Sticky Top Navbar */}
       <Navbar 
-        activePage={activePage} 
-        setActivePage={setActivePage} 
+        activeSection={activeSection} 
+        onNavigate={scrollToSection} 
         onOpenAdminModal={() => setAdminModalOpen(true)} 
       />
 
-      {/* Main Page Body */}
+      {/* Unified Single-Page Continuous Sections */}
       <main className="main-content">
-        {renderPage()}
+        <section id="home" className="page-section">
+          <HomePage onNavigate={scrollToSection} />
+        </section>
+
+        <section id="services" className="page-section">
+          <ServicesPage onShowToast={showToast} onNavigate={scrollToSection} />
+        </section>
+
+        <section id="how-it-works" className="page-section">
+          <HowItWorksPage onNavigate={scrollToSection} />
+        </section>
+
+        <section id="about" className="page-section">
+          <AboutPage onNavigate={scrollToSection} />
+        </section>
+
+        <section id="contact" className="page-section">
+          <ContactPage onShowToast={showToast} onOpenAdminModal={() => setAdminModalOpen(true)} />
+        </section>
       </main>
 
       {/* Global Footer */}
       <Footer 
-        setActivePage={setActivePage} 
+        onNavigate={scrollToSection} 
         onOpenAdminModal={() => setAdminModalOpen(true)} 
       />
 

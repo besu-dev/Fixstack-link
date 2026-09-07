@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import './AboutPage.css';
 
-export default function AboutPage({ setActivePage }) {
+export default function AboutPage({ onNavigate, setActivePage }) {
   return (
     <div className="about-page">
       {/* Hero Header */}

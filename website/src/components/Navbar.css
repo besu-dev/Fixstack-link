@@ -290,11 +290,13 @@
   .desktop-nav {
     display: none;
   }
+
   .mobile-toggle-btn {
     display: flex;
     align-items: center;
     justify-content: center;
   }
+
   .mobile-drawer {
     display: block;
   }
