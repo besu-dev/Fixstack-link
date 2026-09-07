@@ -172,44 +172,7 @@ export default function ContactPage({ onShowToast }) {
                 )}
 
                 <form onSubmit={handleSubmit} className="actual-contact-form" noValidate>
-                  {/* Role Selector */}
-                  <div className="form-group">
-                    <label className="form-label">I am contacting as:</label>
-                    <div className="role-selector-radios">
-                      <label className={`role-radio-label ${formData.role === 'seeker' ? 'selected' : ''}`}>
-                        <input 
-                          type="radio" 
-                          name="role" 
-                          value="seeker" 
-                          checked={formData.role === 'seeker'}
-                          onChange={() => setFormData({ ...formData, role: 'seeker' })}
-                        />
-                        <span>Service Seeker (Household)</span>
-                      </label>
 
-                      <label className={`role-radio-label ${formData.role === 'provider' ? 'selected' : ''}`}>
-                        <input 
-                          type="radio" 
-                          name="role" 
-                          value="provider" 
-                          checked={formData.role === 'provider'}
-                          onChange={() => setFormData({ ...formData, role: 'provider' })}
-                        />
-                        <span>Service Provider (Technician)</span>
-                      </label>
-
-                      <label className={`role-radio-label ${formData.role === 'partner' ? 'selected' : ''}`}>
-                        <input 
-                          type="radio" 
-                          name="role" 
-                          value="partner" 
-                          checked={formData.role === 'partner'}
-                          onChange={() => setFormData({ ...formData, role: 'partner' })}
-                        />
-                        <span>Business / Partner</span>
-                      </label>
-                    </div>
-                  </div>
 
                   {/* Name and Phone Row */}
                   <div className="form-row-two">
