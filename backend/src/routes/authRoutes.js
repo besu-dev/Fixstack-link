@@ -6,6 +6,7 @@ import {
   getProviderById,
   getMe,
   updateProfile,
+  deleteAvatar,
 } from "../controllers/authController.js";
 import { upload } from "../middleware/uploadMiddleware.js";
 import { protect } from "../middleware/authMiddleware.js";
@@ -13,12 +14,13 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
-// Allow optional file uploads for provider registration (kebeleId and tradeCert)
+// Allow optional file uploads for registration (kebeleId, tradeCert, and profile avatar)
 router.post(
   "/register",
   upload.fields([
     { name: "kebeleId", maxCount: 1 },
     { name: "tradeCert", maxCount: 1 },
+    { name: "avatar", maxCount: 1 },
   ]),
   register,
 );
@@ -36,6 +38,9 @@ router.get("/me", protect, getMe);
 
 // Profile edit route (supports multipart text fields and avatar photo update)
 router.put("/profile", protect, upload.single("avatar"), updateProfile);
+
+// Remove user avatar route
+router.delete("/avatar", protect, deleteAvatar);
 
 // Toggle technician availability on/off duty
 router.put("/availability", protect, async (req, res) => {

@@ -76,12 +76,13 @@ export default function CustomerMessageScreen() {
     useUnreadMessages();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
-  const { jobId, recipientName, receiverId, recipientPhone } =
+  const { jobId, recipientName, receiverId, recipientPhone, recipientAvatar } =
     useLocalSearchParams<{
       jobId?: string;
       recipientName?: string;
       receiverId?: string;
       recipientPhone?: string;
+      recipientAvatar?: string;
     }>();
 
   const [messages, setMessages] = useState<MessageItem[]>([]);
@@ -348,6 +349,7 @@ export default function CustomerMessageScreen() {
                       recipientName: item.provider.fullName,
                       receiverId: item.provider._id,
                       recipientPhone: item.provider.phone,
+                      recipientAvatar: item.provider.avatarUrl,
                     },
                   })
                 }
@@ -430,6 +432,13 @@ export default function CustomerMessageScreen() {
         >
           <Feather name="chevron-left" size={24} color="#0F172A" />
         </TouchableOpacity>
+
+        <UserAvatar
+          avatarUrl={recipientAvatar}
+          name={recipientName || "Service Provider"}
+          size={moderateScale(36)}
+          style={{ marginRight: scale(10) }}
+        />
 
         <View style={styles.headerInfo}>
           <Text style={styles.recipientName}>

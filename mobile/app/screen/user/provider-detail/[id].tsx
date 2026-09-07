@@ -23,6 +23,18 @@ import {
 import UserAvatar from "../../../../components/common/UserAvatar";
 import { getAvatarUri } from "../../../../src/utils/avatar";
 
+interface ReviewItem {
+  _id: string;
+  rating: number;
+  comment?: string;
+  customer?: {
+    _id?: string;
+    fullName?: string;
+    avatarUrl?: string;
+  };
+  createdAt?: string;
+}
+
 interface ProviderProfile {
   _id: string;
   fullName: string;
@@ -36,6 +48,7 @@ interface ProviderProfile {
   skills?: string[];
   avatarUrl?: string;
   isVerified?: boolean;
+  reviews?: ReviewItem[];
 }
 
 export default function ProviderDetailScreen() {
@@ -250,6 +263,48 @@ export default function ProviderDetailScreen() {
           </View>
         )}
 
+        {/* Client Reviews Section */}
+        {provider?.reviews && provider.reviews.length > 0 && (
+          <View style={styles.section}>
+            <View style={styles.sectionHeaderRow}>
+              <Text style={styles.sectionHeader}>Client Reviews</Text>
+              <Text style={styles.reviewBadge}>
+                {provider.reviews.length}{" "}
+                {provider.reviews.length === 1 ? "review" : "reviews"}
+              </Text>
+            </View>
+            {provider.reviews.map((rev, index) => (
+              <View key={rev._id || index} style={styles.reviewCard}>
+                <View style={styles.reviewHeader}>
+                  <UserAvatar
+                    avatarUrl={rev.customer?.avatarUrl}
+                    name={rev.customer?.fullName || "Customer"}
+                    size={moderateScale(38)}
+                  />
+                  <View style={styles.reviewerMeta}>
+                    <Text style={styles.reviewerName}>
+                      {rev.customer?.fullName || "Verified Customer"}
+                    </Text>
+                    <View style={styles.starRow}>
+                      {[1, 2, 3, 4, 5].map((s) => (
+                        <Ionicons
+                          key={s}
+                          name={s <= (rev.rating || 5) ? "star" : "star-outline"}
+                          size={moderateScale(12)}
+                          color="#F59E0B"
+                        />
+                      ))}
+                    </View>
+                  </View>
+                </View>
+                {rev.comment ? (
+                  <Text style={styles.reviewText}>"{rev.comment}"</Text>
+                ) : null}
+              </View>
+            ))}
+          </View>
+        )}
+
         {/* Message Action Button */}
         <TouchableOpacity
           style={styles.messageBtn}
@@ -382,11 +437,61 @@ const styles = StyleSheet.create({
   },
   statDivider: { width: 1, height: scale(28), backgroundColor: "#E2E8F0" },
   section: { marginTop: scale(20) },
+  sectionHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: scale(8),
+  },
   sectionHeader: {
     fontSize: scaledFont(15),
     fontWeight: "800",
     color: "#0F172A",
     marginBottom: scale(8),
+  },
+  reviewBadge: {
+    fontSize: scaledFont(11),
+    color: "#0052CC",
+    fontWeight: "700",
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: scale(8),
+    paddingVertical: scale(2),
+    borderRadius: moderateScale(10),
+  },
+  reviewCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: moderateScale(12),
+    padding: scale(12),
+    marginBottom: scale(10),
+    borderWidth: 1,
+    borderColor: "#E2E8F0",
+  },
+  reviewHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(10),
+  },
+  reviewerMeta: {
+    flex: 1,
+  },
+  reviewerName: {
+    fontSize: scaledFont(13),
+    fontWeight: "700",
+    color: "#0F172A",
+  },
+  starRow: {
+    flexDirection: "row",
+    gap: scale(2),
+    marginTop: 2,
+  },
+  reviewText: {
+    fontSize: scaledFont(12),
+    color: "#475569",
+    marginTop: scale(8),
+    fontStyle: "italic",
+    backgroundColor: "#F8FAFC",
+    padding: scale(8),
+    borderRadius: moderateScale(8),
   },
   skillsGrid: { flexDirection: "row", flexWrap: "wrap", gap: scale(8) },
   skillPill: {

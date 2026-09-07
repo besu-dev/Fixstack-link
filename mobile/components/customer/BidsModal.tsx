@@ -11,6 +11,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { Job, BidItem } from "../../src/types";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
+import UserAvatar from "../common/UserAvatar";
 
 interface BidsModalProps {
   visible: boolean;
@@ -96,13 +97,11 @@ export const BidsModal: React.FC<BidsModalProps> = ({
 
                     <View style={styles.bidHeader}>
                       <View style={styles.providerDetails}>
-                        <View style={styles.avatar}>
-                          <Feather
-                            name="tool"
-                            size={moderateScale(18)}
-                            color="#0052CC"
-                          />
-                        </View>
+                        <UserAvatar
+                          avatarUrl={bid.provider?.avatarUrl}
+                          name={bid.provider?.fullName}
+                          size={moderateScale(38)}
+                        />
                         <View>
                           <View style={styles.nameRow}>
                             <Text style={styles.proName}>

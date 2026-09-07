@@ -3,6 +3,7 @@ import {
   View,
   Text,
   Image,
+  TouchableOpacity,
   StyleSheet,
   StyleProp,
   ViewStyle,
@@ -21,6 +22,7 @@ interface UserAvatarProps {
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
   fontSize?: number;
+  onPress?: () => void;
 }
 
 export default function UserAvatar({
@@ -30,6 +32,7 @@ export default function UserAvatar({
   style,
   textStyle,
   fontSize,
+  onPress,
 }: UserAvatarProps) {
   const [imageError, setImageError] = useState(false);
 
@@ -50,21 +53,28 @@ export default function UserAvatar({
     borderRadius: size / 2,
   };
 
+  const ContainerComponent = onPress ? TouchableOpacity : View;
+  const containerProps = onPress ? { onPress, activeOpacity: 0.8 } : {};
+
   if (showImage && resolvedUri) {
     return (
-      <View style={[styles.baseContainer, containerDimension, style]}>
+      <ContainerComponent
+        {...containerProps}
+        style={[styles.baseContainer, containerDimension, style]}
+      >
         <Image
           source={{ uri: resolvedUri }}
           style={[styles.image, containerDimension]}
           resizeMode="cover"
           onError={() => setImageError(true)}
         />
-      </View>
+      </ContainerComponent>
     );
   }
 
   return (
-    <View
+    <ContainerComponent
+      {...containerProps}
       style={[
         styles.baseContainer,
         containerDimension,
@@ -84,7 +94,7 @@ export default function UserAvatar({
       >
         {initial}
       </Text>
-    </View>
+    </ContainerComponent>
   );
 }
 

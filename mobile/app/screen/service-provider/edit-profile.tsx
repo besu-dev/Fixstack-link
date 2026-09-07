@@ -43,6 +43,7 @@ export default function ProviderEditProfileScreen() {
 
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [avatarPicked, setAvatarPicked] = useState(false);
+  const [removeAvatar, setRemoveAvatar] = useState(false);
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
@@ -101,13 +102,20 @@ export default function ProviderEditProfileScreen() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
-      quality: 0.8,
+      quality: 0.7,
     });
 
     if (!result.canceled && result.assets && result.assets.length > 0) {
       setAvatarUri(result.assets[0].uri);
       setAvatarPicked(true);
+      setRemoveAvatar(false);
     }
+  };
+
+  const handleRemoveAvatar = () => {
+    setAvatarUri(null);
+    setAvatarPicked(false);
+    setRemoveAvatar(true);
   };
 
   const handleSave = async () => {
@@ -129,7 +137,9 @@ export default function ProviderEditProfileScreen() {
       formData.append("subcity", subcity.trim());
       formData.append("experience", experience);
 
-      if (avatarPicked && avatarUri) {
+      if (removeAvatar) {
+        formData.append("removeAvatar", "true");
+      } else if (avatarPicked && avatarUri) {
         const filename = avatarUri.split("/").pop() || "provider_avatar.jpg";
         const match = /\.(\w+)$/.exec(filename);
         const type = match ? `image/${match[1]}` : "image/jpeg";
@@ -222,9 +232,21 @@ export default function ProviderEditProfileScreen() {
                 />
               </TouchableOpacity>
             </View>
-            <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
-              <Text style={styles.changePhotoText}>Change Profile Picture</Text>
-            </TouchableOpacity>
+            <View style={styles.photoActionsRow}>
+              <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
+                <Text style={styles.changePhotoText}>
+                  {avatarUri ? "Change Profile Picture" : "Add Profile Picture"}
+                </Text>
+              </TouchableOpacity>
+              {avatarUri ? (
+                <>
+                  <Text style={styles.actionDot}>•</Text>
+                  <TouchableOpacity onPress={handleRemoveAvatar} activeOpacity={0.7}>
+                    <Text style={styles.removePhotoText}>Remove</Text>
+                  </TouchableOpacity>
+                </>
+              ) : null}
+            </View>
           </View>
 
           {/* Form Fields */}
@@ -412,10 +434,24 @@ const styles = StyleSheet.create({
     borderWidth: 2.5,
     borderColor: "#FFFFFF",
   },
+  photoActionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(6),
+  },
   changePhotoText: {
     fontSize: scaledFont(12),
     fontWeight: "700",
     color: "#0052CC",
+  },
+  actionDot: {
+    fontSize: scaledFont(12),
+    color: "#94A3B8",
+  },
+  removePhotoText: {
+    fontSize: scaledFont(12),
+    fontWeight: "700",
+    color: "#DC2626",
   },
   form: {
     width: "100%",

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import UserAvatar from "../../../components/common/UserAvatar";
 
 type RequestStatus = "Pending" | "Ongoing" | "Completed" | "Cancelled";
 
@@ -186,9 +187,11 @@ export default function MyServiceRequestsScreen() {
 
               {item.provider ? (
                 <View style={styles.providerRow}>
-                  <Image
-                    source={{ uri: item.provider.avatarUri }}
-                    style={styles.providerAvatar}
+                  <UserAvatar
+                    avatarUrl={item.provider.avatarUri}
+                    name={item.provider.name}
+                    size={36}
+                    style={{ marginRight: 10 }}
                   />
                   <View style={styles.providerInfo}>
                     <Text style={styles.assignedLabel}>Assigned Provider</Text>

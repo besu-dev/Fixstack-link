@@ -84,6 +84,7 @@ export default function HomeScreen() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [userName, setUserName] = useState("Customer");
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -97,6 +98,7 @@ export default function HomeScreen() {
       const user = userRes.data?.user || userRes.data;
       if (user) {
         setUserName(user.fullName?.split(" ")[0] || "Customer");
+        if (user.avatarUrl) setUserAvatarUrl(user.avatarUrl);
         await SecureStore.setItemAsync("user_data", JSON.stringify(user));
       }
 
@@ -112,6 +114,7 @@ export default function HomeScreen() {
       if (cached) {
         const user = JSON.parse(cached);
         setUserName(user.fullName?.split(" ")[0] || "Customer");
+        if (user.avatarUrl) setUserAvatarUrl(user.avatarUrl);
       }
     } finally {
       setLoading(false);
@@ -169,7 +172,7 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* Direct Greeting Header with Support Shortcut */}
+        {/* Direct Greeting Header with Support Shortcut & Profile Avatar */}
         <View style={styles.greetingHeader}>
           <View style={styles.greetingTextGroup}>
             <Text style={styles.greetingTitle}>Hi, {userName} 👋</Text>
@@ -177,17 +180,25 @@ export default function HomeScreen() {
               How can we help you today?
             </Text>
           </View>
-          <TouchableOpacity
-            style={styles.supportButton}
-            activeOpacity={0.7}
-            onPress={() => router.push("/customer/support" as any)}
-          >
-            <Feather
-              name="phone-call"
-              size={moderateScale(18)}
-              color="#1E293B"
+          <View style={{ flexDirection: "row", alignItems: "center", gap: scale(10) }}>
+            <TouchableOpacity
+              style={styles.supportButton}
+              activeOpacity={0.7}
+              onPress={() => router.push("/customer/support" as any)}
+            >
+              <Feather
+                name="phone-call"
+                size={moderateScale(18)}
+                color="#1E293B"
+              />
+            </TouchableOpacity>
+            <UserAvatar
+              avatarUrl={userAvatarUrl}
+              name={userName}
+              size={moderateScale(40)}
+              onPress={() => router.push("/(customer-tabs)/profile" as any)}
             />
-          </TouchableOpacity>
+          </View>
         </View>
 
         {/* Banner with Embedded Search */}
@@ -356,21 +367,11 @@ export default function HomeScreen() {
             filteredProviders.map((provider) => (
               <View key={provider._id} style={styles.providerCard}>
                 <View style={styles.providerImageContainer}>
-                  {getAvatarUri(provider.avatarUrl) ? (
-                    <Image
-                      source={{
-                        uri: getAvatarUri(provider.avatarUrl)!,
-                      }}
-                      style={styles.providerImage}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <UserAvatar
-                      avatarUrl={null}
-                      name={provider.fullName}
-                      size={moderateScale(68)}
-                    />
-                  )}
+                  <UserAvatar
+                    avatarUrl={provider.avatarUrl}
+                    name={provider.fullName}
+                    size={moderateScale(68)}
+                  />
                   {provider.isVerified && (
                     <View style={styles.verifiedTag}>
                       <Ionicons
@@ -618,6 +619,7 @@ const styles = StyleSheet.create({
     marginRight: scale(8),
   },
   searchInput: {
+    marginTop: 20,
     flex: 1,
     fontSize: scaledFont(13),
     color: "#0F172A",

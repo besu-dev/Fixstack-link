@@ -18,6 +18,8 @@ export interface User {
   connectsBalance?: number;
   isFeatured?: boolean;
   featuredUntil?: string | null;
+  avatarUrl?: string;
+  avatarPublicId?: string;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -29,10 +31,12 @@ export interface ProviderDetails {
   profession?: string;
   rating?: number;
   isVerified?: boolean;
+  avatarUrl?: string;
 }
 
 export interface CustomerDetails {
   _id: string;
   fullName: string;
   phone?: string;
+  avatarUrl?: string;
 }

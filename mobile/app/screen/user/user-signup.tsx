@@ -14,13 +14,16 @@ import {
 } from "react-native";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../../src/api/client";
 import { Alert } from "../../../src/context/AlertContext";
+import UserAvatar from "../../../components/common/UserAvatar";
 
 export default function CustomerSignupScreen() {
   const router = useRouter();
 
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -31,6 +34,28 @@ export default function CustomerSignupScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  const handlePickAvatar = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission Denied",
+        "Photo library access is needed to select a profile picture.",
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setAvatarUri(result.assets[0].uri);
+    }
+  };
 
   const handleRegister = async () => {
     if (
@@ -59,19 +84,32 @@ export default function CustomerSignupScreen() {
       const fullName = `${firstName.trim()} ${lastName.trim()}`;
       const cleanEmail = email.trim().toLowerCase();
 
-      const payload: Record<string, any> = {
-        fullName,
-        phone: phone.trim().replace(/[\s\-()]/g, ""),
-        password,
-        role: "customer",
-      };
+      const formData = new FormData();
+      formData.append("fullName", fullName);
+      formData.append("phone", phone.trim().replace(/[\s\-()]/g, ""));
+      formData.append("password", password);
+      formData.append("role", "customer");
 
       // Only attach email if user actually entered one
       if (cleanEmail) {
-        payload.email = cleanEmail;
+        formData.append("email", cleanEmail);
       }
 
-      const response = await apiClient.post("/auth/register", payload);
+      if (avatarUri) {
+        const filename = avatarUri.split("/").pop() || "customer_avatar.jpg";
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : "image/jpeg";
+
+        formData.append("avatar", {
+          uri: avatarUri,
+          name: filename,
+          type,
+        } as any);
+      }
+
+      const response = await apiClient.post("/auth/register", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
       const { token, user } = response.data;
       await SecureStore.setItemAsync("user_token", token);
@@ -123,6 +161,30 @@ export default function CustomerSignupScreen() {
             </View>
             <Text style={styles.brandTitle}>FixLink</Text>
             <Text style={styles.screenTitle}>Create new account</Text>
+          </View>
+
+          {/* Profile Picture Picker Section */}
+          <View style={styles.avatarSection}>
+            <View style={styles.avatarWrapper}>
+              <UserAvatar
+                avatarUrl={avatarUri}
+                name={firstName.trim() ? `${firstName.trim()} ${lastName.trim()}` : "Customer"}
+                size={86}
+                onPress={handlePickAvatar}
+              />
+              <TouchableOpacity
+                style={styles.cameraBadge}
+                onPress={handlePickAvatar}
+                activeOpacity={0.8}
+              >
+                <Feather name="camera" size={13} color="#FFFFFF" />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
+              <Text style={styles.avatarActionText}>
+                {avatarUri ? "Change Profile Picture" : "Add Profile Picture (Optional)"}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.form}>
@@ -295,6 +357,37 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#2563EB",
     marginTop: 8,
+  },
+  avatarSection: {
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  avatarWrapper: {
+    position: "relative",
+    marginBottom: 8,
+  },
+  cameraBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: "#2563EB",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+    elevation: 2,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.2,
+    shadowRadius: 2,
+  },
+  avatarActionText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#2563EB",
   },
   form: { width: "100%" },
   row: { flexDirection: "row", gap: 12 },

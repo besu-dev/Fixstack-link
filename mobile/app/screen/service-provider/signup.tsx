@@ -13,16 +13,19 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
+import * as ImagePicker from "expo-image-picker";
 import { Alert } from "../../../src/context/AlertContext";
 import {
   scale,
   moderateScale,
   scaledFont,
 } from "../../../src/utils/responsive";
+import UserAvatar from "../../../components/common/UserAvatar";
 
 export default function ProviderSignupStep1() {
   const router = useRouter();
 
+  const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -30,6 +33,28 @@ export default function ProviderSignupStep1() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  const handlePickAvatar = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert(
+        "Permission Denied",
+        "Photo library access is needed to select a profile picture.",
+      );
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      setAvatarUri(result.assets[0].uri);
+    }
+  };
 
   const handleContinue = () => {
     if (
@@ -55,6 +80,7 @@ export default function ProviderSignupStep1() {
         lastName: lastName.trim(),
         email: email.trim().toLowerCase(),
         password,
+        avatarUri: avatarUri || "",
       },
     } as any);
   };
@@ -96,6 +122,34 @@ export default function ProviderSignupStep1() {
             </View>
             <Text style={styles.brandName}>FixLink</Text>
             <Text style={styles.pageTitle}>Provider Account (Step 1/3)</Text>
+          </View>
+
+          {/* Profile Picture Picker Section */}
+          <View style={styles.avatarSection}>
+            <View style={styles.avatarWrapper}>
+              <UserAvatar
+                avatarUrl={avatarUri}
+                name={firstName.trim() ? `${firstName.trim()} ${lastName.trim()}` : "Provider"}
+                size={moderateScale(86)}
+                onPress={handlePickAvatar}
+              />
+              <TouchableOpacity
+                style={styles.cameraBadge}
+                onPress={handlePickAvatar}
+                activeOpacity={0.8}
+              >
+                <Feather
+                  name="camera"
+                  size={moderateScale(13)}
+                  color="#FFFFFF"
+                />
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
+              <Text style={styles.avatarActionText}>
+                {avatarUri ? "Change Profile Picture" : "Add Profile Picture (Optional)"}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.form}>
@@ -254,6 +308,33 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     color: "#2563EB",
     marginTop: scale(6),
+  },
+  avatarSection: {
+    alignItems: "center",
+    marginBottom: scale(16),
+  },
+  avatarWrapper: {
+    position: "relative",
+    marginBottom: scale(8),
+  },
+  cameraBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    width: moderateScale(26),
+    height: moderateScale(26),
+    borderRadius: moderateScale(13),
+    backgroundColor: "#2563EB",
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+    elevation: 2,
+  },
+  avatarActionText: {
+    fontSize: scaledFont(12),
+    fontWeight: "600",
+    color: "#2563EB",
   },
   form: {
     width: "100%",

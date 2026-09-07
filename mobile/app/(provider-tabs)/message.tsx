@@ -70,12 +70,13 @@ export default function ProviderMessageScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { markConversationRead } = useUnreadMessages();
-  const { jobId, recipientName, receiverId, recipientPhone } =
+  const { jobId, recipientName, receiverId, recipientPhone, recipientAvatar } =
     useLocalSearchParams<{
       jobId?: string;
       recipientName?: string;
       receiverId?: string;
       recipientPhone?: string;
+      recipientAvatar?: string;
     }>();
 
   // Active Chat State
@@ -354,6 +355,7 @@ export default function ProviderMessageScreen() {
                       recipientName: item.client.fullName,
                       receiverId: item.client._id,
                       recipientPhone: item.client.phone,
+                      recipientAvatar: item.client.avatarUrl,
                     },
                   })
                 }
@@ -447,6 +449,13 @@ export default function ProviderMessageScreen() {
             color="#0F172A"
           />
         </TouchableOpacity>
+
+        <UserAvatar
+          avatarUrl={recipientAvatar}
+          name={recipientName || "Customer"}
+          size={moderateScale(36)}
+          style={{ marginRight: scale(10) }}
+        />
 
         <View style={styles.headerInfo}>
           <Text style={styles.recipientName}>

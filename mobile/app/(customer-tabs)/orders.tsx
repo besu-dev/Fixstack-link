@@ -19,6 +19,7 @@ import apiClient from "../../src/api/client";
 import { Alert } from "../../src/context/AlertContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 import { OrderCard } from "../../components/customer/OrderCard";
+import UserAvatar from "../../components/common/UserAvatar";
 
 interface ProviderDetails {
   _id: string;
@@ -27,6 +28,7 @@ interface ProviderDetails {
   profession?: string;
   rating?: number;
   isVerified?: boolean;
+  avatarUrl?: string;
 }
 
 interface BidItem {
@@ -148,6 +150,7 @@ export default function CustomerOrdersScreen() {
                           recipientName: bid.provider.fullName,
                           receiverId: bid.provider._id,
                           recipientPhone: bid.provider.phone,
+                          recipientAvatar: bid.provider.avatarUrl,
                         },
                       }),
                   },
@@ -326,6 +329,7 @@ export default function CustomerOrdersScreen() {
                     recipientName: job.assignedProvider.fullName,
                     receiverId: job.assignedProvider._id,
                     recipientPhone: job.assignedProvider.phone,
+                    recipientAvatar: job.assignedProvider.avatarUrl,
                   },
                 });
               }}
@@ -427,13 +431,11 @@ export default function CustomerOrdersScreen() {
 
                       <View style={styles.bidHeader}>
                         <View style={styles.providerDetails}>
-                          <View style={styles.avatar}>
-                            <Feather
-                              name="tool"
-                              size={moderateScale(18)}
-                              color="#0052CC"
-                            />
-                          </View>
+                          <UserAvatar
+                            avatarUrl={bid.provider?.avatarUrl}
+                            name={bid.provider?.fullName}
+                            size={moderateScale(38)}
+                          />
                           <View>
                             <View style={styles.nameRow}>
                               <Text style={styles.proName}>
@@ -478,6 +480,7 @@ export default function CustomerOrdersScreen() {
                                 recipientName: bid.provider.fullName,
                                 receiverId: bid.provider._id,
                                 recipientPhone: bid.provider.phone,
+                                recipientAvatar: bid.provider.avatarUrl,
                               },
                             });
                           }}

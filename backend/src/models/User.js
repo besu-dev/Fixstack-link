@@ -21,6 +21,7 @@ const userSchema = new mongoose.Schema(
     kebeleIdUrl: { type: String, default: "" },
     tradeCertUrl: { type: String, default: "" },
     avatarUrl: { type: String, default: "" },
+    avatarPublicId: { type: String, default: "" },
     isVerified: { type: Boolean, default: false },
     isAvailable: { type: Boolean, default: true },
     notificationsEnabled: { type: Boolean, default: true },

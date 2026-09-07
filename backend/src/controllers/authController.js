@@ -3,6 +3,11 @@ import User from "../models/User.js";
 import Job from "../models/Job.js";
 import Review from "../models/Review.js";
 import { generateToken } from "../config/jwt.js";
+import {
+  uploadAvatarToCloudinary,
+  deleteFromCloudinary,
+  extractPublicId,
+} from "../config/cloudinary.js";
 
 const isEmail = (input) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(input);
 
@@ -114,6 +119,21 @@ export const register = async (req, res) => {
     const kebeleIdUrl = req.files?.kebeleId?.[0]?.path || "";
     const tradeCertUrl = req.files?.tradeCert?.[0]?.path || "";
 
+    // Upload profile avatar to Cloudinary if attached
+    let avatarUrl = req.body.avatarUrl || "";
+    let avatarPublicId = "";
+
+    const avatarFile = req.files?.avatar?.[0];
+    if (avatarFile) {
+      try {
+        const cloudRes = await uploadAvatarToCloudinary(avatarFile.path);
+        avatarUrl = cloudRes.avatarUrl;
+        avatarPublicId = cloudRes.avatarPublicId;
+      } catch (cloudErr) {
+        console.error("--> Cloudinary registration avatar upload error:", cloudErr);
+      }
+    }
+
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
@@ -135,6 +155,8 @@ export const register = async (req, res) => {
       skills: parsedSkills,
       kebeleIdUrl,
       tradeCertUrl,
+      avatarUrl,
+      avatarPublicId,
       connectsBalance: 5,
     });
 
@@ -252,27 +274,65 @@ export const getMe = async (req, res) => {
 // @access  Private
 export const updateProfile = async (req, res) => {
   try {
-    const { fullName, phone, subcity, profession, experience, skills } = req.body;
+    const { fullName, phone, subcity, profession, experience, skills, removeAvatar } =
+      req.body;
     const updateFields = {};
 
     if (fullName && fullName.trim()) updateFields.fullName = fullName.trim();
     if (phone && phone.trim()) updateFields.phone = formatPhone(phone.trim());
     if (subcity && subcity.trim()) updateFields.subcity = subcity.trim();
-    if (profession && profession.trim()) updateFields.profession = profession.trim();
-    if (experience && experience.trim()) updateFields.experience = experience.trim();
+    if (profession && profession.trim())
+      updateFields.profession = profession.trim();
+    if (experience && experience.trim())
+      updateFields.experience = experience.trim();
 
     if (skills) {
       try {
-        updateFields.skills = typeof skills === "string" ? JSON.parse(skills) : skills;
+        updateFields.skills =
+          typeof skills === "string" ? JSON.parse(skills) : skills;
       } catch {
         updateFields.skills = Array.isArray(skills) ? skills : [skills];
       }
     }
 
-    // Check if avatar file was uploaded via multer
-    if (req.file) {
-      updateFields.avatarUrl = `/uploads/${req.file.filename}`;
-    } else if (req.body.avatarUrl) {
+    const currentUser = await User.findById(req.user._id);
+    if (!currentUser) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Check if user requested to remove their profile photo
+    if (removeAvatar === "true" || removeAvatar === true) {
+      if (currentUser.avatarPublicId) {
+        await deleteFromCloudinary(currentUser.avatarPublicId);
+      } else if (currentUser.avatarUrl) {
+        const publicId = extractPublicId(currentUser.avatarUrl);
+        if (publicId) await deleteFromCloudinary(publicId);
+      }
+      updateFields.avatarUrl = "";
+      updateFields.avatarPublicId = "";
+    }
+    // Check if a new avatar file was uploaded via multer
+    else if (req.file) {
+      try {
+        const cloudRes = await uploadAvatarToCloudinary(req.file.path);
+
+        // Delete previous avatar from Cloudinary
+        if (currentUser.avatarPublicId) {
+          await deleteFromCloudinary(currentUser.avatarPublicId);
+        } else if (currentUser.avatarUrl) {
+          const oldPublicId = extractPublicId(currentUser.avatarUrl);
+          if (oldPublicId) await deleteFromCloudinary(oldPublicId);
+        }
+
+        updateFields.avatarUrl = cloudRes.avatarUrl;
+        updateFields.avatarPublicId = cloudRes.avatarPublicId;
+      } catch (cloudErr) {
+        console.error("--> Cloudinary profile avatar upload error:", cloudErr);
+        return res
+          .status(500)
+          .json({ message: "Failed to upload profile picture to Cloudinary" });
+      }
+    } else if (req.body.avatarUrl !== undefined) {
       updateFields.avatarUrl = req.body.avatarUrl;
     }
 
@@ -288,6 +348,41 @@ export const updateProfile = async (req, res) => {
     });
   } catch (error) {
     console.error("--> updateProfile error:", error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+// @desc    Remove user profile avatar
+// @route   DELETE /api/auth/avatar
+// @access  Private
+export const deleteAvatar = async (req, res) => {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.avatarPublicId) {
+      await deleteFromCloudinary(user.avatarPublicId);
+    } else if (user.avatarUrl) {
+      const oldPublicId = extractPublicId(user.avatarUrl);
+      if (oldPublicId) await deleteFromCloudinary(oldPublicId);
+    }
+
+    user.avatarUrl = "";
+    user.avatarPublicId = "";
+    await user.save();
+
+    return res.status(200).json({
+      message: "Avatar removed successfully",
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        avatarUrl: "",
+      },
+    });
+  } catch (error) {
+    console.error("--> deleteAvatar error:", error);
     return res.status(500).json({ message: error.message });
   }
 };
@@ -412,8 +507,12 @@ export const getProviderById = async (req, res) => {
       status: "completed",
     });
 
-    // Real ratings from reviews
-    const reviews = await Review.find({ provider: id }).lean();
+    // Real ratings from reviews with customer avatar and details
+    const reviews = await Review.find({ provider: id })
+      .populate("customer", "fullName avatarUrl")
+      .sort({ createdAt: -1 })
+      .lean();
+
     let realRating = null;
     let reviewCount = reviews.length;
 
@@ -454,6 +553,7 @@ export const getProviderById = async (req, res) => {
         rating: realRating,
         reviewCount,
         skills,
+        reviews: reviews || [],
       },
     });
   } catch (error) {

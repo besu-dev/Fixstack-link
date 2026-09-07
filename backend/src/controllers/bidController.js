@@ -90,7 +90,7 @@ export const placeBid = async (req, res) => {
 
     const populatedBid = await bid.populate(
       "provider",
-      "fullName phone profession rating isVerified isFeatured",
+      "fullName phone profession rating isVerified isFeatured avatarUrl",
     );
 
     res.status(201).json(populatedBid);
@@ -107,7 +107,7 @@ export const getBidsForJob = async (req, res) => {
     const bids = await Bid.find({ job: req.params.jobId })
       .populate(
         "provider",
-        "fullName phone profession rating isVerified isFeatured",
+        "fullName phone profession rating isVerified isFeatured avatarUrl",
       )
       // Boosted proposals sit first (-1), followed by earliest submission
       .sort({ isBoosted: -1, createdAt: 1 });
