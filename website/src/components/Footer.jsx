@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import './Footer.css';
 
-export default function Footer({ onNavigate, setActivePage, onOpenAdminModal }) {
+export default function Footer({ onNavigate, setActivePage }) {
   const currentYear = new Date().getFullYear();
 
   const handleNav = (page) => {
@@ -119,7 +119,7 @@ export default function Footer({ onNavigate, setActivePage, onOpenAdminModal }) 
               <li>
                 <button 
                   className="footer-link-btn admin-link" 
-                  onClick={onOpenAdminModal}
+                  type="button"
                 >
                   <ShieldAlert size={14} />
                   <span>Admin Login</span>

@@ -172,42 +172,17 @@
   margin-bottom: 24px;
 }
 
-.cat-header-left {
+.cat-header-info {
   display: flex;
-  align-items: center;
-  gap: 20px;
-}
-
-.cat-badge-icon {
-  width: 60px;
-  height: 60px;
-  border-radius: var(--radius-md);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.cat-title-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .cat-title {
   font-size: 1.8rem;
   font-weight: 800;
   color: var(--brand-navy);
-}
-
-.cat-popular-pill {
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  background: var(--brand-orange-light);
-  color: var(--brand-orange);
-  padding: 3px 8px;
-  border-radius: var(--radius-pill);
+  line-height: 1.25;
 }
 
 .cat-tagline {

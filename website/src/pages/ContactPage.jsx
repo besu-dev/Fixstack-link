@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import './ContactPage.css';
 
-export default function ContactPage({ onShowToast, onOpenAdminModal }) {
+export default function ContactPage({ onShowToast }) {
   const [formData, setFormData] = useState({
     fullName: '',
     phone: '',
@@ -161,7 +161,7 @@ export default function ContactPage({ onShowToast, onOpenAdminModal }) {
                   <strong>Platform Administrator?</strong>
                   <p>Operations staff can access verification consoles directly.</p>
                 </div>
-                <button className="btn btn-admin btn-sm" onClick={onOpenAdminModal}>
+                <button className="btn btn-admin btn-sm" type="button">
                   Admin Login
                 </button>
               </div>

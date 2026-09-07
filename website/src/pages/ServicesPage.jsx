@@ -2,26 +2,11 @@ import React, { useState, useMemo } from 'react';
 import { SERVICE_CATEGORIES } from '../api/services';
 import { 
   Search, 
-  Filter, 
   Smartphone, 
   ArrowRight, 
-  CheckCircle, 
-  Wrench, 
-  Zap, 
-  Tv, 
-  Hammer, 
-  Sparkles,
-  ExternalLink
+  Wrench
 } from 'lucide-react';
 import './ServicesPage.css';
-
-const ICON_MAP = {
-  Wrench: Wrench,
-  Zap: Zap,
-  Tv: Tv,
-  Hammer: Hammer,
-  Sparkles: Sparkles,
-};
 
 export default function ServicesPage({ onShowToast, onNavigate, setActivePage }) {
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -121,30 +106,13 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
           ) : (
             <div className="categories-list">
               {filteredData.map((category) => {
-                const IconComponent = ICON_MAP[category.icon] || Wrench;
                 return (
                   <div key={category.id} className="category-detail-block" id={category.id}>
                     {/* Category Title Header */}
                     <div className="cat-detail-header">
-                      <div className="cat-header-left">
-                        <div 
-                          className="cat-badge-icon"
-                          style={{ 
-                            backgroundColor: category.accentLight, 
-                            color: category.accentColor 
-                          }}
-                        >
-                          <IconComponent size={28} />
-                        </div>
-                        <div>
-                          <div className="cat-title-row">
-                            <h2 className="cat-title">{category.title}</h2>
-                            {category.popular && (
-                              <span className="cat-popular-pill">High Demand</span>
-                            )}
-                          </div>
-                          <p className="cat-tagline">{category.tagline}</p>
-                        </div>
+                      <div className="cat-header-info">
+                        <h2 className="cat-title">{category.title}</h2>
+                        <p className="cat-tagline">{category.tagline}</p>
                       </div>
                     </div>
 

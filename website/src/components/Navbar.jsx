@@ -6,8 +6,7 @@ export default function Navbar({
   activeSection, 
   activePage, 
   onNavigate, 
-  setActivePage, 
-  onOpenAdminModal 
+  setActivePage
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -85,7 +84,6 @@ export default function Navbar({
         <div className="navbar-actions">
           <button 
             className="btn btn-admin btn-sm"
-            onClick={onOpenAdminModal}
             title="Administrator Portal"
             id="admin-login-nav-btn"
             type="button"
@@ -136,10 +134,7 @@ export default function Navbar({
             <button 
               type="button"
               className="btn btn-primary w-full"
-              onClick={() => {
-                setMobileMenuOpen(false);
-                onOpenAdminModal();
-              }}
+              onClick={() => setMobileMenuOpen(false)}
             >
               <ShieldAlert size={18} />
               <span>Admin Dashboard Login</span>

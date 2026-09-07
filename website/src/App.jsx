@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
-import AdminLoginModal from './components/AdminLoginModal';
 import Toast from './components/Toast';
 
 import HomePage from './pages/HomePage';
@@ -13,7 +12,6 @@ import './App.css';
 
 export default function App() {
   const [activeSection, setActiveSection] = useState('home');
-  const [adminModalOpen, setAdminModalOpen] = useState(false);
   const [toast, setToast] = useState(null);
 
   const showToast = (message, type = 'info') => {
@@ -90,7 +88,6 @@ export default function App() {
       <Navbar 
         activeSection={activeSection} 
         onNavigate={scrollToSection} 
-        onOpenAdminModal={() => setAdminModalOpen(true)} 
       />
 
       {/* Unified Single-Page Continuous Sections */}
@@ -112,20 +109,13 @@ export default function App() {
         </section>
 
         <section id="contact" className="page-section">
-          <ContactPage onShowToast={showToast} onOpenAdminModal={() => setAdminModalOpen(true)} />
+          <ContactPage onShowToast={showToast} />
         </section>
       </main>
 
       {/* Global Footer */}
       <Footer 
         onNavigate={scrollToSection} 
-        onOpenAdminModal={() => setAdminModalOpen(true)} 
-      />
-
-      {/* Admin Dashboard Gateway Modal */}
-      <AdminLoginModal 
-        isOpen={adminModalOpen} 
-        onClose={() => setAdminModalOpen(false)} 
       />
 
       {/* Feedback Toast */}
