@@ -1,5 +1,4 @@
 import React from 'react';
-import MobileAppBanner from '../components/MobileAppBanner';
 import { 
   Zap, 
   Droplets, 
@@ -101,9 +100,7 @@ export default function AboutPage({ onNavigate, setActivePage }) {
           </div>
         </div>
       </section>
-
-      {/* Global Mobile App Callout */}
-      <MobileAppBanner />
     </div>
   );
 }
+
