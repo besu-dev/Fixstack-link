@@ -2,9 +2,7 @@ import React from 'react';
 import { 
   Wrench, 
   Phone, 
-  Mail, 
-  MapPin, 
-  ShieldCheck 
+  Mail 
 } from 'lucide-react';
 import './Footer.css';
 
@@ -80,10 +78,7 @@ export default function Footer({ onNavigate, setActivePage }) {
               </a>
             </div>
 
-            <div className="footer-security-note">
-              <ShieldCheck size={15} className="security-icon" />
-              <span>Kebele ID & Trade Screened Pros</span>
-            </div>
+
           </div>
 
           {/* Column 2: Quick Navigation */}
@@ -169,13 +164,7 @@ export default function Footer({ onNavigate, setActivePage }) {
                   <a href="mailto:support@fixlink.et" className="contact-link">support@fixlink.et</a>
                 </div>
               </li>
-              <li>
-                <MapPin size={18} className="contact-icon" />
-                <div>
-                  <span className="contact-label-sub">Headquarters</span>
-                  <span>Addis Ababa, Ethiopia</span>
-                </div>
-              </li>
+
             </ul>
           </div>
         </div>
