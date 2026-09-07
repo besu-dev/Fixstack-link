@@ -18,11 +18,7 @@ interface UnreadMessagesContextValue {
   setUnreadMessageCount: React.Dispatch<React.SetStateAction<number>>;
 }
 
-const SOCKET_URL = __DEV__
-  ? Platform.OS === "android"
-    ? "http://10.0.2.2:5000"
-    : "http://localhost:5000"
-  : "https://api.fixlink.et";
+import { SOCKET_URL } from "../config/api";
 
 const UnreadMessagesContext = createContext<UnreadMessagesContextValue>({
   unreadMessageCount: 0,

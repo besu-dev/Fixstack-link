@@ -65,11 +65,21 @@ export default function LoginScreen() {
         router.replace("/(customer-tabs)/home");
       }
     } catch (err: any) {
-      Alert.alert(
-        "Sign In Failed",
-        err.response?.data?.message ||
-          "Invalid phone number, email, or password.",
-      );
+      if (err.response?.data?.message) {
+        // Backend returned a specific error (e.g. 401 Invalid credentials)
+        Alert.alert("Sign In Failed", err.response.data.message);
+      } else if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+        Alert.alert(
+          "Connection Timeout",
+          "The server took too long to respond. Please check your network connection.",
+        );
+      } else {
+        // Network error (no response from server)
+        Alert.alert(
+          "Network Error",
+          "Unable to reach the server. Please ensure your phone and computer are on the same Wi-Fi network and your backend is running.",
+        );
+      }
     } finally {
       setLoading(false);
     }

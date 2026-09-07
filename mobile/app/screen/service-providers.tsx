@@ -16,6 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, FontAwesome } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { usersApi } from "../../src/api";
+import { SERVER_BASE_URL } from "../../src/config/api";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 import UserAvatar from "../../components/common/UserAvatar";
 
@@ -72,7 +73,7 @@ export default function ServiceProvidersScreen() {
     if (!avatarUrl) return null;
     if (avatarUrl.startsWith("http")) return avatarUrl;
     const normalized = avatarUrl.replace(/\\/g, "/");
-    return `http://10.0.2.2:5000/${normalized.startsWith("/") ? normalized.slice(1) : normalized}`;
+    return `${SERVER_BASE_URL}/${normalized.startsWith("/") ? normalized.slice(1) : normalized}`;
   };
 
   // Filter providers by local search query (name, profession, or subcity)

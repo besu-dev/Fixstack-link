@@ -62,12 +62,7 @@ interface ConversationItem {
   unreadCount?: number;
 }
 
-// Replace with your actual LAN IP for physical device testing
-const SOCKET_URL = __DEV__
-  ? Platform.OS === "android"
-    ? "http://10.0.2.2:5000" // Use your LAN IP like "http://192.168.1.15:5000" if testing on real device
-    : "http://localhost:5000"
-  : "https://api.fixlink.et";
+import { SOCKET_URL } from "../../src/config/api";
 
 export default function CustomerMessageScreen() {
   const router = useRouter();

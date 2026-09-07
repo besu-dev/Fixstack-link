@@ -216,10 +216,14 @@ export default function UploadDocumentsScreen() {
         ],
       );
     } catch (err: any) {
-      Alert.alert(
-        "Registration Failed",
-        err.response?.data?.message || "Could not complete registration.",
-      );
+      if (err.response?.data?.message) {
+        Alert.alert("Registration Failed", err.response.data.message);
+      } else {
+        Alert.alert(
+          "Network Error",
+          "Unable to connect to the server. Please verify your connection and that the backend is running.",
+        );
+      }
     } finally {
       setLoading(false);
     }

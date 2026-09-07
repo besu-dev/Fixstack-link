@@ -1,9 +1,11 @@
 import client from "../api/client";
+import { SERVER_BASE_URL as CONFIG_SERVER_BASE_URL } from "../config/api";
 
 // Resolve base server URL (stripping trailing /api)
-export const SERVER_BASE_URL = (
-  client.defaults.baseURL || "http://10.0.2.2:5000/api"
-).replace(/\/api\/?$/, "");
+export const SERVER_BASE_URL =
+  (client.defaults.baseURL
+    ? client.defaults.baseURL.replace(/\/api\/?$/, "")
+    : null) || CONFIG_SERVER_BASE_URL;
 
 /**
  * Normalizes any avatarUrl (relative uploads path, Windows backslash, or full URL)

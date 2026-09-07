@@ -27,11 +27,7 @@ import { AppAlert } from "../../src/context/AlertContext";
 import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
-const SOCKET_URL = __DEV__
-  ? Platform.OS === "android"
-    ? "http://10.0.2.2:5000"
-    : "http://localhost:5000"
-  : "https://api.fixlink.et";
+import { SOCKET_URL } from "../../src/config/api";
 
 interface UserProfile {
   _id: string;
