@@ -21,12 +21,21 @@ export default function App() {
   };
 
   const scrollToSection = (sectionId) => {
+    if (sectionId === 'home') {
+      window.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+      setActiveSection('home');
+      return;
+    }
+
     const element = document.getElementById(sectionId);
     if (element) {
       const navOffset = 75;
       const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
       window.scrollTo({
-        top: sectionId === 'home' ? 0 : Math.max(0, elementPosition - navOffset),
+        top: Math.max(0, elementPosition - navOffset),
         behavior: 'smooth'
       });
       setActiveSection(sectionId);
@@ -38,34 +47,35 @@ export default function App() {
     const sections = ['home', 'services', 'how-it-works', 'about', 'contact'];
 
     const handleScroll = () => {
-      const scrollY = window.pageYOffset;
+      const scrollY = window.pageYOffset || document.documentElement.scrollTop;
       const windowHeight = window.innerHeight;
       const docHeight = document.documentElement.scrollHeight;
 
       // Bottom of page detection -> highlight Contact
-      if (windowHeight + scrollY >= docHeight - 100) {
+      if (windowHeight + scrollY >= docHeight - 80) {
         setActiveSection('contact');
         return;
       }
 
       // Top of page detection -> highlight Home
-      if (scrollY < 200) {
+      if (scrollY < 100) {
         setActiveSection('home');
         return;
       }
 
-      // Loop through sections from bottom to top to find the first one in view
-      for (let i = sections.length - 1; i >= 0; i--) {
-        const sectionId = sections[i];
+      // Loop through sections to find which section is currently at the top of viewport
+      let current = 'home';
+      for (const sectionId of sections) {
         const el = document.getElementById(sectionId);
         if (el) {
-          const top = el.offsetTop - 120;
-          if (scrollY >= top) {
-            setActiveSection(sectionId);
-            break;
+          const rect = el.getBoundingClientRect();
+          // When the section header reaches near the navbar (<= 140px from top)
+          if (rect.top <= 140) {
+            current = sectionId;
           }
         }
       }
+      setActiveSection(current);
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });

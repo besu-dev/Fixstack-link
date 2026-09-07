@@ -3,13 +3,9 @@ import MobileAppBanner from '../components/MobileAppBanner';
 import { 
   Target, 
   Eye, 
-  HeartHandshake, 
   ShieldCheck, 
   Award, 
-  Zap, 
-  Users, 
-  MapPin,
-  ArrowRight
+  Zap 
 } from 'lucide-react';
 import './AboutPage.css';
 
@@ -132,53 +128,6 @@ export default function AboutPage({ onNavigate, setActivePage }) {
                   <span>Quick matching via mobile app</span>
                 </div>
               </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Core Values */}
-      <section className="section about-values-section">
-        <div className="container">
-          <div className="section-header">
-            <span className="section-tag">What Guides Us</span>
-            <h2 className="section-title">Our Guiding Values</h2>
-            <p className="section-description">
-              Integrity, craftsmanship, and local community empowerment are the pillars of everything we do.
-            </p>
-          </div>
-
-          <div className="values-grid">
-            <div className="value-item-card">
-              <div className="value-icon-box">
-                <ShieldCheck size={24} />
-              </div>
-              <h4>Uncompromising Safety</h4>
-              <p>We treat your home like our own. Comprehensive ID and background checks are non-negotiable prerequisites for every provider.</p>
-            </div>
-
-            <div className="value-item-card">
-              <div className="value-icon-box">
-                <HeartHandshake size={24} />
-              </div>
-              <h4>Fair Dignity for Labor</h4>
-              <p>We champion local technicians, ensuring transparent bidding, prompt digital payouts, and real opportunity for professional growth.</p>
-            </div>
-
-            <div className="value-item-card">
-              <div className="value-icon-box">
-                <Award size={24} />
-              </div>
-              <h4>Craftsmanship & Quality</h4>
-              <p>Repairs should last. We prioritize skilled diagnosis over quick patches, backing our community with dedicated dispute support.</p>
-            </div>
-
-            <div className="value-item-card">
-              <div className="value-icon-box">
-                <Users size={24} />
-              </div>
-              <h4>Community First</h4>
-              <p>Built in Ethiopia, for Ethiopia. We continually adapt our technology to local languages, payment methods, and cultural customs.</p>
             </div>
           </div>
         </div>
