@@ -87,22 +87,14 @@ export default function FlowTabs({ onExploreServices }) {
           className={`flow-tab-btn ${activeTab === 'seeker' ? 'active' : ''}`}
           onClick={() => setActiveTab('seeker')}
         >
-          <span className="tab-pill-icon">🏠</span>
-          <div className="tab-btn-text">
-            <span className="tab-title">For Service Seekers</span>
-            <span className="tab-subtitle">Homeowners, Tenants & Businesses</span>
-          </div>
+          <span className="tab-title">For Service Seekers</span>
         </button>
 
         <button
           className={`flow-tab-btn ${activeTab === 'provider' ? 'active' : ''}`}
           onClick={() => setActiveTab('provider')}
         >
-          <span className="tab-pill-icon">🛠️</span>
-          <div className="tab-btn-text">
-            <span className="tab-title">For Service Providers</span>
-            <span className="tab-subtitle">Electricians, Plumbers & Technicians</span>
-          </div>
+          <span className="tab-title">For Service Providers</span>
         </button>
       </div>
 

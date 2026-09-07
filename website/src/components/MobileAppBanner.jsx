@@ -3,9 +3,7 @@ import {
   Smartphone, 
   Download, 
   QrCode, 
-  ShieldCheck, 
   Zap, 
-  CreditCard,
   MessageSquare
 } from 'lucide-react';
 import './MobileAppBanner.css';
@@ -23,11 +21,11 @@ export default function MobileAppBanner() {
             </span>
             
             <h2 className="app-banner-title">
-              Repairs, Bidding & Tracking in the Palm of Your Hand.
+              Repairs, Bidding & Tracking — All in One Place.
             </h2>
             
             <p className="app-banner-desc">
-              Whether you are a customer requesting an urgent water pump repair or a technician seeking high-value service orders across Addis Ababa—the FixLink Mobile App makes it effortless.
+              Whether you’re a customer looking for a reliable technician or a skilled service provider looking for new job opportunities, the FixLink mobile app makes it easy to request services, receive job offers, submit bids, communicate, and track repairs—all from your phone.
             </p>
 
             <div className="app-features-grid">
@@ -38,14 +36,6 @@ export default function MobileAppBanner() {
               <div className="app-feat-item">
                 <MessageSquare size={16} className="feat-icon" />
                 <span>Direct Provider Chat</span>
-              </div>
-              <div className="app-feat-item">
-                <CreditCard size={16} className="feat-icon" />
-                <span>Chapa Ethiopian Payments</span>
-              </div>
-              <div className="app-feat-item">
-                <ShieldCheck size={16} className="feat-icon" />
-                <span>Kebele ID Verification</span>
               </div>
             </div>
 

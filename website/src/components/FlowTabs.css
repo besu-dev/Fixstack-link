@@ -12,12 +12,12 @@
 .flow-tab-nav {
   display: flex;
   justify-content: center;
-  gap: 16px;
+  gap: 10px;
   background: var(--bg-surface);
   border: 1px solid var(--border-light);
-  padding: 8px;
+  padding: 6px;
   border-radius: var(--radius-pill);
-  max-width: 680px;
+  max-width: 520px;
   margin: 0 auto;
 }
 
@@ -25,14 +25,14 @@
   flex: 1;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
   background: transparent;
   border: none;
-  padding: 12px 24px;
+  padding: 14px 24px;
   border-radius: var(--radius-pill);
   cursor: pointer;
   transition: all var(--transition-base);
-  text-align: left;
+  text-align: center;
 }
 
 .flow-tab-btn:hover {
