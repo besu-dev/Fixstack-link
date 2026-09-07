@@ -174,10 +174,6 @@ export default function Footer({ onNavigate, setActivePage }) {
           <p className="copyright-text">
             © {currentYear} FixLink Technologies PLC. All rights reserved. Ethiopia.
           </p>
-          
-          <div className="footer-meta-note">
-            <span>Public Information Portal • Booking enabled via FixLink Mobile App</span>
-          </div>
         </div>
       </div>
     </footer>
