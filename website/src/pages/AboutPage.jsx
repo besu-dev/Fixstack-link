@@ -5,135 +5,209 @@ import {
   Eye, 
   ShieldCheck, 
   Award, 
-  Zap 
+  Zap, 
+  CheckCircle2, 
+  Sparkles, 
+  MapPin, 
+  Smartphone,
+  TrendingUp
 } from 'lucide-react';
 import './AboutPage.css';
 
 export default function AboutPage({ onNavigate, setActivePage }) {
+  const stats = [
+    {
+      number: '10',
+      label: 'Addis Subcities',
+      subtext: 'Bole, Yeka, Kirkos, Arada & more',
+    },
+    {
+      number: '500+',
+      label: 'Verified Technicians',
+      subtext: 'Plumbing, electrical & appliance pros',
+    },
+    {
+      number: '4.9★',
+      label: 'Quality Rating',
+      subtext: 'Rated by Ethiopian homeowners',
+    },
+    {
+      number: '15 min',
+      label: 'Rapid Matching',
+      subtext: 'Quick dispatch via mobile app',
+    },
+  ];
+
+  const pillars = [
+    {
+      icon: ShieldCheck,
+      title: 'Vetted & Verified Providers',
+      desc: 'National Kebele ID screening, verified phone numbers, and trade certificate validation before any provider can bid.',
+      badge: 'Safety First',
+      color: 'blue',
+    },
+    {
+      icon: Award,
+      title: 'Transparent Competitive Bidding',
+      desc: 'No arbitrary price surprises. Technicians inspect problem photos and submit clear bids before beginning work.',
+      badge: 'Zero Hidden Fees',
+      color: 'orange',
+    },
+    {
+      icon: Smartphone,
+      title: 'Built for Ethiopia',
+      desc: 'Seamless integration with local digital payments (Telebirr & Chapa), in-app chat, and GPS navigation in Addis Ababa.',
+      badge: 'Local Innovation',
+      color: 'teal',
+    },
+  ];
+
   return (
     <div className="about-page">
-      {/* Hero Header */}
+      {/* Header Section */}
       <section className="about-hero-header">
         <div className="container">
-          <span className="section-tag">Our Story & Purpose</span>
+          <div className="about-badge">
+            <Sparkles size={15} className="about-badge-icon" />
+            <span>About FixLink</span>
+          </div>
           <h1 className="about-main-title">
-            Empowering Ethiopian Households & Skilled Technicians
+            Reimagining Home Maintenance for Ethiopia
           </h1>
           <p className="about-hero-subtitle">
-            FixLink is on a mission to modernize household repairs in Ethiopia—replacing uncertainty and street-corner searches with verified quality, digital trust, and transparent prices.
+            FixLink bridges the gap between Ethiopian households in need of urgent repairs and verified, skilled technicians — bringing trust, transparency, and dignity to everyday services.
           </p>
         </div>
       </section>
 
-      {/* Mission & Vision Section */}
-      <section className="section about-mission-section">
+      {/* Bento-Style Story & Metrics Grid */}
+      <section className="about-bento-section">
         <div className="container">
-          <div className="mission-vision-grid">
-            <div className="mv-card mission-card">
-              <div className="mv-icon-box blue">
-                <Target size={32} />
+          <div className="about-bento-grid">
+            
+            {/* Bento Card 1: The Problem & Our Story (Large Span 7) */}
+            <div className="bento-card bento-story-card">
+              <div className="bento-card-header">
+                <span className="bento-tag orange">The Challenge & The Solution</span>
+                <h2 className="bento-card-title">Why We Built FixLink</h2>
               </div>
-              <h3>Our Mission</h3>
-              <p>
-                To make household maintenance stress-free and accessible across Ethiopia by creating a trusted bridge between families in need of urgent repairs and verified, skilled local tradespeople.
-              </p>
-              <div className="mv-highlight">
-                <span>Direct, honest, and reliable home service delivery in Addis Ababa.</span>
+
+              <div className="bento-story-body">
+                <p>
+                  In Addis Ababa, finding a reliable plumber, electrician, or appliance technician has traditionally been a gamble. Homeowners often relied on informal street-corner searches or haphazard word-of-mouth — leading to uncertain pricing, delayed arrivals, and zero accountability when repairs went wrong.
+                </p>
+                <p>
+                  At the same time, thousands of certified vocational graduates (TVET) and skilled local artisans struggled to connect with clients without paying exorbitant commissions or waiting idle for days.
+                </p>
+              </div>
+
+              <div className="bento-highlight-banner">
+                <p>
+                  <strong>FixLink solves both sides:</strong> We provide families with fast, background-checked technicians while equipping skilled tradespeople with dignified, consistent income.
+                </p>
+              </div>
+
+              <div className="bento-tags-row">
+                <span className="bento-pill">
+                  <CheckCircle2 size={14} className="pill-check" /> Kebele-Screened Providers
+                </span>
+                <span className="bento-pill">
+                  <CheckCircle2 size={14} className="pill-check" /> TVET & Vocational Trades
+                </span>
+                <span className="bento-pill">
+                  <CheckCircle2 size={14} className="pill-check" /> Escrow & Dispute Protection
+                </span>
               </div>
             </div>
 
-            <div className="mv-card vision-card">
-              <div className="mv-icon-box orange">
-                <Eye size={32} />
+            {/* Bento Card 2: Impact Metrics (Span 5) */}
+            <div className="bento-card bento-metrics-card">
+              <div className="bento-card-header">
+                <span className="bento-tag blue">Platform Impact</span>
+                <h3 className="bento-card-title">FixLink at a Glance</h3>
               </div>
-              <h3>Our Vision</h3>
-              <p>
-                To become the premier home services infrastructure for East Africa—fostering dignity for blue-collar professions, accelerating digital adoption, and setting the gold standard for residential safety.
-              </p>
-              <div className="mv-highlight orange">
-                <span>Formalizing domestic trades and empowering skilled Ethiopian youth.</span>
+
+              <div className="metrics-2x2-grid">
+                {stats.map((stat, idx) => (
+                  <div key={idx} className="metric-cell">
+                    <div className="metric-number-wrap">
+                      <span className="metric-number">{stat.number}</span>
+                    </div>
+                    <strong className="metric-label">{stat.label}</strong>
+                    <span className="metric-subtext">{stat.subtext}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="metrics-footer-note">
+                <MapPin size={16} className="metric-pin-icon" />
+                <span>Actively serving all 10 subcities across Addis Ababa</span>
               </div>
             </div>
+
+            {/* Bento Card 3: Our Mission (Span 6) */}
+            <div className="bento-card bento-mission-card">
+              <div className="mv-card-icon-box blue">
+                <Target size={28} />
+              </div>
+              <span className="mv-mini-tag">Our Core Mission</span>
+              <h3 className="mv-card-heading">Empowering Households with Trust</h3>
+              <p className="mv-card-desc">
+                To make household repairs fast, predictable, and stress-free across Ethiopia by creating a trusted digital gateway between homeowners and verified local tradespeople.
+              </p>
+              <div className="mv-bottom-strip blue">
+                <span>Safe, direct, and honest home service delivery in Addis Ababa.</span>
+              </div>
+            </div>
+
+            {/* Bento Card 4: Our Vision (Span 6) */}
+            <div className="bento-card bento-vision-card">
+              <div className="mv-card-icon-box orange">
+                <Eye size={28} />
+              </div>
+              <span className="mv-mini-tag orange">Our Long-term Vision</span>
+              <h3 className="mv-card-heading">Dignity for Ethiopian Skilled Trades</h3>
+              <p className="mv-card-desc">
+                To become the premier home services infrastructure for East Africa — elevating blue-collar professions, accelerating digital adoption, and setting the benchmark for residential safety.
+              </p>
+              <div className="mv-bottom-strip orange">
+                <span>Formalizing domestic trades and empowering vocational youth.</span>
+              </div>
+            </div>
+
+            {/* Bento Card 5: The FixLink Difference / 3 Pillars (Span 12) */}
+            <div className="bento-card bento-pillars-card">
+              <div className="pillars-header">
+                <div className="pillars-header-text">
+                  <span className="bento-tag teal">The FixLink Standard</span>
+                  <h3 className="pillars-title">How FixLink Protects You on Every Repair</h3>
+                </div>
+              </div>
+
+              <div className="pillars-grid">
+                {pillars.map((pillar, index) => {
+                  const IconComponent = pillar.icon;
+                  return (
+                    <div key={index} className={`pillar-item pillar-${pillar.color}`}>
+                      <div className="pillar-top">
+                        <div className={`pillar-icon-box ${pillar.color}`}>
+                          <IconComponent size={24} />
+                        </div>
+                        <span className={`pillar-badge ${pillar.color}`}>{pillar.badge}</span>
+                      </div>
+                      <h4 className="pillar-heading">{pillar.title}</h4>
+                      <p className="pillar-desc">{pillar.desc}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
           </div>
         </div>
       </section>
 
-      {/* The Ethiopian Context & The Problem We Solve */}
-      <section className="section about-story-section">
-        <div className="container">
-          <div className="story-layout">
-            <div className="story-text-col">
-              <span className="section-tag orange">The Challenge in Addis Ababa</span>
-              <h2 className="story-title">Why We Created FixLink</h2>
-              
-              <p className="story-para">
-                In Addis Ababa and Ethiopian cities, finding a trustworthy plumber, electrician, or appliance technician has historically been a gamble. Homeowners rely on word-of-mouth or look for informal handymen on road corners, facing unpredictable pricing, delayed arrivals, and no accountability when jobs go wrong.
-              </p>
-
-              <p className="story-para">
-                At the same time, thousands of certified technicians, vocational graduates (TVET), and skilled artisans struggle to find consistent clients without spending exorbitant commission fees or waiting idle for days.
-              </p>
-
-              <p className="story-para">
-                <strong>FixLink solves both sides of this equation.</strong> By digitizing the discovery, quotation, and verification process, we guarantee safety and fair market rates for families while providing technicians with dignified, consistent work.
-              </p>
-
-              <div className="story-points-row">
-                <div className="story-point">
-                  <ShieldCheck size={20} className="point-icon" />
-                  <span>Kebele-screened providers</span>
-                </div>
-                <div className="story-point">
-                  <Award size={20} className="point-icon" />
-                  <span>Verified customer ratings</span>
-                </div>
-                <div className="story-point">
-                  <Zap size={20} className="point-icon" />
-                  <span>Rapid dispatch in subcities</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="story-stats-card glass-panel">
-              <h4 className="stats-box-heading">FixLink at a Glance</h4>
-              
-              <div className="stat-row">
-                <span className="stat-number">10</span>
-                <div className="stat-desc">
-                  <strong>Addis Ababa Subcities</strong>
-                  <span>Active coverage across the capital</span>
-                </div>
-              </div>
-
-              <div className="stat-row">
-                <span className="stat-number">500+</span>
-                <div className="stat-desc">
-                  <strong>Verified Technicians</strong>
-                  <span>Plumbers, electricians, carpenters</span>
-                </div>
-              </div>
-
-              <div className="stat-row">
-                <span className="stat-number">4.9★</span>
-                <div className="stat-desc">
-                  <strong>Average Quality Rating</strong>
-                  <span>Rated by Ethiopian homeowners</span>
-                </div>
-              </div>
-
-              <div className="stat-row">
-                <span className="stat-number">15 min</span>
-                <div className="stat-desc">
-                  <strong>Average Response Time</strong>
-                  <span>Quick matching via mobile app</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Callout */}
+      {/* App Callout Banner */}
       <MobileAppBanner />
     </div>
   );
