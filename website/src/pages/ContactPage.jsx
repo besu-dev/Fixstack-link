@@ -2,13 +2,8 @@ import React, { useState } from 'react';
 import { 
   Phone, 
   Mail, 
-  MapPin, 
-  Clock, 
   Send, 
   CheckCircle2, 
-  MessageSquare, 
-  HelpCircle,
-  Smartphone,
   ShieldAlert
 } from 'lucide-react';
 import './ContactPage.css';
@@ -79,7 +74,7 @@ export default function ContactPage({ onShowToast, onOpenAdminModal }) {
               <div className="info-header-box">
                 <h3 className="info-col-title">FixLink Support & Headquarters</h3>
                 <p className="info-col-desc">
-                  Our operations team is available Monday through Saturday to assist households, technicians, and municipal partners.
+                  Our operations team is available to assist households, technicians, and municipal partners.
                 </p>
               </div>
 
@@ -103,32 +98,6 @@ export default function ContactPage({ onShowToast, onOpenAdminModal }) {
                     <span className="touch-label">Email Enquiries</span>
                     <a href="mailto:support@fixlink.et" className="touch-value">support@fixlink.et</a>
                     <span className="touch-subvalue">contact@fixlink.et (Business & Press)</span>
-                  </div>
-                </div>
-
-                <div className="contact-touch-card">
-                  <div className="touch-icon-box sky">
-                    <MapPin size={22} />
-                  </div>
-                  <div>
-                    <span className="touch-label">Addis Ababa Office</span>
-                    <p className="touch-address">
-                      Cameroon Street, Next to Edna Mall / Medhanialem,<br />
-                      Bole Subcity, Addis Ababa, Ethiopia
-                    </p>
-                  </div>
-                </div>
-
-                <div className="contact-touch-card">
-                  <div className="touch-icon-box green">
-                    <Clock size={22} />
-                  </div>
-                  <div>
-                    <span className="touch-label">Customer Service Hours</span>
-                    <p className="touch-address">
-                      Monday – Saturday: 8:00 AM – 7:00 PM EAT<br />
-                      Sunday: Emergency Dispatch On-Call
-                    </p>
                   </div>
                 </div>
               </div>
