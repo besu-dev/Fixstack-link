@@ -115,6 +115,56 @@
   color: var(--success);
 }
 
+.touch-icon-box.purple {
+  background: #F3E8FF;
+  color: #7E22CE;
+}
+
+.contact-social-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.social-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-surface);
+  border: 1px solid var(--border-light);
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--brand-navy);
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.social-chip:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 43, 73, 0.08);
+}
+
+.social-chip.facebook:hover {
+  background: #EFF6FF;
+  border-color: #3B82F6;
+  color: #1877F2;
+}
+
+.social-chip.linkedin:hover {
+  background: #F0F7FF;
+  border-color: #0A66C2;
+  color: #0A66C2;
+}
+
+.social-chip.x-twitter:hover {
+  background: #F8FAFC;
+  border-color: #0F1419;
+  color: #000000;
+}
+
 .touch-label {
   display: block;
   font-size: 0.75rem;
