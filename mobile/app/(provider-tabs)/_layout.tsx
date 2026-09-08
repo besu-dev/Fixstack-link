@@ -7,6 +7,7 @@ export default function ProviderTabsLayout() {
       tabBar={(props) => <ProviderCustomNavBar {...props} />}
       screenOptions={{
         headerShown: false,
+        tabBarHideOnKeyboard: true,
       }}
     >
       <Tabs.Screen

@@ -28,41 +28,6 @@ import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-const CATEGORY_ICONS: Record<
-  string,
-  { name: string; family: "Ionicons" | "MaterialCommunityIcons"; bg: string; color: string }
-> = {
-  electrical: {
-    name: "flash",
-    family: "Ionicons",
-    bg: "#FEF3C7",
-    color: "#D97706",
-  },
-  plumbing: {
-    name: "water",
-    family: "Ionicons",
-    bg: "#E0F2FE",
-    color: "#0284C7",
-  },
-  appliances: {
-    name: "tv",
-    family: "Ionicons",
-    bg: "#F3E8FF",
-    color: "#7C3AED",
-  },
-  carpentry: {
-    name: "hammer",
-    family: "MaterialCommunityIcons",
-    bg: "#FFEDD5",
-    color: "#EA580C",
-  },
-  finishing: {
-    name: "sparkles",
-    family: "Ionicons",
-    bg: "#DCFCE7",
-    color: "#16A34A",
-  },
-};
 
 export default function SubServicesScreen() {
   const router = useRouter();
@@ -303,64 +268,13 @@ export default function SubServicesScreen() {
           </View>
         ) : (
           filteredCategoryGroups.map((group) => {
-            const iconConfig = CATEGORY_ICONS[group.id] || {
-              name: "grid",
-              family: "Ionicons",
-              bg: "#F1F5F9",
-              color: "#475569",
-            };
-
             const isSingleItemCategory = group.items.length === 1;
 
             return (
               <View key={group.id} style={styles.categorySection}>
                 {/* Category Section Header */}
                 <View style={styles.categoryHeader}>
-                  <View style={styles.categoryHeaderLeft}>
-                    <View
-                      style={[
-                        styles.categoryIconBadge,
-                        { backgroundColor: iconConfig.bg },
-                      ]}
-                    >
-                      {iconConfig.family === "Ionicons" ? (
-                        <Ionicons
-                          name={iconConfig.name as any}
-                          size={moderateScale(18)}
-                          color={iconConfig.color}
-                        />
-                      ) : (
-                        <MaterialCommunityIcons
-                          name={iconConfig.name as any}
-                          size={moderateScale(18)}
-                          color={iconConfig.color}
-                        />
-                      )}
-                    </View>
-                    <View>
-                      <Text style={styles.categoryTitle}>{group.title}</Text>
-                      <Text style={styles.categorySubtitle}>
-                        {group.items.length}{" "}
-                        {group.items.length === 1 ? "specialized trade" : "trade services"}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View
-                    style={[
-                      styles.categoryCountPill,
-                      { backgroundColor: `${group.accentColor}15` },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        styles.categoryCountText,
-                        { color: group.accentColor },
-                      ]}
-                    >
-                      {group.items.length} Available
-                    </Text>
-                  </View>
+                  <Text style={styles.categoryTitle}>{group.title}</Text>
                 </View>
 
                 {/* Single Item: Render as a Wide Featured Hero Card */}
@@ -584,42 +498,14 @@ const styles = StyleSheet.create({
     marginBottom: scale(26),
   },
   categoryHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
     paddingHorizontal: scale(18),
-    marginBottom: scale(12),
-  },
-  categoryHeaderLeft: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: scale(10),
-  },
-  categoryIconBadge: {
-    width: moderateScale(36),
-    height: moderateScale(36),
-    borderRadius: moderateScale(10),
-    alignItems: "center",
-    justifyContent: "center",
+    marginBottom: scale(10),
   },
   categoryTitle: {
-    fontSize: scaledFont(15),
+    fontSize: scaledFont(16),
     fontWeight: "700",
     color: "#0F172A",
-  },
-  categorySubtitle: {
-    fontSize: scaledFont(11),
-    color: "#64748B",
-    marginTop: scale(1),
-  },
-  categoryCountPill: {
-    paddingHorizontal: scale(10),
-    paddingVertical: scale(4),
-    borderRadius: moderateScale(12),
-  },
-  categoryCountText: {
-    fontSize: scaledFont(11),
-    fontWeight: "700",
+    letterSpacing: -0.2,
   },
 
   /* Featured Single Item Card (House Wiring) */

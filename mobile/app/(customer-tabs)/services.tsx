@@ -383,26 +383,7 @@ export default function ServicesScreen() {
             <View key={section.title} style={styles.section}>
               {/* Category Header Row */}
               <View style={styles.sectionHeaderRow}>
-                <View style={styles.sectionTitleGroup}>
-                  <View
-                    style={[
-                      styles.categoryIconBox,
-                      { backgroundColor: section.accentLight },
-                    ]}
-                  >
-                    <Ionicons
-                      name={section.iconName}
-                      size={moderateScale(17)}
-                      color={section.accentColor}
-                    />
-                  </View>
-                  <View>
-                    <Text style={styles.sectionTitle}>{section.title}</Text>
-                    <Text style={styles.sectionSubtitle}>
-                      {section.items.length} {section.items.length === 1 ? "specialty" : "specialties"} available
-                    </Text>
-                  </View>
-                </View>
+                <Text style={styles.sectionTitle}>{section.title}</Text>
 
                 <TouchableOpacity
                   style={styles.exploreBtn}
@@ -672,28 +653,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: scale(20),
     marginBottom: scale(10),
   },
-  sectionTitleGroup: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: scale(10),
-  },
-  categoryIconBox: {
-    width: moderateScale(34),
-    height: moderateScale(34),
-    borderRadius: moderateScale(10),
-    alignItems: "center",
-    justifyContent: "center",
-  },
   sectionTitle: {
-    fontSize: scaledFont(15),
-    fontWeight: "800",
+    fontSize: scaledFont(16),
+    fontWeight: "700",
     color: "#0F172A",
-  },
-  sectionSubtitle: {
-    fontSize: scaledFont(11),
-    color: "#64748B",
-    fontWeight: "500",
-    marginTop: 1,
   },
   exploreBtn: {
     flexDirection: "row",
