@@ -666,6 +666,8 @@ export default function HomeScreen() {
             </View>
           </View>
         </TouchableOpacity>
+      </Modal>
+
       {/* Customer Notifications Modal */}
       <CustomerNotificationsModal
         visible={notificationsModalVisible}

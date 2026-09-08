@@ -16,11 +16,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather, Ionicons } from "@expo/vector-icons";
 import { useRouter, useFocusEffect } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { io, Socket } from "socket.io-client";
 import apiClient from "../../src/api/client";
+import notificationsApi from "../../src/api/notifications";
 import BuyConnectsModal from "../../components/BuyConnectsModal";
+import CustomerNotificationsModal from "../../components/customer/CustomerNotificationsModal";
 import UserAvatar from "../../components/common/UserAvatar";
 import { AppAlert } from "../../src/context/AlertContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
+import { SOCKET_URL } from "../../src/config/api";
 
 interface CustomerData {
   _id: string;
@@ -49,6 +53,24 @@ export default function CustomerProfileScreen() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [buyModalVisible, setBuyModalVisible] = useState(false);
+
+  const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
+
+  const handleConnectsUpdated = (newBalance: number) => {
+    setProfile((prev) =>
+      prev ? { ...prev, connectsBalance: newBalance } : prev,
+    );
+  };
+
+  const fetchUnreadCount = useCallback(async () => {
+    try {
+      const count = await notificationsApi.getUnreadCount();
+      setUnreadNotificationCount(count);
+    } catch {
+      // silent fallback
+    }
+  }, []);
 
   const fetchProfileData = useCallback(async () => {
     try {
@@ -85,13 +107,43 @@ export default function CustomerProfileScreen() {
 
   useEffect(() => {
     fetchProfileData();
-  }, [fetchProfileData]);
+    fetchUnreadCount();
+  }, [fetchProfileData, fetchUnreadCount]);
 
   useFocusEffect(
     useCallback(() => {
       fetchProfileData();
-    }, [fetchProfileData]),
+      fetchUnreadCount();
+    }, [fetchProfileData, fetchUnreadCount]),
   );
+
+  useEffect(() => {
+    let socket: Socket | null = null;
+    if (profile?._id) {
+      socket = io(SOCKET_URL, {
+        transports: ["websocket"],
+        reconnection: true,
+      });
+
+      socket.on("connect", () => {
+        socket?.emit("register_user", profile._id);
+      });
+
+      socket.on("new_proposal_notification", () => {
+        setUnreadNotificationCount((prev) => prev + 1);
+      });
+
+      socket.on("new_notification", () => {
+        setUnreadNotificationCount((prev) => prev + 1);
+      });
+    }
+
+    return () => {
+      if (socket) {
+        socket.disconnect();
+      }
+    };
+  }, [profile?._id]);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -133,16 +185,34 @@ export default function CustomerProfileScreen() {
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
 
-      {/* Top Header with Edit Shortcut */}
+      {/* Top Header with Notifications & Edit Shortcut */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Profile</Text>
-        <TouchableOpacity
-          style={styles.editBtn}
-          onPress={() => router.push("/screen/user/edit-profile" as any)}
-          activeOpacity={0.8}
-        >
-          <Feather name="edit-3" size={moderateScale(16)} color="#0052CC" />
-        </TouchableOpacity>
+
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.notificationHeaderBtn}
+            onPress={() => setNotificationsModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <Feather name="bell" size={moderateScale(18)} color="#0052CC" />
+            {unreadNotificationCount > 0 && (
+              <View style={styles.headerBadge}>
+                <Text style={styles.headerBadgeText}>
+                  {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.editBtn}
+            onPress={() => router.push("/screen/user/edit-profile" as any)}
+            activeOpacity={0.8}
+          >
+            <Feather name="edit-3" size={moderateScale(16)} color="#0052CC" />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <ScrollView
@@ -311,6 +381,17 @@ export default function CustomerProfileScreen() {
         onClose={() => setBuyModalVisible(false)}
         onSuccess={handleConnectsUpdated}
       />
+
+      {/* Customer Notifications Modal */}
+      <CustomerNotificationsModal
+        visible={notificationsModalVisible}
+        onClose={() => {
+          setNotificationsModalVisible(false);
+          fetchUnreadCount();
+        }}
+        onUnreadCountChange={setUnreadNotificationCount}
+        initialUnreadCount={unreadNotificationCount}
+      />
     </SafeAreaView>
   );
 }
@@ -339,6 +420,39 @@ const styles = StyleSheet.create({
     fontSize: scaledFont(20),
     fontWeight: "800",
     color: "#0F172A",
+  },
+  headerActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(10),
+  },
+  notificationHeaderBtn: {
+    width: moderateScale(36),
+    height: moderateScale(36),
+    borderRadius: moderateScale(18),
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  headerBadge: {
+    position: "absolute",
+    top: -2,
+    right: -2,
+    backgroundColor: "#DC2626",
+    borderRadius: scale(8),
+    minWidth: scale(16),
+    height: scale(16),
+    paddingHorizontal: scale(3),
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "#FFFFFF",
+  },
+  headerBadgeText: {
+    color: "#FFFFFF",
+    fontSize: scaledFont(9),
+    fontWeight: "800",
   },
   editBtn: {
     width: moderateScale(36),
