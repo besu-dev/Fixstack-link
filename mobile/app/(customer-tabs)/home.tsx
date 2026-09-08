@@ -48,12 +48,12 @@ const CATEGORIES = [
 ];
 
 const QUICK_FILTERS = [
-  { id: "All", label: "All", icon: "grid-outline" },
-  { id: "Electrical", label: "Electrical", icon: "flash-outline" },
-  { id: "Plumbing", label: "Plumbing", icon: "water-outline" },
-  { id: "Appliances", label: "Appliances", icon: "tv-outline" },
-  { id: "Carpentry", label: "Carpentry", icon: "hammer-outline" },
-  { id: "Finishing", label: "Finishing", icon: "sparkles-outline" },
+  { id: "All", label: "All" },
+  { id: "Electrical", label: "Electrical" },
+  { id: "Plumbing", label: "Plumbing" },
+  { id: "Appliances", label: "Appliances" },
+  { id: "Carpentry", label: "Carpentry" },
+  { id: "Finishing", label: "Finishing" },
 ];
 
 const POPULAR_SERVICES = [
@@ -116,12 +116,6 @@ export default function HomeScreen() {
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
-  const greetingTime = useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return "Good morning";
-    if (hour < 17) return "Good afternoon";
-    return "Good evening";
-  }, []);
 
   const loadHomeData = useCallback(async () => {
     try {
@@ -207,7 +201,7 @@ export default function HomeScreen() {
         <View style={styles.greetingHeader}>
           <View style={styles.greetingTextGroup}>
             <Text style={styles.greetingTitle}>
-              {greetingTime}, <Text style={styles.greetingName}>{userName}</Text> 👋
+              Hi, <Text style={styles.greetingName}>{userName}</Text> 👋
             </Text>
             <Text style={styles.greetingSubtitle}>
               What service do you need for your home today?
@@ -302,11 +296,6 @@ export default function HomeScreen() {
                 activeOpacity={0.75}
                 onPress={() => setSelectedCategory(chip.id)}
               >
-                <Ionicons
-                  name={chip.icon as any}
-                  size={moderateScale(14)}
-                  color={isActive ? "#FFFFFF" : "#475569"}
-                />
                 <Text
                   style={[
                     styles.quickChipText,
@@ -734,13 +723,12 @@ const styles = StyleSheet.create({
     paddingBottom: scale(16),
   },
   quickChip: {
-    flexDirection: "row",
     alignItems: "center",
-    gap: scale(6),
+    justifyContent: "center",
     backgroundColor: "#F8FAFC",
     borderWidth: 1,
     borderColor: "#E2E8F0",
-    paddingHorizontal: scale(13),
+    paddingHorizontal: scale(16),
     paddingVertical: scale(7),
     borderRadius: moderateScale(20),
   },

@@ -24,7 +24,6 @@ import JobNotificationsModal from "../../components/provider/JobNotificationsMod
 import BuyConnectsModal from "../../components/BuyConnectsModal";
 import UserAvatar from "../../components/common/UserAvatar";
 import { AppAlert } from "../../src/context/AlertContext";
-import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 import { SOCKET_URL } from "../../src/config/api";
@@ -53,7 +52,6 @@ interface ProviderStats {
 
 export default function ProviderProfileScreen() {
   const router = useRouter();
-  const { unreadMessageCount } = useUnreadMessages();
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [stats, setStats] = useState<ProviderStats>({
@@ -273,26 +271,15 @@ export default function ProviderProfileScreen() {
 
           <Text style={styles.userName}>{profile?.fullName || "Provider"}</Text>
           <Text style={styles.userProfession}>
-            {profile?.profession || "General Maintenance"} •{" "}
-            {profile?.experience || "1-3 yrs"}
+            {profile?.profession || "General Maintenance"}
           </Text>
 
-          {/* Rating & Location Tag */}
+          {/* Rating Tag */}
           <View style={styles.metaBadgeRow}>
             <View style={styles.ratingBadge}>
               <Ionicons name="star" size={moderateScale(13)} color="#F59E0B" />
               <Text style={styles.ratingText}>
                 {profile?.rating ? profile.rating.toFixed(1) : "5.0"}
-              </Text>
-            </View>
-            <View style={styles.locationBadge}>
-              <Feather
-                name="map-pin"
-                size={moderateScale(11)}
-                color="#64748B"
-              />
-              <Text style={styles.locationText}>
-                {profile?.subcity || "Bole"}, Addis Ababa
               </Text>
             </View>
           </View>
@@ -402,70 +389,9 @@ export default function ProviderProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Business & Wallet Management */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>Business & Connects</Text>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => setBuyModalVisible(true)}
-          >
-            <View style={[styles.menuIconBox, { backgroundColor: "#EFF6FF" }]}>
-              <Ionicons
-                name="wallet-outline"
-                size={moderateScale(17)}
-                color="#0052CC"
-              />
-            </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Recharge Connects (Telebirr)</Text>
-              <Text style={styles.menuSubtitle}>
-                Current Balance: {profile?.connectsBalance ?? 0} Connects
-              </Text>
-            </View>
-            <Feather
-              name="chevron-right"
-              size={moderateScale(17)}
-              color="#94A3B8"
-            />
-          </TouchableOpacity>
-        </View>
-
         {/* Preferences & Support */}
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>Preferences & Support</Text>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push("/(provider-tabs)/message" as any)}
-            activeOpacity={0.7}
-          >
-            <View style={[styles.menuIconBox, { backgroundColor: "#EFF6FF" }]}>
-              <Feather
-                name="message-square"
-                size={moderateScale(17)}
-                color="#0052CC"
-              />
-            </View>
-            <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Client Messages</Text>
-              <Text style={styles.menuSubtitle}>
-                Direct chat with your active customers
-              </Text>
-            </View>
-            {unreadMessageCount > 0 && (
-              <View style={styles.menuBadge}>
-                <Text style={styles.menuBadgeText}>
-                  {unreadMessageCount > 99 ? "99+" : `${unreadMessageCount} new`}
-                </Text>
-              </View>
-            )}
-            <Feather
-              name="chevron-right"
-              size={moderateScale(17)}
-              color="#94A3B8"
-            />
-          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.menuItem}

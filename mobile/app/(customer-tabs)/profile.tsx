@@ -20,7 +20,6 @@ import apiClient from "../../src/api/client";
 import BuyConnectsModal from "../../components/BuyConnectsModal";
 import UserAvatar from "../../components/common/UserAvatar";
 import { AppAlert } from "../../src/context/AlertContext";
-import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 interface CustomerData {
@@ -40,7 +39,6 @@ interface JobStats {
 
 export default function CustomerProfileScreen() {
   const router = useRouter();
-  const { unreadMessageCount } = useUnreadMessages();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [profile, setProfile] = useState<CustomerData | null>(null);
   const [stats, setStats] = useState<JobStats>({
@@ -180,9 +178,6 @@ export default function CustomerProfileScreen() {
           <Text style={styles.userEmail}>
             {profile?.email || profile?.phone || "No contact info set"}
           </Text>
-          <View style={styles.roleBadge}>
-            <Text style={styles.roleBadgeText}>Customer Account</Text>
-          </View>
         </View>
 
         {/* Live Metrics */}
@@ -246,90 +241,6 @@ export default function CustomerProfileScreen() {
                 Name, phone number, and location
               </Text>
             </View>
-            <Feather
-              name="chevron-right"
-              size={moderateScale(17)}
-              color="#94A3B8"
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => setBuyModalVisible(true)}
-          >
-            <View style={[styles.menuIconBox, { backgroundColor: "#FEF3C7" }]}>
-              <Ionicons
-                name="card-outline"
-                size={moderateScale(17)}
-                color="#D97706"
-              />
-            </View>
-            <View style={styles.menuTextCol}>
-              <Text style={styles.menuTitle}>Billing & Telebirr Top-Up</Text>
-              <Text style={styles.menuSubtitle}>
-                Recharge your FixLink wallet
-              </Text>
-            </View>
-            <Feather
-              name="chevron-right"
-              size={moderateScale(17)}
-              color="#94A3B8"
-            />
-          </TouchableOpacity>
-        </View>
-
-        {/* Activity & Orders */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>Activity & Orders</Text>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push("/(customer-tabs)/orders" as any)}
-          >
-            <View style={[styles.menuIconBox, { backgroundColor: "#EFF6FF" }]}>
-              <Feather
-                name="clipboard"
-                size={moderateScale(17)}
-                color="#0052CC"
-              />
-            </View>
-            <View style={styles.menuTextCol}>
-              <Text style={styles.menuTitle}>My Service Requests</Text>
-              <Text style={styles.menuSubtitle}>
-                Track open requests & technician quotes
-              </Text>
-            </View>
-            <Feather
-              name="chevron-right"
-              size={moderateScale(17)}
-              color="#94A3B8"
-            />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.menuItem}
-            onPress={() => router.push("/(customer-tabs)/message" as any)}
-          >
-            <View style={[styles.menuIconBox, { backgroundColor: "#EFF6FF" }]}>
-              <Feather
-                name="message-square"
-                size={moderateScale(17)}
-                color="#0052CC"
-              />
-            </View>
-            <View style={styles.menuTextCol}>
-              <Text style={styles.menuTitle}>Direct Messages</Text>
-              <Text style={styles.menuSubtitle}>
-                Chat with service technicians
-              </Text>
-            </View>
-            {unreadMessageCount > 0 && (
-              <View style={styles.profileBadge}>
-                <Text style={styles.profileBadgeText}>
-                  {unreadMessageCount > 99 ? "99+" : `${unreadMessageCount} new`}
-                </Text>
-              </View>
-            )}
             <Feather
               name="chevron-right"
               size={moderateScale(17)}
@@ -478,18 +389,6 @@ const styles = StyleSheet.create({
     color: "#64748B",
     marginTop: scale(2),
   },
-  roleBadge: {
-    backgroundColor: "#EFF6FF",
-    paddingHorizontal: scale(12),
-    paddingVertical: scale(4),
-    borderRadius: moderateScale(12),
-    marginTop: scale(8),
-  },
-  roleBadgeText: {
-    fontSize: scaledFont(11),
-    fontWeight: "700",
-    color: "#0052CC",
-  },
   statsRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -615,18 +514,7 @@ const styles = StyleSheet.create({
     color: "#64748B",
     marginTop: scale(1),
   },
-  profileBadge: {
-    backgroundColor: "#EF4444",
-    borderRadius: moderateScale(10),
-    paddingHorizontal: scale(8),
-    paddingVertical: scale(2),
-    marginRight: scale(8),
-  },
-  profileBadgeText: {
-    color: "#FFFFFF",
-    fontSize: scaledFont(11),
-    fontWeight: "700",
-  },
+
   logoutBtn: {
     flexDirection: "row",
     alignItems: "center",
