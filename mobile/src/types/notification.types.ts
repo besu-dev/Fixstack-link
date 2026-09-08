@@ -17,9 +17,9 @@ export interface JobNotification {
   type: string;
   serviceName: string;
   jobTitle: string;
-  location?: string;
-  budget?: number;
-  urgency?: JobUrgency;
+  location: string;
+  budget: number;
+  urgency: JobUrgency;
   timePosted?: string;
   // Proposal-specific fields
   provider?: NotificationProvider;

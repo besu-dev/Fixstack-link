@@ -57,12 +57,6 @@ export default function CustomerProfileScreen() {
   const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
   const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
 
-  const handleConnectsUpdated = (newBalance: number) => {
-    setProfile((prev) =>
-      prev ? { ...prev, connectsBalance: newBalance } : prev,
-    );
-  };
-
   const fetchUnreadCount = useCallback(async () => {
     try {
       const count = await notificationsApi.getUnreadCount();
