@@ -85,7 +85,7 @@ const CATEGORIES: ServiceCategory[] = [
     iconName: "flash",
     accentColor: "#D97706",
     accentLight: "#FEF3C7",
-    tagline: "Certified wiring, backup generators & solar systems",
+    tagline: "Certified professional house wiring & electrical solutions",
     bannerImage: {
       uri: "https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=800",
     },
@@ -95,30 +95,6 @@ const CATEGORIES: ServiceCategory[] = [
         name: "House Wiring",
         iconName: "flash-outline",
         image: require("../../assets/images/House-Wiring.jpg"),
-      },
-      {
-        id: "e2",
-        name: "Generator",
-        iconName: "hardware-chip-outline",
-        image: {
-          uri: "https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=400",
-        },
-      },
-      {
-        id: "e3",
-        name: "Solar System",
-        iconName: "sunny-outline",
-        image: {
-          uri: "https://images.unsplash.com/photo-1508873696983-2df5703bc225?auto=format&fit=crop&q=80&w=400",
-        },
-      },
-      {
-        id: "e4",
-        name: "Breaker Fix",
-        iconName: "shield-checkmark-outline",
-        image: {
-          uri: "https://images.unsplash.com/photo-1555664424-778a1e5e1b48?auto=format&fit=crop&q=80&w=400",
-        },
       },
     ],
   },

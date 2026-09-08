@@ -24,18 +24,14 @@ export const uploadAvatarToCloudinary = async (filePath) => {
   try {
     const result = await cloudinary.uploader.upload(filePath, {
       folder: "fixlink/avatars",
+      timeout: 15000,
       transformation: [
         { width: 400, height: 400, crop: "fill", gravity: "face" },
         { quality: "auto", fetch_format: "auto" },
       ],
     });
 
-    return {
-      avatarUrl: result.secure_url,
-      avatarPublicId: result.public_id,
-    };
-  } finally {
-    // Always remove temporary file from local disk
+    // Cleanup local temp file once safely uploaded to Cloudinary
     try {
       if (fs.existsSync(filePath)) {
         fs.unlinkSync(filePath);
@@ -43,6 +39,14 @@ export const uploadAvatarToCloudinary = async (filePath) => {
     } catch (cleanupErr) {
       console.warn("Failed to delete local temp file:", cleanupErr.message);
     }
+
+    return {
+      avatarUrl: result.secure_url,
+      avatarPublicId: result.public_id,
+    };
+  } catch (err) {
+    console.warn("--> Cloudinary upload failed or timed out:", err.message);
+    throw err;
   }
 };
 

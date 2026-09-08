@@ -128,9 +128,7 @@ export default function EditProfileScreen() {
         } as any);
       }
 
-      const res = await apiClient.put("/auth/profile", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await apiClient.put("/auth/profile", formData);
 
       // Update local storage so CustomerProfileScreen updates immediately
       const updatedUser = res.data?.user || res.data;

@@ -53,30 +53,47 @@ const POPULAR_SERVICES = [
   {
     id: "1",
     title: "Plumbing",
-    icon: "wrench",
-    iconFamily: "FontAwesome",
-    iconColor: "#F59E0B",
+    categoryTitle: "Plumbing & Water Systems",
+    icon: "water",
+    iconFamily: "Ionicons",
+    iconColor: "#0284C7",
+    bgColor: "#E0F2FE",
   },
   {
     id: "2",
     title: "Electrical",
+    categoryTitle: "Electrical & Power",
     icon: "flash",
     iconFamily: "Ionicons",
-    iconColor: "#2563EB",
+    iconColor: "#D97706",
+    bgColor: "#FEF3C7",
   },
   {
     id: "3",
-    title: "Carpentry",
-    icon: "hammer",
-    iconFamily: "MaterialCommunityIcons",
-    iconColor: "#EAB308",
+    title: "Appliances",
+    categoryTitle: "Appliances & Electronics",
+    icon: "tv",
+    iconFamily: "Ionicons",
+    iconColor: "#7C3AED",
+    bgColor: "#F3E8FF",
   },
   {
     id: "4",
-    title: "Painting",
-    icon: "format-paint",
+    title: "Carpentry",
+    categoryTitle: "Carpentry & Metalwork",
+    icon: "hammer",
     iconFamily: "MaterialCommunityIcons",
-    iconColor: "#06B6D4",
+    iconColor: "#EA580C",
+    bgColor: "#FFEDD5",
+  },
+  {
+    id: "5",
+    title: "Finishing",
+    categoryTitle: "Finishing & Cleaning",
+    icon: "sparkles",
+    iconFamily: "Ionicons",
+    iconColor: "#16A34A",
+    bgColor: "#DCFCE7",
   },
 ];
 
@@ -274,11 +291,17 @@ export default function HomeScreen() {
         {/* Popular Services Section */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>Popular Services</Text>
-          <Link href={"/(customer-tabs)/services" as any} asChild>
-            <TouchableOpacity activeOpacity={0.7}>
-              <Text style={styles.viewAllText}>View all</Text>
-            </TouchableOpacity>
-          </Link>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() =>
+              router.push({
+                pathname: "/screen/sub-services",
+                params: { category: "All" },
+              } as any)
+            }
+          >
+            <Text style={styles.viewAllText}>View all</Text>
+          </TouchableOpacity>
         </View>
 
         <ScrollView
@@ -289,39 +312,39 @@ export default function HomeScreen() {
           {POPULAR_SERVICES.map((service) => (
             <TouchableOpacity
               key={service.id}
-              style={[
-                styles.serviceCard,
-                selectedCategory.toLowerCase() ===
-                  service.title.toLowerCase() && styles.serviceCardSelected,
-              ]}
+              style={styles.serviceCard}
               activeOpacity={0.8}
               onPress={() =>
-                setSelectedCategory((prev) =>
-                  prev.toLowerCase() === service.title.toLowerCase()
-                    ? "All"
-                    : service.title,
-                )
+                router.push({
+                  pathname: "/screen/sub-services",
+                  params: { category: service.categoryTitle || service.title },
+                } as any)
               }
             >
-              <View style={styles.serviceIconCircle}>
+              <View
+                style={[
+                  styles.serviceIconCircle,
+                  { backgroundColor: service.bgColor },
+                ]}
+              >
                 {service.iconFamily === "FontAwesome" && (
                   <FontAwesome
                     name={service.icon as any}
-                    size={moderateScale(24)}
+                    size={moderateScale(22)}
                     color={service.iconColor}
                   />
                 )}
                 {service.iconFamily === "Ionicons" && (
                   <Ionicons
                     name={service.icon as any}
-                    size={moderateScale(26)}
+                    size={moderateScale(24)}
                     color={service.iconColor}
                   />
                 )}
                 {service.iconFamily === "MaterialCommunityIcons" && (
                   <MaterialCommunityIcons
                     name={service.icon as any}
-                    size={moderateScale(28)}
+                    size={moderateScale(24)}
                     color={service.iconColor}
                   />
                 )}
@@ -660,32 +683,38 @@ const styles = StyleSheet.create({
     marginBottom: scale(20),
   },
   serviceCard: {
-    width: scale(96),
-    height: scale(100),
+    width: scale(94),
+    height: scale(104),
     backgroundColor: "#FFFFFF",
-    borderRadius: moderateScale(14),
+    borderRadius: moderateScale(16),
     alignItems: "center",
     justifyContent: "center",
     marginRight: scale(12),
     borderWidth: 1,
     borderColor: "#E2E8F0",
     paddingHorizontal: scale(6),
+    shadowColor: "#0F172A",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 5,
+    elevation: 2,
   },
   serviceCardSelected: {
     borderColor: "#0052CC",
     backgroundColor: "#EFF6FF",
   },
   serviceIconCircle: {
-    width: moderateScale(46),
-    height: moderateScale(46),
+    width: moderateScale(48),
+    height: moderateScale(48),
+    borderRadius: moderateScale(14),
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: scale(6),
+    marginBottom: scale(8),
   },
   serviceCardTitle: {
-    fontSize: scaledFont(11),
-    fontWeight: "600",
-    color: "#334155",
+    fontSize: scaledFont(12),
+    fontWeight: "700",
+    color: "#1E293B",
     textAlign: "center",
   },
   providerCard: {

@@ -49,34 +49,16 @@ export const SERVICE_CATEGORIES = [
     icon: 'Zap',
     accentColor: '#D97706',
     accentLight: '#FEF3C7',
-    tagline: 'Certified house wiring, backup generators & solar systems',
-    description: 'Safe, certified electrical installations to keep your home illuminated and powered through blackouts with backup generators and solar arrays.',
+    tagline: 'Certified professional house wiring & electrical solutions',
+    description: 'Safe, certified electrical installations, distribution board balancing, and short circuit repairs to keep your home safely powered.',
     image: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?auto=format&fit=crop&q=80&w=800',
     popular: true,
     subservices: [
       {
         id: 'e1',
-        name: 'House Wiring & Short Circuit Fix',
-        desc: 'Distribution board balancing, circuit breaker trips, and safety earthing.',
+        name: 'House Wiring',
+        desc: 'Distribution board balancing, circuit breaker trips, safety earthing, and full residential wiring.',
         image: '/images/House-Wiring.jpg'
-      },
-      {
-        id: 'e2',
-        name: 'Backup Generator Servicing',
-        desc: 'Diesel & petrol generator repair, ATS automated transfer switch installation.',
-        image: 'https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?auto=format&fit=crop&q=80&w=600'
-      },
-      {
-        id: 'e3',
-        name: 'Solar Power & Inverters',
-        desc: 'Rooftop solar panel wiring, lithium battery banks, and hybrid inverter setups.',
-        image: 'https://images.unsplash.com/photo-1508873696983-2df5703bc225?auto=format&fit=crop&q=80&w=600'
-      },
-      {
-        id: 'e4',
-        name: 'Breaker & Socket Upgrades',
-        desc: 'Heavy-duty stove sockets, surge protectors, and smart switches.',
-        image: 'https://images.unsplash.com/photo-1555664424-778a1e5e1b48?auto=format&fit=crop&q=80&w=600'
       }
     ]
   },
@@ -207,7 +189,7 @@ export const FALLBACK_PROVIDERS = [
     profession: 'Electrical & Power',
     subcity: 'Megenagna',
     experience: '1 - 3 years',
-    skills: ['House Wiring', 'Solar System'],
+    skills: ['House Wiring'],
     rating: 4.9,
     isVerified: true,
     isAvailable: true,
@@ -220,7 +202,7 @@ export const FALLBACK_PROVIDERS = [
     profession: 'Electrical & Power',
     subcity: 'Kara / Yeka',
     experience: '3 - 5 years',
-    skills: ['House Wiring', 'Breaker Fix', 'Generator'],
+    skills: ['House Wiring'],
     rating: 5.0,
     isVerified: true,
     isAvailable: true,

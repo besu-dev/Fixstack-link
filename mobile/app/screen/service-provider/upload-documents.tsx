@@ -195,9 +195,7 @@ export default function UploadDocumentsScreen() {
       }
 
       const response = await apiClient.post("/auth/register", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        timeout: 60000,
       });
 
       const { token, user } = response.data;
@@ -216,8 +214,14 @@ export default function UploadDocumentsScreen() {
         ],
       );
     } catch (err: any) {
+      console.error("[FixLink upload-documents error]:", err.message, err.response?.data);
       if (err.response?.data?.message) {
         Alert.alert("Registration Failed", err.response.data.message);
+      } else if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
+        Alert.alert(
+          "Upload Timeout",
+          "Uploading your verification documents took longer than expected. Please check your network and try again.",
+        );
       } else {
         Alert.alert(
           "Network Error",

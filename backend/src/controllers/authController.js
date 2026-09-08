@@ -25,37 +25,57 @@ const formatPhone = (phone) => {
   return cleaned;
 };
 
-// Maps specific sub-service names from services.tsx to the broader technician professions
+// Maps specific sub-service names from services to the broader technician professions
 const CATEGORY_MAP = {
   // Plumbing
   "Tanker Pump": "Plumbing & Water Systems",
+  "Tanker Pump & Booster": "Plumbing & Water Systems",
   "Pipe Leak": "Plumbing & Water Systems",
+  "Pipe Leak & Line Repair": "Plumbing & Water Systems",
   "Water Heater": "Plumbing & Water Systems",
+  "Water Heater (Boiler)": "Plumbing & Water Systems",
   "Bathroom Fit": "Plumbing & Water Systems",
+  "Bathroom & Kitchen Fitting": "Plumbing & Water Systems",
+  "Faucet & Toilet Repair": "Plumbing & Water Systems",
 
   // Electrical
   "House Wiring": "Electrical & Power",
-  Generator: "Electrical & Power",
-  "Solar System": "Electrical & Power",
+  "Switch & Socket": "Electrical & Power",
+  "Switch & Socket Repair": "Electrical & Power",
+  "Circuit Breaker": "Electrical & Power",
+  "Circuit Breaker Repair": "Electrical & Power",
   "Breaker Fix": "Electrical & Power",
+  "Generator": "Electrical & Power",
+  "Generator Repair": "Electrical & Power",
+  "Solar System": "Electrical & Power",
+  "Solar System Repair": "Electrical & Power",
+  "Lighting & Fixtures": "Electrical & Power",
+  "Lighting Repair": "Electrical & Power",
 
   // Appliances
   "Washing Machine": "Appliances & Electronics",
-  Refrigerator: "Appliances & Electronics",
+  "Refrigerator": "Appliances & Electronics",
+  "Refrigerator & Freezer": "Appliances & Electronics",
   "TV & Satellite": "Appliances & Electronics",
   "Electric Stove": "Appliances & Electronics",
+  "Electric Stove (Mitad)": "Appliances & Electronics",
+  "Microwave & Oven": "Appliances & Electronics",
 
   // Carpentry & Metalwork
   "Compound Gate": "Carpentry & Metalwork",
+  "Compound Gate & Welding": "Carpentry & Metalwork",
   "Gate Repair": "Carpentry & Metalwork",
   "Gate & Metalwork": "Carpentry & Metalwork",
   "Lock & Key": "Carpentry & Metalwork",
-  Furniture: "Carpentry & Metalwork",
+  "Furniture": "Carpentry & Metalwork",
+  "Furniture & Woodwork": "Carpentry & Metalwork",
   "Roof Sheet": "Carpentry & Metalwork",
+  "Roof Sheet Repair": "Carpentry & Metalwork",
 
   // Finishing & Cleaning
   "Wall Painting": "Finishing & Cleaning",
   "Tile Repair": "Finishing & Cleaning",
+  "Tile & Granite Repair": "Finishing & Cleaning",
   "Deep Cleaning": "Finishing & Cleaning",
   "Moving & Loading": "Finishing & Cleaning",
 };
@@ -130,7 +150,9 @@ export const register = async (req, res) => {
         avatarUrl = cloudRes.avatarUrl;
         avatarPublicId = cloudRes.avatarPublicId;
       } catch (cloudErr) {
-        console.error("--> Cloudinary registration avatar upload error:", cloudErr);
+        console.error("--> Cloudinary registration avatar upload error:", cloudErr.message);
+        // Fallback: use local uploaded file path so registration does not break
+        avatarUrl = `/${avatarFile.path.replace(/\\/g, "/")}`;
       }
     }
 

@@ -57,6 +57,17 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "FixLink API running smoothly" });
 });
 
+// Global error handling middleware (handles Multer errors, validation errors, etc.)
+app.use((err, req, res, next) => {
+  console.error("--> [FixLink Server Error]:", err.message || err);
+  if (err.name === "MulterError" || err.code === "LIMIT_FILE_SIZE") {
+    return res.status(400).json({ message: `Upload error: ${err.message}` });
+  }
+  res.status(err.status || 500).json({
+    message: err.message || "An unexpected server error occurred",
+  });
+});
+
 // Initialize Real-Time Socket.io Handlers
 initChatSocket(io);
 

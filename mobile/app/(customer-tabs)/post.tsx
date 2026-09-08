@@ -181,11 +181,7 @@ export default function PostJobScreen() {
         } as any);
       });
 
-      await apiClient.post("/jobs", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await apiClient.post("/jobs", formData);
 
       setConnectsBalance((prev) => Math.max(0, prev - connectsRequired));
 

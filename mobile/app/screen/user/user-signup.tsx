@@ -108,7 +108,7 @@ export default function CustomerSignupScreen() {
       }
 
       const response = await apiClient.post("/auth/register", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
+        timeout: 60000,
       });
 
       const { token, user } = response.data;

@@ -151,9 +151,7 @@ export default function ProviderEditProfileScreen() {
         } as any);
       }
 
-      const res = await apiClient.put("/auth/profile", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const res = await apiClient.put("/auth/profile", formData);
 
       const updatedUser = res.data?.user || res.data;
       if (updatedUser) {
