@@ -11,10 +11,9 @@ export default function TabsLayout() {
       }}
     >
       <Tabs.Screen name="home" />
-      <Tabs.Screen name="services" />
+      <Tabs.Screen name="orders" />
       <Tabs.Screen name="post" />
       <Tabs.Screen name="message" />
-      <Tabs.Screen name="orders" />
       <Tabs.Screen name="profile" />
     </Tabs>
   );

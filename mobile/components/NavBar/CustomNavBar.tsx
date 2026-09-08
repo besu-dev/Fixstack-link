@@ -18,8 +18,6 @@ function getIcon(name: string, color: string) {
     case "index":
     case "home":
       return <Feather name="home" size={20} color={color} />;
-    case "services":
-      return <Feather name="grid" size={20} color={color} />;
     case "post":
       return <Feather name="plus-circle" size={22} color={color} />;
     case "orders":
@@ -114,7 +112,7 @@ export default function CustomNavBar({
   return (
     <View style={[styles.container, { bottom: bottomOffset }]}>
       {state.routes.map((route, index) => {
-        if (["_sitemap", "+not-found"].includes(route.name)) {
+        if (["_sitemap", "+not-found", "services"].includes(route.name)) {
           return null;
         }
 
