@@ -18,11 +18,15 @@ import {
   Ionicons,
   FontAwesome,
 } from "@expo/vector-icons";
-import { Link, useRouter } from "expo-router";
+import { Link, useRouter, useFocusEffect } from "expo-router";
 import * as SecureStore from "expo-secure-store";
+import { io, Socket } from "socket.io-client";
 import apiClient from "../../src/api/client";
+import notificationsApi from "../../src/api/notifications";
+import CustomerNotificationsModal from "../../components/customer/CustomerNotificationsModal";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 import UserAvatar from "../../components/common/UserAvatar";
+import { SOCKET_URL } from "../../src/config/api";
 
 interface Provider {
   _id: string;
@@ -116,6 +120,56 @@ export default function HomeScreen() {
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
 
+  const [userId, setUserId] = useState<string | null>(null);
+  const [notificationsModalVisible, setNotificationsModalVisible] = useState(false);
+  const [unreadNotificationCount, setUnreadNotificationCount] = useState(0);
+
+  const fetchUnreadNotifications = useCallback(async () => {
+    try {
+      const count = await notificationsApi.getUnreadCount();
+      setUnreadNotificationCount(count);
+    } catch {
+      // silent fallback
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUnreadNotifications();
+  }, [fetchUnreadNotifications]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchUnreadNotifications();
+    }, [fetchUnreadNotifications])
+  );
+
+  useEffect(() => {
+    let socket: Socket | null = null;
+    if (userId) {
+      socket = io(SOCKET_URL, {
+        transports: ["websocket"],
+        reconnection: true,
+      });
+
+      socket.on("connect", () => {
+        socket?.emit("register_user", userId);
+      });
+
+      socket.on("new_proposal_notification", () => {
+        setUnreadNotificationCount((prev) => prev + 1);
+      });
+
+      socket.on("new_notification", () => {
+        setUnreadNotificationCount((prev) => prev + 1);
+      });
+    }
+
+    return () => {
+      if (socket) {
+        socket.disconnect();
+      }
+    };
+  }, [userId]);
 
   const loadHomeData = useCallback(async () => {
     try {
@@ -124,6 +178,7 @@ export default function HomeScreen() {
       if (user) {
         setUserName(user.fullName?.split(" ")[0] || "Customer");
         if (user.avatarUrl) setUserAvatarUrl(user.avatarUrl);
+        if (user._id) setUserId(user._id);
         await SecureStore.setItemAsync("user_data", JSON.stringify(user));
       }
 
@@ -140,6 +195,7 @@ export default function HomeScreen() {
         const user = JSON.parse(cached);
         setUserName(user.fullName?.split(" ")[0] || "Customer");
         if (user.avatarUrl) setUserAvatarUrl(user.avatarUrl);
+        if (user._id) setUserId(user._id);
       }
     } finally {
       setLoading(false);
@@ -197,7 +253,7 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* Top Header: Greeting & Profile Avatar */}
+        {/* Top Header: Greeting & Profile Avatar & Notifications */}
         <View style={styles.greetingHeader}>
           <View style={styles.greetingTextGroup}>
             <Text style={styles.greetingTitle}>
@@ -208,17 +264,34 @@ export default function HomeScreen() {
             </Text>
           </View>
 
-          <TouchableOpacity
-            activeOpacity={0.8}
-            onPress={() => router.push("/(customer-tabs)/profile" as any)}
-            style={styles.avatarWrapper}
-          >
-            <UserAvatar
-              avatarUrl={userAvatarUrl}
-              name={userName}
-              size={moderateScale(44)}
-            />
-          </TouchableOpacity>
+          <View style={styles.headerRightActions}>
+            <TouchableOpacity
+              style={styles.notificationHeaderBtn}
+              activeOpacity={0.75}
+              onPress={() => setNotificationsModalVisible(true)}
+            >
+              <Feather name="bell" size={moderateScale(19)} color="#1E293B" />
+              {unreadNotificationCount > 0 && (
+                <View style={styles.headerBadge}>
+                  <Text style={styles.headerBadgeText}>
+                    {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
+                  </Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={() => router.push("/(customer-tabs)/profile" as any)}
+              style={styles.avatarWrapper}
+            >
+              <UserAvatar
+                avatarUrl={userAvatarUrl}
+                name={userName}
+                size={moderateScale(42)}
+              />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Search Bar with Filter Trigger */}
@@ -593,7 +666,16 @@ export default function HomeScreen() {
             </View>
           </View>
         </TouchableOpacity>
-      </Modal>
+      {/* Customer Notifications Modal */}
+      <CustomerNotificationsModal
+        visible={notificationsModalVisible}
+        onClose={() => {
+          setNotificationsModalVisible(false);
+          fetchUnreadNotifications();
+        }}
+        onUnreadCountChange={setUnreadNotificationCount}
+        initialUnreadCount={unreadNotificationCount}
+      />
     </SafeAreaView>
   );
 }
@@ -639,8 +721,41 @@ const styles = StyleSheet.create({
     color: "#64748B",
     marginTop: scale(3),
   },
+  headerRightActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: scale(10),
+  },
+  notificationHeaderBtn: {
+    width: moderateScale(40),
+    height: moderateScale(40),
+    borderRadius: moderateScale(20),
+    backgroundColor: "#F1F5F9",
+    alignItems: "center",
+    justifyContent: "center",
+    position: "relative",
+  },
+  headerBadge: {
+    position: "absolute",
+    top: -2,
+    right: -2,
+    backgroundColor: "#DC2626",
+    borderRadius: scale(8),
+    minWidth: scale(16),
+    height: scale(16),
+    paddingHorizontal: scale(3),
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1.5,
+    borderColor: "#FFFFFF",
+  },
+  headerBadgeText: {
+    color: "#FFFFFF",
+    fontSize: scaledFont(9),
+    fontWeight: "800",
+  },
   avatarWrapper: {
-    borderRadius: moderateScale(22),
+    borderRadius: moderateScale(21),
   },
 
   /* Search Section */
