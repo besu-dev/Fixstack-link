@@ -2,6 +2,7 @@ import Bid from "../models/Bid.js";
 import Job from "../models/Job.js";
 import User from "../models/User.js";
 import WalletTransaction from "../models/WalletTransaction.js";
+import Notification from "../models/Notification.js";
 
 // @desc    Submit a quote/bid for a job using Connects only (Zero transaction fees)
 // @route   POST /api/bids
@@ -92,6 +93,53 @@ export const placeBid = async (req, res) => {
       "provider",
       "fullName phone profession rating isVerified isFeatured avatarUrl",
     );
+
+    // 6. Create Notification for the Job's Customer (Service Seeker) & emit real-time event
+    try {
+      const notification = await Notification.create({
+        recipient: job.customer,
+        job: job._id,
+        type: "new_proposal",
+        serviceName: job.category || "General Maintenance",
+        jobTitle: job.title,
+        location: job.subcity || "Addis Ababa",
+        budget: job.budget,
+        urgency: job.urgency || "Today",
+        provider: req.user._id,
+        providerName: providerUser?.fullName || req.user.fullName || "Service Provider",
+        proposalPrice: quoteAmount,
+        proposalStatus: "pending",
+        proposalId: bid._id,
+        timePosted: "Just now",
+        read: false,
+      });
+
+      const populatedNotification = await Notification.findById(notification._id)
+        .populate(
+          "provider",
+          "fullName phone profession rating isVerified avatarUrl",
+        )
+        .populate({
+          path: "job",
+          select:
+            "title category budget urgency status subcity specificLocation description photos customer createdAt",
+        });
+
+      // Broadcast real-time Socket.io event if io is mounted
+      const io = req.app.get("io");
+      if (io && populatedNotification) {
+        io.to(`user_${job.customer}`).emit(
+          "new_proposal_notification",
+          populatedNotification,
+        );
+        io.to(`user_${job.customer}`).emit(
+          "new_notification",
+          populatedNotification,
+        );
+      }
+    } catch (notifErr) {
+      console.error("Error creating proposal notification for seeker:", notifErr);
+    }
 
     res.status(201).json(populatedBid);
   } catch (error) {

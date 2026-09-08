@@ -8,6 +8,10 @@ export const getNotifications = async (req, res) => {
     const notifications = await Notification.find({ recipient: req.user._id })
       .sort({ createdAt: -1 })
       .limit(50)
+      .populate(
+        "provider",
+        "fullName phone profession rating isVerified avatarUrl",
+      )
       .populate({
         path: "job",
         select:
