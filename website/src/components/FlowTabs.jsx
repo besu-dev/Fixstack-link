@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { 
-  Wrench, 
-  FileText, 
-  Users, 
-  CheckCircle, 
-  UserPlus, 
-  MapPin, 
-  Bell, 
+import {
+  Wrench,
+  FileText,
+  Users,
+  CheckCircle,
+  UserPlus,
+  MapPin,
+  Bell,
   Briefcase,
   ArrowRight
 } from 'lucide-react';
@@ -20,7 +20,7 @@ export default function FlowTabs({ onExploreServices }) {
       step: '01',
       icon: Wrench,
       title: 'Choose a Service',
-      desc: 'Browse our catalog of plumbing, electrical, appliances, carpentry, or finishing categories directly in the FixLink mobile app.',
+      desc: 'Browse our catalog of plumbing, electrical, appliances, carpentry, or finishing categories directly in the Bete mobile app.',
       highlight: '5 Core Categories'
     },
     {

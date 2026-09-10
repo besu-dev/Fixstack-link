@@ -33,7 +33,7 @@ export default function AboutPage({ onNavigate, setActivePage }) {
             {/* Left Content Column */}
             <div className="about-content-col">
               <div className="about-kicker-wrap">
-                <span className="about-section-kicker">About FixLink</span>
+                <span className="about-section-kicker">About Bete</span>
               </div>
               
               <h2 className="about-tagline">
@@ -42,7 +42,7 @@ export default function AboutPage({ onNavigate, setActivePage }) {
               
               <div className="about-description">
                 <p>
-                  FixLink is a modern household service platform that connects Ethiopian families directly with certified, background-checked repair professionals.
+                  Bete is a modern household service platform that connects Ethiopian families directly with certified, background-checked repair professionals.
                 </p>
                 <p>
                   From plumbing, water pumps, and electrical repairs to appliances and general maintenance, we eliminate the hassle of informal street searches with upfront pricing and verified workmanship.
@@ -80,7 +80,7 @@ export default function AboutPage({ onNavigate, setActivePage }) {
               <div className="about-image-wrapper">
                 <img 
                   src="/images/about-technician.jpg" 
-                  alt="Verified FixLink Repair Professional in Ethiopia" 
+                  alt="Verified Bete Repair Professional in Ethiopia" 
                   className="about-image"
                   loading="lazy"
                 />

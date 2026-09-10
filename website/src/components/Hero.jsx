@@ -19,7 +19,7 @@ export default function Hero({ onExploreServices, onHowItWorks }) {
 
           {/* Subheading */}
           <p className="hero-subtitle">
-            FixLink connects homeowners, tenants, and property managers with skilled local technicians for trusted household repairs. From plumbing and electrical work to appliance repairs and more, find the right professional to get the job done right.
+            Bete connects homeowners, tenants, and property managers with skilled local technicians for trusted household repairs. From plumbing and electrical work to appliance repairs and more, find the right professional to get the job done right.
           </p>
 
           {/* Action CTAs */}

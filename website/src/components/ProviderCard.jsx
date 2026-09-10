@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  ShieldCheck, 
-  Star, 
-  MapPin, 
-  CheckCircle, 
-  Clock, 
+import {
+  ShieldCheck,
+  Star,
+  MapPin,
+  CheckCircle,
+  Clock,
   Smartphone,
   PhoneCall
 } from 'lucide-react';
@@ -14,11 +14,11 @@ export default function ProviderCard({ provider, onShowAppNotice }) {
   // Generate pleasant avatar background from initials
   const initials = provider.fullName
     ? provider.fullName
-        .split(' ')
-        .map((n) => n[0])
-        .join('')
-        .toUpperCase()
-        .substring(0, 2)
+      .split(' ')
+      .map((n) => n[0])
+      .join('')
+      .toUpperCase()
+      .substring(0, 2)
     : 'FX';
 
   const ratingValue = provider.rating ? Number(provider.rating).toFixed(1) : '5.0';
@@ -35,13 +35,13 @@ export default function ProviderCard({ provider, onShowAppNotice }) {
         {/* Avatar */}
         <div className="provider-avatar">
           {provider.avatarUrl ? (
-            <img 
-              src={provider.avatarUrl.startsWith('http') ? provider.avatarUrl : `http://localhost:5000${provider.avatarUrl}`} 
+            <img
+              src={provider.avatarUrl.startsWith('http') ? provider.avatarUrl : `http://localhost:5000${provider.avatarUrl}`}
               alt={provider.fullName}
               onError={(e) => {
                 e.target.style.display = 'none';
                 e.target.nextSibling.style.display = 'flex';
-              }} 
+              }}
             />
           ) : null}
           <div className="avatar-fallback" style={{ display: provider.avatarUrl ? 'none' : 'flex' }}>
@@ -62,7 +62,7 @@ export default function ProviderCard({ provider, onShowAppNotice }) {
             </span>
           </div>
           <p className="provider-profession">{provider.profession || 'Repair Specialist'}</p>
-          
+
           <div className="provider-location">
             <MapPin size={14} className="pin-icon" />
             <span>{provider.subcity ? `${provider.subcity} Subcity, Addis Ababa` : 'Addis Ababa'}</span>
@@ -112,7 +112,7 @@ export default function ProviderCard({ provider, onShowAppNotice }) {
 
       {/* Booking Notice in Card */}
       <div className="provider-action-footer">
-        <button 
+        <button
           className="provider-connect-btn"
           onClick={onShowAppNotice}
           title="Connect via FixLink Mobile App"

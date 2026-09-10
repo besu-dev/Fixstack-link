@@ -32,9 +32,9 @@ export default function AdminLoginPage({ setActivePage }) {
             <span>Authorized Management Access</span>
           </div>
 
-          <h1 className="admin-page-title">FixLink Ethiopia Administrator Gateway</h1>
+          <h1 className="admin-page-title">Bete Ethiopia Administrator Gateway</h1>
           <p className="admin-page-desc">
-            The FixLink Admin Dashboard manages technician verification, subcity service categories, customer dispute mediations, and financial audits.
+            The Bete Admin Dashboard manages technician verification, subcity service categories, customer dispute mediations, and financial audits.
           </p>
 
           <div className="admin-info-card">
@@ -73,7 +73,7 @@ export default function AdminLoginPage({ setActivePage }) {
             <div className="clarification-text">
               <h4>Are you a Customer or Technician?</h4>
               <p>
-                Service Seekers and Service Providers do not log in via this web portal. All booking, bidding, profile editing, and messaging happen exclusively inside the <strong>FixLink Mobile App</strong>.
+                Service Seekers and Service Providers do not log in via this web portal. All booking, bidding, profile editing, and messaging happen exclusively inside the <strong>Bete Mobile App</strong>.
               </p>
               <div className="clarification-links">
                 <button className="text-link" onClick={() => setActivePage('services')}>

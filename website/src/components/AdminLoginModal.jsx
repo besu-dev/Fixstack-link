@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  ShieldAlert, 
-  X, 
-  ExternalLink, 
-  Lock, 
-  Server, 
+import {
+  ShieldAlert,
+  X,
+  ExternalLink,
+  Lock,
+  Server,
   Smartphone,
   AlertCircle
 } from 'lucide-react';
@@ -36,7 +36,7 @@ export default function AdminLoginModal({ isOpen, onClose }) {
           </div>
           <h3 className="admin-modal-title">Admin Dashboard Gateway</h3>
           <p className="admin-modal-subtitle">
-            Secure administration and operations portal for the FixLink Ethiopia platform.
+            Secure administration and operations portal for the Bete Ethiopia platform.
           </p>
         </div>
 
@@ -46,7 +46,7 @@ export default function AdminLoginModal({ isOpen, onClose }) {
             <AlertCircle size={20} className="warning-icon" />
             <div className="warning-text">
               <strong>Authorized Personnel Only</strong>
-              <p>This portal is reserved for FixLink operations managers, Kebele ID verification staff, and dispute specialists.</p>
+              <p>This portal is reserved for Bete operations managers, Kebele ID verification staff, and dispute specialists.</p>
             </div>
           </div>
 
@@ -63,7 +63,7 @@ export default function AdminLoginModal({ isOpen, onClose }) {
             <div className="notice-info">
               <strong>Looking for Customer or Technician Login?</strong>
               <p>
-                Service Seekers and Service Providers manage their accounts, requests, and bids exclusively inside the <strong>FixLink Mobile App</strong>.
+                Service Seekers and Service Providers manage their accounts, requests, and bids exclusively inside the <strong>Bete Mobile App</strong>.
               </p>
             </div>
           </div>
@@ -74,9 +74,9 @@ export default function AdminLoginModal({ isOpen, onClose }) {
           <button className="btn btn-outline" onClick={onClose}>
             <span>Cancel</span>
           </button>
-          
-          <button 
-            className="btn btn-primary btn-launch-admin" 
+
+          <button
+            className="btn btn-primary btn-launch-admin"
             onClick={handleLaunchAdmin}
             id="launch-admin-portal-btn"
           >

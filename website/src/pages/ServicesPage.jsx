@@ -32,7 +32,7 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
   }, [selectedCategory, searchQuery]);
 
   const handleBookingNotice = (subserviceName) => {
-    onShowToast(`To request "${subserviceName}", please use the FixLink Mobile App. Website is informational only.`, 'info');
+    onShowToast(`To request "${subserviceName}", please use the Bete Mobile App. Website is informational only.`, 'info');
   };
 
   return (
@@ -43,7 +43,7 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
           <span className="section-tag">Our Services</span>
           <h1 className="services-main-title">Household Repair & Maintenance Services</h1>
           <p className="services-hero-desc">
-            Browse our verified repair categories and specialties across Addis Ababa. To request a service, receive quotes, and book a technician, please use the FixLink mobile app.
+            Browse our verified repair categories and specialties across Addis Ababa. To request a service, receive quotes, and book a technician, please use the Bete mobile app.
           </p>
 
           {/* Search & Filter Toolbar */}
@@ -170,7 +170,7 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
               <Smartphone size={32} className="cta-icon" />
               <div>
                 <h3>Need a custom repair or diagnostic quote?</h3>
-                <p>Post your job in the FixLink mobile app to receive competitive bids from Addis Ababa's verified technicians.</p>
+                <p>Post your job in the Bete mobile app to receive competitive bids from Addis Ababa's verified technicians.</p>
               </div>
             </div>
             <button className="btn btn-white" onClick={() => (onNavigate ? onNavigate('how-it-works') : setActivePage && setActivePage('how-it-works'))}>
