@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, Wrench, ChevronRight } from 'lucide-react';
+import { Menu, X, ChevronRight } from 'lucide-react';
 import './Navbar.css';
 
 export default function Navbar({ 
@@ -45,19 +45,20 @@ export default function Navbar({
         <button 
           className="brand-logo" 
           onClick={() => handleNavClick('home')}
-          aria-label="FixLink Home"
+          aria-label="Bete Home"
           type="button"
         >
           <div className="brand-icon-wrapper">
-            <div className="brand-orange-ring"></div>
-            <div className="brand-wrench-box">
-              <Wrench className="brand-wrench-svg" size={22} />
-            </div>
+            <img 
+              src="/Bete_Logo_Mark.svg" 
+              alt="Bete Logo Mark" 
+              className="brand-logo-svg"
+            />
           </div>
           <div className="brand-text-wrapper">
-            <span className="brand-text-fix">Fix</span>
-            <span className="brand-text-link">Link</span>
-            <span className="brand-text-et">ET</span>
+            <span className="brand-text-fix">Be</span>
+            <span className="brand-text-link">te</span>
+            <span className="brand-text-amharic">ቤቴ</span>
           </div>
         </button>
 
@@ -127,7 +128,7 @@ export default function Navbar({
           <div className="mobile-drawer-footer">
             <div className="mobile-app-notice">
               <span className="notice-tag">Mobile App</span>
-              <p>Customer booking & provider registration happen on the FixLink mobile app.</p>
+              <p>Customer booking & provider registration happen on the Bete mobile app.</p>
             </div>
             
             <button 

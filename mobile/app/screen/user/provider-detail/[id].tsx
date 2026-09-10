@@ -111,6 +111,7 @@ export default function ProviderDetailScreen() {
         receiverId: provider?._id,
         recipientName: provider?.fullName,
         recipientPhone: provider?.phone,
+        recipientAvatar: provider?.avatarUrl,
       },
     });
   };

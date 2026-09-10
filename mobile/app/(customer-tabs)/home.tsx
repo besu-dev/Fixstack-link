@@ -324,7 +324,7 @@ export default function HomeScreen() {
         <View style={styles.greetingHeader}>
           <View style={styles.topBrandRow}>
             <Image
-              source={require("../../assets/images/logos/bete_logo_horizontal.png")}
+              source={require("../../assets/images/logos/bete_logo_mark.png")}
               style={styles.homeBrandLogo}
               resizeMode="contain"
             />
@@ -750,8 +750,8 @@ const styles = StyleSheet.create({
     marginBottom: scale(8),
   },
   homeBrandLogo: {
-    width: scale(135),
-    height: scale(42),
+    width: scale(44),
+    height: scale(44),
   },
   greetingTextGroup: {
     width: "100%",

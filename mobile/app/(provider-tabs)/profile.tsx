@@ -442,7 +442,7 @@ export default function ProviderProfileScreen() {
             <View style={styles.menuTextContainer}>
               <Text style={styles.menuTitle}>Contact Support</Text>
               <Text style={styles.menuSubtitle}>
-                Get help from the FixLink technician desk
+                Get help from Bet customer support team
               </Text>
             </View>
             <Feather

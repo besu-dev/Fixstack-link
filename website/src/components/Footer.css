@@ -38,20 +38,21 @@
 .footer-logo-ring {
   width: 36px;
   height: 36px;
-  border-radius: 50%;
-  border: 2.5px solid var(--brand-orange);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(249, 115, 22, 0.08);
 }
 
-.footer-wrench {
-  color: var(--brand-sky);
-  transform: rotate(-30deg);
+.footer-logo-svg {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0, 82, 204, 0.4));
 }
 
 .footer-brand-name {
+  display: flex;
+  align-items: baseline;
   font-family: var(--font-display);
   font-size: 1.65rem;
   font-weight: 800;
@@ -64,6 +65,14 @@
 
 .name-link {
   color: var(--brand-sky);
+}
+
+.name-amharic {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--brand-orange);
+  margin-left: 6px;
+  letter-spacing: 0.02em;
 }
 
 .footer-mission {

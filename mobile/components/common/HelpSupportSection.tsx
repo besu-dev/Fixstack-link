@@ -70,15 +70,14 @@ export default function HelpSupportSection({
     }
   };
 
-  // Only Contact Support tab
   const supportOptions = [
     {
       id: "contact" as ModalType,
       title: "Contact Support",
       description:
         role === "provider"
-          ? "Get help from the FixLink technician desk"
-          : "Get help from the FixLink customer support team",
+          ? "Get help from Bete Support team"
+          : "Get help from Bete Support team",
       icon: "phone-call" as keyof typeof Feather.glyphMap,
       iconColor: "#16A34A",
       iconBg: "#DCFCE7",
@@ -87,7 +86,6 @@ export default function HelpSupportSection({
 
   return (
     <View style={styles.container}>
-      {/* Top Header if rendered standalone */}
       {showHeader && (
         <View style={styles.header}>
           {onBack ? (
@@ -115,7 +113,6 @@ export default function HelpSupportSection({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Support Options List Container */}
         <View style={styles.card}>
           {supportOptions.map((item, index) => {
             const isLast = index === supportOptions.length - 1;
@@ -153,26 +150,10 @@ export default function HelpSupportSection({
           })}
         </View>
 
-        {/* Subtle 24/7 Hotline Note */}
-        <View style={styles.footerNote}>
-          <Feather
-            name="headphones"
-            size={moderateScale(14)}
-            color="#64748B"
-            style={{ marginRight: scale(6) }}
-          />
-          <Text style={styles.footerNoteText}>
-            FixLink Support 24/7 Hotline:{" "}
-            <Text style={styles.footerHighlight} onPress={handleCall}>
-              +251 900 123 456
-            </Text>
-          </Text>
-        </View>
+
       </ScrollView>
 
-      {/* ========================================================= */}
-      {/* CONTACT SUPPORT MODAL                                     */}
-      {/* ========================================================= */}
+
       <Modal
         visible={activeModal === "contact"}
         animationType="slide"
@@ -197,36 +178,7 @@ export default function HelpSupportSection({
             </View>
 
             <View style={styles.contactOptions}>
-              {/* In-App Chat */}
-              <TouchableOpacity
-                style={styles.contactCard}
-                onPress={handleChat}
-                activeOpacity={0.8}
-              >
-                <View
-                  style={[
-                    styles.contactIconBox,
-                    { backgroundColor: "#EFF6FF" },
-                  ]}
-                >
-                  <Feather
-                    name="message-square"
-                    size={moderateScale(20)}
-                    color="#0052CC"
-                  />
-                </View>
-                <View style={styles.contactInfo}>
-                  <Text style={styles.contactTitle}>Chat with Support</Text>
-                  <Text style={styles.contactSub}>
-                    Live messaging in app • Under 2 min reply
-                  </Text>
-                </View>
-                <Feather
-                  name="chevron-right"
-                  size={moderateScale(18)}
-                  color="#94A3B8"
-                />
-              </TouchableOpacity>
+
 
               {/* Call Hotline */}
               <TouchableOpacity
@@ -280,7 +232,7 @@ export default function HelpSupportSection({
                 <View style={styles.contactInfo}>
                   <Text style={styles.contactTitle}>Email Us</Text>
                   <Text style={styles.contactSub}>
-                    support@fixlink.com • Response within 24h
+                    supportbete@gmail.com • Response within 24h
                   </Text>
                 </View>
                 <Feather
@@ -381,22 +333,6 @@ const styles = StyleSheet.create({
     color: "#64748B",
     marginTop: scale(2),
   },
-  footerNote: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: scale(20),
-    paddingHorizontal: scale(12),
-  },
-  footerNoteText: {
-    fontSize: scaledFont(11.5),
-    color: "#64748B",
-  },
-  footerHighlight: {
-    color: "#0052CC",
-    fontWeight: "700",
-  },
-
   // Modal Styles
   modalOverlay: {
     flex: 1,

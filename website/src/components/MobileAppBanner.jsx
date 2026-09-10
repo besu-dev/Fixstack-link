@@ -1,9 +1,9 @@
 import React from 'react';
-import { 
-  Smartphone, 
-  Download, 
-  QrCode, 
-  Zap, 
+import {
+  Smartphone,
+  Download,
+  QrCode,
+  Zap,
   MessageSquare
 } from 'lucide-react';
 import './MobileAppBanner.css';
@@ -19,13 +19,13 @@ export default function MobileAppBanner() {
             <span className="app-tag-pill">
               <Smartphone size={15} /> Mobile-First Ecosystem
             </span>
-            
+
             <h2 className="app-banner-title">
               Repairs, Bidding & Tracking — All in One Place.
             </h2>
-            
+
             <p className="app-banner-desc">
-              Whether you’re a customer looking for a reliable technician or a skilled service provider looking for new job opportunities, the FixLink mobile app makes it easy to request services, receive job offers, submit bids, communicate, and track repairs—all from your phone.
+              Whether you’re a customer looking for a reliable technician or a skilled service provider looking for new job opportunities, the Bete mobile app makes it easy to request services, receive job offers, submit bids, communicate, and track repairs—all from your phone.
             </p>
 
             <div className="app-features-grid">
@@ -40,10 +40,10 @@ export default function MobileAppBanner() {
             </div>
 
             <div className="app-store-actions">
-              <a 
-                href={downloadUrl} 
-                target="_blank" 
-                rel="noreferrer" 
+              <a
+                href={downloadUrl}
+                target="_blank"
+                rel="noreferrer"
                 className="store-btn google-play"
               >
                 <div className="store-icon">
@@ -55,10 +55,10 @@ export default function MobileAppBanner() {
                 </div>
               </a>
 
-              <a 
-                href={downloadUrl} 
-                target="_blank" 
-                rel="noreferrer" 
+              <a
+                href={downloadUrl}
+                target="_blank"
+                rel="noreferrer"
                 className="store-btn app-store"
               >
                 <div className="store-icon">
@@ -75,7 +75,7 @@ export default function MobileAppBanner() {
           <div className="app-banner-mockup">
             <div className="qr-box">
               <QrCode size={130} className="qr-svg" />
-              <span className="qr-label">Scan to install FixLink App</span>
+              <span className="qr-label">Scan to install Bete App</span>
               <span className="qr-sublabel">Android & iOS Supported</span>
             </div>
           </div>

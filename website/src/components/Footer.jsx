@@ -1,6 +1,5 @@
 import React from 'react';
 import { 
-  Wrench, 
   Phone, 
   Mail 
 } from 'lucide-react';
@@ -26,11 +25,16 @@ export default function Footer({ onNavigate, setActivePage }) {
           <div className="footer-col brand-col">
             <div className="footer-brand" onClick={() => handleNav('home')}>
               <div className="footer-logo-ring">
-                <Wrench size={18} className="footer-wrench" />
+                <img 
+                  src="/Bete_Logo_Mark.svg" 
+                  alt="Bete Logo Mark" 
+                  className="footer-logo-svg" 
+                />
               </div>
               <span className="footer-brand-name">
-                <span className="name-fix">Fix</span>
-                <span className="name-link">Link</span>
+                <span className="name-fix">Be</span>
+                <span className="name-link">te</span>
+                <span className="name-amharic">ቤቴ</span>
               </span>
             </div>
             
@@ -172,7 +176,7 @@ export default function Footer({ onNavigate, setActivePage }) {
         {/* Bottom Bar */}
         <div className="footer-bottom-bar">
           <p className="copyright-text">
-            © {currentYear} FixLink Technologies PLC. All rights reserved. Ethiopia.
+            © {currentYear} Bete Technologies PLC. All rights reserved. Ethiopia.
           </p>
         </div>
       </div>

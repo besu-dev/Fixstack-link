@@ -199,10 +199,10 @@ export default function CustomerMessageScreen() {
   }, []);
 
   useEffect(() => {
-    if (!jobId) {
+    if (!jobId && !receiverId) {
       fetchConversations();
     }
-  }, [jobId, fetchConversations]);
+  }, [jobId, receiverId, fetchConversations]);
 
   useEffect(() => {
     if (!jobId && !receiverId) return;
@@ -276,11 +276,26 @@ export default function CustomerMessageScreen() {
 
   const handleSendMessage = async () => {
     const trimmed = inputText.trim();
-    if (!trimmed || !currentUserId) return;
+    if (!trimmed) return;
+
+    let senderId = currentUserId;
+    if (!senderId) {
+      try {
+        const stored = await SecureStore.getItemAsync("user_data");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          senderId = parsed._id || parsed.id;
+          if (senderId) setCurrentUserId(senderId);
+        }
+      } catch (err) {
+        console.error("Error retrieving user info:", err);
+      }
+    }
+    if (!senderId) return;
 
     const payload = {
       jobId: jobId || undefined,
-      senderId: currentUserId,
+      senderId,
       receiverId,
       text: trimmed,
     };
@@ -292,7 +307,7 @@ export default function CustomerMessageScreen() {
     } else {
       try {
         const res = await apiClient.post("/messages", {
-          jobId,
+          jobId: jobId || undefined,
           receiverId,
           text: trimmed,
         });
@@ -315,7 +330,8 @@ export default function CustomerMessageScreen() {
   // -------------------------------------------------------------
   // VIEW 1: INBOX CONVERSATIONS LIST
   // -------------------------------------------------------------
-  if (!jobId) {
+  const isDirectChatActive = Boolean(jobId || receiverId);
+  if (!isDirectChatActive) {
     return (
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
         <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -432,7 +448,13 @@ export default function CustomerMessageScreen() {
       {/* Top Header */}
       <View style={styles.chatHeader}>
         <TouchableOpacity
-          onPress={() => router.replace("/(customer-tabs)/message")}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/(customer-tabs)/message");
+            }
+          }}
           style={styles.backBtn}
         >
           <Feather name="chevron-left" size={24} color="#0F172A" />
@@ -503,8 +525,8 @@ export default function CustomerMessageScreen() {
                   {/* Avatar for the other user */}
                   {!isMine && (
                     <UserAvatar
-                      avatarUrl={item.sender?.avatarUrl}
-                      name={item.sender?.fullName || recipientName}
+                      avatarUrl={item.sender?.avatarUrl || recipientAvatar}
+                      name={item.sender?.fullName || recipientName || "Service Provider"}
                       size={moderateScale(28)}
                       style={styles.msgAvatar}
                     />
@@ -518,7 +540,7 @@ export default function CustomerMessageScreen() {
                   >
                     {!isMine && (
                       <Text style={styles.senderNameLabel}>
-                        {item.sender?.fullName || recipientName}
+                        {item.sender?.fullName || recipientName || "Provider"}
                       </Text>
                     )}
                     <Text
@@ -543,9 +565,11 @@ export default function CustomerMessageScreen() {
             }}
             ListEmptyComponent={
               <View style={styles.emptyChatBox}>
-                <Feather name="lock" size={16} color="#94A3B8" />
+                <Feather name="message-circle" size={20} color="#0052CC" />
                 <Text style={styles.emptyChatText}>
-                  Messages are end-to-end coordinated for this service order.
+                  {jobId
+                    ? "Messages are end-to-end coordinated for this service order."
+                    : `Start a direct conversation with ${recipientName || "this service provider"}. Ask questions, discuss issues, or request quotes.`}
                 </Text>
               </View>
             }

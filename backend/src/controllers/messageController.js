@@ -97,10 +97,17 @@ export const sendMessage = async (req, res) => {
         .json({ message: "Message content cannot be blank" });
     }
 
+    const validJobId =
+      jobId && mongoose.Types.ObjectId.isValid(jobId) ? jobId : undefined;
+    const validReceiverId =
+      receiverId && mongoose.Types.ObjectId.isValid(receiverId)
+        ? receiverId
+        : undefined;
+
     const newMessage = await Message.create({
-      job: jobId || undefined,
+      job: validJobId,
       sender: req.user._id,
-      receiver: receiverId || undefined,
+      receiver: validReceiverId,
       text: text.trim(),
       read: false,
     });

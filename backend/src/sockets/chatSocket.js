@@ -1,3 +1,4 @@
+import mongoose from "mongoose";
 import Message from "../models/Message.js";
 
 // Helper to construct a single deterministic room ID for any pair of users
@@ -51,8 +52,11 @@ export const initChatSocket = (io) => {
         if (!senderId || !text) return;
 
         // Save to database
+        const validJobId =
+          jobId && mongoose.Types.ObjectId.isValid(jobId) ? jobId : undefined;
+
         const newMessage = await Message.create({
-          job: jobId,
+          job: validJobId,
           sender: senderId,
           receiver: receiverId,
           text: text.trim(),

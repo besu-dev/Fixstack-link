@@ -203,10 +203,10 @@ export default function ProviderMessageScreen() {
   }, []);
 
   useEffect(() => {
-    if (!jobId) {
+    if (!jobId && !receiverId) {
       fetchConversations();
     }
-  }, [jobId, fetchConversations]);
+  }, [jobId, receiverId, fetchConversations]);
 
   // 3. Connect Socket and retrieve past messages
   useEffect(() => {
@@ -283,11 +283,26 @@ export default function ProviderMessageScreen() {
   // 4. Send Message via Socket & REST fallback
   const handleSendMessage = async () => {
     const trimmed = inputText.trim();
-    if (!trimmed || !currentUserId) return;
+    if (!trimmed) return;
+
+    let senderId = currentUserId;
+    if (!senderId) {
+      try {
+        const stored = await SecureStore.getItemAsync("user_data");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          senderId = parsed._id || parsed.id;
+          if (senderId) setCurrentUserId(senderId);
+        }
+      } catch (err) {
+        console.error("Error retrieving user info:", err);
+      }
+    }
+    if (!senderId) return;
 
     const payload = {
       jobId: jobId || undefined,
-      senderId: currentUserId,
+      senderId,
       receiverId,
       text: trimmed,
     };
@@ -299,7 +314,7 @@ export default function ProviderMessageScreen() {
     } else {
       try {
         const res = await apiClient.post("/messages", {
-          jobId,
+          jobId: jobId || undefined,
           receiverId,
           text: trimmed,
         });
@@ -322,7 +337,8 @@ export default function ProviderMessageScreen() {
   // -------------------------------------------------------------
   // VIEW 1: DEDUPLICATED INBOX (CLIENT LIST)
   // -------------------------------------------------------------
-  if (!jobId) {
+  const isDirectChatActive = Boolean(jobId || receiverId);
+  if (!isDirectChatActive) {
     return (
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
         <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
@@ -446,7 +462,13 @@ export default function ProviderMessageScreen() {
       {/* Top Bar */}
       <View style={styles.chatHeader}>
         <TouchableOpacity
-          onPress={() => router.replace("/(provider-tabs)/message")}
+          onPress={() => {
+            if (router.canGoBack()) {
+              router.back();
+            } else {
+              router.replace("/(provider-tabs)/message");
+            }
+          }}
           style={styles.backBtn}
         >
           <Feather

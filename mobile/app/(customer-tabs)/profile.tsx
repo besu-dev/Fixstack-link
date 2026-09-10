@@ -355,7 +355,7 @@ export default function CustomerProfileScreen() {
             <View style={styles.menuTextCol}>
               <Text style={styles.menuTitle}>Contact Support</Text>
               <Text style={styles.menuSubtitle}>
-                Get help from the FixLink customer support team
+                Get help from  Bete customer support team
               </Text>
             </View>
             <Feather
