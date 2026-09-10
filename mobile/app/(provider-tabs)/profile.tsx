@@ -60,13 +60,15 @@ export default function ProviderProfileScreen() {
   });
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [buyModalVisible, setBuyModalVisible] = useState(false);
+
+  const [jobModalVisible, setJobModalVisible] = useState(false);
 
   // Notification Modal & Unread Count State
   const [notificationsModalVisible, setNotificationsModalVisible] =
     useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
 
   const handleConnectsUpdated = (newBalance: number) => {
     setProfile((prev) =>
@@ -422,20 +424,25 @@ export default function ProviderProfileScreen() {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => router.push("/customer/support" as any)}
+            onPress={() =>
+              router.push({
+                pathname: "/screen/help-support",
+                params: { role: "provider" },
+              } as any)
+            }
             activeOpacity={0.7}
           >
             <View style={[styles.menuIconBox, { backgroundColor: "#DCFCE7" }]}>
               <Feather
-                name="help-circle"
+                name="phone-call"
                 size={moderateScale(17)}
                 color="#16A34A"
               />
             </View>
             <View style={styles.menuTextContainer}>
-              <Text style={styles.menuTitle}>Help & Support</Text>
+              <Text style={styles.menuTitle}>Contact Support</Text>
               <Text style={styles.menuSubtitle}>
-                FAQs, guides & customer assistance
+                Get help from the FixLink technician desk
               </Text>
             </View>
             <Feather
@@ -446,7 +453,6 @@ export default function ProviderProfileScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Logout Button */}
         <TouchableOpacity
           style={styles.logoutBtn}
           onPress={handleLogout}

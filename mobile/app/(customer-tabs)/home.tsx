@@ -11,7 +11,17 @@ import {
   ActivityIndicator,
   RefreshControl,
   Modal,
+  LayoutAnimation,
+  Platform,
+  UIManager,
 } from "react-native";
+
+if (
+  Platform.OS === "android" &&
+  UIManager.setLayoutAnimationEnabledExperimental
+) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
 import { SafeAreaView } from "react-native-safe-area-context";
 import {
   Feather,
@@ -49,14 +59,93 @@ const CATEGORIES = [
   "HVAC & Air Condition",
 ];
 
-const QUICK_FILTERS = [
+const TECHNICIAN_FILTERS = [
   { id: "All", label: "All" },
   { id: "Electrical", label: "Electrical" },
   { id: "Plumbing", label: "Plumbing" },
   { id: "Appliances", label: "Appliances" },
   { id: "Carpentry", label: "Carpentry" },
-  { id: "Finishing", label: "Finishing" },
+  { id: "Painting", label: "Painting" },
+  { id: "Cleaning", label: "Cleaning" },
+  { id: "Solar & HVAC", label: "Solar & HVAC" },
 ];
+
+const matchesService = (profession: string = "", filter: string) => {
+  if (!filter || filter === "All") return true;
+  const p = profession.toLowerCase();
+  const f = filter.toLowerCase();
+
+  switch (f) {
+    case "electrical":
+      return (
+        p.includes("electr") ||
+        p.includes("wire") ||
+        p.includes("power") ||
+        p.includes("breaker") ||
+        p.includes("solar")
+      );
+    case "plumbing":
+      return (
+        p.includes("plumb") ||
+        p.includes("pipe") ||
+        p.includes("water") ||
+        p.includes("leak") ||
+        p.includes("pump") ||
+        p.includes("boiler") ||
+        p.includes("faucet") ||
+        p.includes("toilet")
+      );
+    case "appliances":
+      return (
+        p.includes("appliance") ||
+        p.includes("fridge") ||
+        p.includes("refrigerator") ||
+        p.includes("tv") ||
+        p.includes("washer") ||
+        p.includes("washing") ||
+        p.includes("stove") ||
+        p.includes("mitad") ||
+        p.includes("microwave") ||
+        p.includes("electronic")
+      );
+    case "carpentry":
+      return (
+        p.includes("carpent") ||
+        p.includes("wood") ||
+        p.includes("metal") ||
+        p.includes("furniture") ||
+        p.includes("lock") ||
+        p.includes("gate") ||
+        p.includes("roof")
+      );
+    case "painting":
+      return (
+        p.includes("paint") ||
+        p.includes("wall") ||
+        p.includes("finishing") ||
+        p.includes("tile")
+      );
+    case "cleaning":
+      return (
+        p.includes("clean") ||
+        p.includes("deep") ||
+        p.includes("janitor") ||
+        p.includes("maid") ||
+        p.includes("wash")
+      );
+    case "solar & hvac":
+    case "hvac":
+      return (
+        p.includes("solar") ||
+        p.includes("hvac") ||
+        p.includes("air condition") ||
+        p.includes("ac") ||
+        p.includes("cooling")
+      );
+    default:
+      return p.includes(f);
+  }
+};
 
 const POPULAR_SERVICES = [
   {
@@ -116,8 +205,15 @@ export default function HomeScreen() {
 
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedTechFilter, setSelectedTechFilter] = useState("All");
 
   const [userId, setUserId] = useState<string | null>(null);
+
+  const handleTechFilterPress = (filterId: string) => {
+    if (selectedTechFilter === filterId) return;
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setSelectedTechFilter(filterId);
+  };
 
   useEffect(() => {
     let socket: Socket | null = null;
@@ -184,15 +280,20 @@ export default function HomeScreen() {
       const matchesQuery =
         !q ||
         p.fullName?.toLowerCase().includes(q) ||
-        p.profession?.toLowerCase().includes(q);
+        p.profession?.toLowerCase().includes(q) ||
+        p.subcity?.toLowerCase().includes(q);
+
+      if (selectedTechFilter !== "All") {
+        return matchesQuery && matchesService(p.profession, selectedTechFilter);
+      }
 
       const matchesCategory =
         selectedCategory === "All" ||
-        p.profession?.toLowerCase().includes(selectedCategory.toLowerCase());
+        matchesService(p.profession, selectedCategory);
 
       return matchesQuery && matchesCategory;
     });
-  }, [providers, searchQuery, selectedCategory]);
+  }, [providers, searchQuery, selectedCategory, selectedTechFilter]);
 
   const hasActiveFilters = selectedCategory !== "All";
 
@@ -219,8 +320,15 @@ export default function HomeScreen() {
           />
         }
       >
-        {/* Top Header: Greeting */}
+        {/* Top Header: Brand Logo & Greeting */}
         <View style={styles.greetingHeader}>
+          <View style={styles.topBrandRow}>
+            <Image
+              source={require("../../assets/images/logos/bete_logo_horizontal.png")}
+              style={styles.homeBrandLogo}
+              resizeMode="contain"
+            />
+          </View>
           <View style={styles.greetingTextGroup}>
             <Text style={styles.greetingTitle}>
               Hi, <Text style={styles.greetingName}>{userName}</Text> 👋
@@ -287,37 +395,6 @@ export default function HomeScreen() {
             </View>
           )}
         </View>
-
-        {/* Quick Category Filter Chips Bar */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.quickFiltersContainer}
-        >
-          {QUICK_FILTERS.map((chip) => {
-            const isActive = selectedCategory.toLowerCase() === chip.id.toLowerCase();
-            return (
-              <TouchableOpacity
-                key={chip.id}
-                style={[
-                  styles.quickChip,
-                  isActive && styles.quickChipActive,
-                ]}
-                activeOpacity={0.75}
-                onPress={() => setSelectedCategory(chip.id)}
-              >
-                <Text
-                  style={[
-                    styles.quickChipText,
-                    isActive && styles.quickChipTextActive,
-                  ]}
-                >
-                  {chip.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
 
         {/* Hero Promotional Banner with Verified Technician */}
         <View style={styles.bannerWrapper}>
@@ -439,17 +516,56 @@ export default function HomeScreen() {
             <Text style={styles.sectionTitle}>Top Technicians</Text>
             <Text style={styles.sectionSub}>Verified local providers ready to hire</Text>
           </View>
-          <Link href={"/screen/service-providers" as any} asChild>
-            <TouchableOpacity activeOpacity={0.7}>
-              <View style={styles.viewAllBtn}>
-                <Text style={styles.viewAllText}>
-                  View all ({filteredProviders.length})
-                </Text>
-                <Feather name="chevron-right" size={moderateScale(15)} color="#0052CC" />
-              </View>
-            </TouchableOpacity>
-          </Link>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() =>
+              router.push({
+                pathname: "/screen/service-providers",
+                params: {
+                  category: selectedTechFilter !== "All" ? selectedTechFilter : "All",
+                },
+              } as any)
+            }
+          >
+            <View style={styles.viewAllBtn}>
+              <Text style={styles.viewAllText}>
+                View all ({filteredProviders.length})
+              </Text>
+              <Feather name="chevron-right" size={moderateScale(15)} color="#0052CC" />
+            </View>
+          </TouchableOpacity>
         </View>
+
+        {/* Horizontal Filter Pills for Top Technicians */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.techFiltersContainer}
+        >
+          {TECHNICIAN_FILTERS.map((chip) => {
+            const isActive = selectedTechFilter.toLowerCase() === chip.id.toLowerCase();
+            return (
+              <TouchableOpacity
+                key={chip.id}
+                style={[
+                  styles.quickChip,
+                  isActive && styles.quickChipActive,
+                ]}
+                activeOpacity={0.75}
+                onPress={() => handleTechFilterPress(chip.id)}
+              >
+                <Text
+                  style={[
+                    styles.quickChipText,
+                    isActive && styles.quickChipTextActive,
+                  ]}
+                >
+                  {chip.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
 
         <ScrollView
           horizontal
@@ -526,11 +642,12 @@ export default function HomeScreen() {
             <View style={styles.emptyProviderCard}>
               <Feather name="user-x" size={moderateScale(28)} color="#94A3B8" />
               <Text style={styles.emptyProviderText}>
-                No service providers found for this selection.
+                No technicians found for {selectedTechFilter !== "All" ? selectedTechFilter : "this category"}.
               </Text>
               <TouchableOpacity
                 style={styles.emptyResetBtn}
                 onPress={() => {
+                  handleTechFilterPress("All");
                   setSelectedCategory("All");
                   setSearchQuery("");
                 }}
@@ -626,8 +743,15 @@ const styles = StyleSheet.create({
 
   greetingHeader: {
     paddingHorizontal: scale(20),
-    paddingTop: scale(10),
+    paddingTop: scale(8),
     paddingBottom: scale(14),
+  },
+  topBrandRow: {
+    marginBottom: scale(8),
+  },
+  homeBrandLogo: {
+    width: scale(135),
+    height: scale(42),
   },
   greetingTextGroup: {
     width: "100%",
@@ -650,7 +774,7 @@ const styles = StyleSheet.create({
   /* Search Section */
   searchSection: {
     paddingHorizontal: scale(20),
-    marginBottom: scale(12),
+    marginBottom: scale(16),
   },
   searchBar: {
     flexDirection: "row",
@@ -720,11 +844,11 @@ const styles = StyleSheet.create({
     color: "#EF4444",
   },
 
-  /* Quick Category Filter Chips */
-  quickFiltersContainer: {
+  /* Filter Chips for Top Technicians */
+  techFiltersContainer: {
     paddingHorizontal: scale(20),
     gap: scale(8),
-    paddingBottom: scale(16),
+    marginBottom: scale(14),
   },
   quickChip: {
     alignItems: "center",

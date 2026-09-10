@@ -159,7 +159,7 @@ export default function SubServicesScreen() {
         </TouchableOpacity>
 
         <View style={styles.headerTitles}>
-          <Text style={styles.headerTitle}>Popular Services</Text>
+          <Text style={styles.headerTitle}> Services</Text>
           <Text style={styles.headerSubtitle}>
             Certified technicians ready for on-demand booking
           </Text>
@@ -300,19 +300,7 @@ export default function SubServicesScreen() {
                               { backgroundColor: `${group.accentColor}18` },
                             ]}
                           >
-                            <Feather
-                              name="zap"
-                              size={moderateScale(12)}
-                              color={group.accentColor}
-                            />
-                            <Text
-                              style={[
-                                styles.popularTagText,
-                                { color: group.accentColor },
-                              ]}
-                            >
-                              Most Requested
-                            </Text>
+
                           </View>
                         </View>
 
@@ -320,7 +308,6 @@ export default function SubServicesScreen() {
                           {group.items[0].name}
                         </Text>
                         <Text style={styles.featuredDesc} numberOfLines={2}>
-                          Certified diagnostics, residential wiring, switches & power safety.
                         </Text>
 
                         <View style={styles.featuredActionRow}>

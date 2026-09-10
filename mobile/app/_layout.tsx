@@ -16,6 +16,7 @@ export default function RootLayout() {
           <Stack.Screen name="screen/service-providers" />
           <Stack.Screen name="screen/sub-services" />
           <Stack.Screen name="screen/user/provider-detail/[id]" />
+          <Stack.Screen name="screen/help-support" />
           <Stack.Screen name="(customer-tabs)" />
           <Stack.Screen name="(provider-tabs)" />
         </Stack>

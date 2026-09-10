@@ -166,30 +166,6 @@ export default function CustomerSignupScreen() {
             <Text style={styles.screenTitle}>Create new account</Text>
           </View>
 
-          {/* Profile Picture Picker Section */}
-          <View style={styles.avatarSection}>
-            <View style={styles.avatarWrapper}>
-              <UserAvatar
-                avatarUrl={avatarUri}
-                name={firstName.trim() ? `${firstName.trim()} ${lastName.trim()}` : "Customer"}
-                size={86}
-                onPress={handlePickAvatar}
-              />
-              <TouchableOpacity
-                style={styles.cameraBadge}
-                onPress={handlePickAvatar}
-                activeOpacity={0.8}
-              >
-                <Feather name="camera" size={13} color="#FFFFFF" />
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
-              <Text style={styles.avatarActionText}>
-                {avatarUri ? "Change Profile Picture" : "Add Profile Picture (Optional)"}
-              </Text>
-            </TouchableOpacity>
-          </View>
-
           <View style={styles.form}>
             <View style={styles.row}>
               <View style={styles.halfCol}>
@@ -282,6 +258,30 @@ export default function CustomerSignupScreen() {
               </TouchableOpacity>
             </View>
 
+            {/* Profile Picture Picker Section */}
+            <View style={styles.avatarSection}>
+              <View style={styles.avatarWrapper}>
+                <UserAvatar
+                  avatarUrl={avatarUri}
+                  name={firstName.trim() ? `${firstName.trim()} ${lastName.trim()}` : "Customer"}
+                  size={86}
+                  onPress={handlePickAvatar}
+                />
+                <TouchableOpacity
+                  style={styles.cameraBadge}
+                  onPress={handlePickAvatar}
+                  activeOpacity={0.8}
+                >
+                  <Feather name="camera" size={13} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
+                <Text style={styles.avatarActionText}>
+                  {avatarUri ? "Change Profile Picture" : "Add Profile Picture (Optional)"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.checkboxRow}>
               <TouchableOpacity
                 onPress={() => setAgreed(!agreed)}
@@ -363,6 +363,7 @@ const styles = StyleSheet.create({
   },
   avatarSection: {
     alignItems: "center",
+    marginTop: 18,
     marginBottom: 16,
   },
   avatarWrapper: {

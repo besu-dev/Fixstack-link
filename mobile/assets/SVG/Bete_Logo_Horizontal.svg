@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320" width="100%" height="100%">
+  <!-- Bete (ቤቴ) Horizontal Modern Tech Logo - Based on Concept #5 -->
+  <defs>
+    <linearGradient id="pinBlueGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0066FF" />
+      <stop offset="100%" stop-color="#0047BA" />
+    </linearGradient>
+    <filter id="shadowFilter" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#0052CC" flood-opacity="0.16" />
+    </filter>
+  </defs>
+
+  <!-- ==================== EMBLEM (Concept #5) ==================== -->
+  <g transform="translate(135, 150)">
+    <!-- Blue Geo-Location Pin Outer Body -->
+    <path d="M 0 -85 C 48 -85 86 -46 86 3 C 86 52 26 102 0 125 C -26 102 -86 52 -86 3 C -86 -46 -48 -85 0 -85 Z" 
+          fill="url(#pinBlueGrad)" filter="url(#shadowFilter)" />
+
+    <!-- Inner White Negative Space Core -->
+    <circle cx="0" cy="5" r="54" fill="#FFFFFF" />
+
+    <!-- Vibrant Orange House Roof & Chimney -->
+    <!-- Roof Peak -->
+    <path d="M -56 5 L 0 -45 L 56 5" fill="none" stroke="#FF6B00" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+    <!-- Chimney on Right -->
+    <rect x="25" y="-36" width="10" height="16" fill="#FF6B00" rx="2" />
+
+    <!-- 4-Pane Window in Center (Orange) -->
+    <g transform="translate(0, 8)">
+      <rect x="-16" y="-16" width="13" height="13" rx="2" fill="#FF6B00" />
+      <rect x="3" y="-16" width="13" height="13" rx="2" fill="#FF6B00" />
+      <rect x="-16" y="3" width="13" height="13" rx="2" fill="#FF6B00" />
+      <rect x="3" y="3" width="13" height="13" rx="2" fill="#FF6B00" />
+    </g>
+
+    <!-- Network Link Nodes at Bottom Tip (On-Demand Dispatch) -->
+    <!-- Connecting Lines -->
+    <path d="M -15 112 L -52 140" stroke="#0052CC" stroke-width="8" stroke-linecap="round" />
+    <path d="M -52 140 L 10 152" stroke="#0052CC" stroke-width="8" stroke-linecap="round" />
+    
+    <!-- Link Circles / Nodes -->
+    <circle cx="-52" cy="140" r="13" fill="#0052CC" />
+    <circle cx="-52" cy="140" r="6" fill="#FFFFFF" />
+    
+    <circle cx="10" cy="152" r="14" fill="#FF6B00" />
+    <circle cx="10" cy="152" r="6" fill="#FFFFFF" />
+  </g>
+
+  <!-- ==================== TYPOGRAPHY: Bete (ቤቴ) ==================== -->
+  <g transform="translate(300, 155)">
+    <!-- Primary Latin Wordmark: Bete -->
+    <text x="0" y="25" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif" font-weight="900" font-size="112" letter-spacing="-3">
+      <tspan fill="#0052CC">Be</tspan><tspan fill="#0F172A">te</tspan>
+    </text>
+    
+    <!-- Amharic Script: ቤቴ (Cleanly Accentuated in Royal Blue / Orange) -->
+    <text x="245" y="22" font-family="'Nyala', 'Ebrima', 'Segoe UI', sans-serif" font-weight="bold" font-size="52" fill="#FF6B00">
+      ቤቴ
+    </text>
+
+    <!-- Tagline: HOME SERVICES & REPAIR -->
+    <text x="4" y="72" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-weight="800" font-size="19" letter-spacing="6" fill="#64748B">
+      HOME REPAIR &amp; CARE
+    </text>
+
+    <!-- Ethiopian Sub-Tagline: የቤትዎ ታማኝ አጋር -->
+    <text x="4" y="100" font-family="'Nyala', 'Ebrima', 'Segoe UI', sans-serif" font-weight="bold" font-size="17" fill="#0052CC" opacity="0.85">
+      የቤትዎ ታማኝ አጋር
+    </text>
+  </g>
+</svg>

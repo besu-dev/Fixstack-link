@@ -1,49 +1,82 @@
-import React, { useEffect } from "react";
-import { View, Text, StyleSheet, SafeAreaView } from "react-native";
-import { FontAwesome5 } from "@expo/vector-icons";
+import React, { useEffect, useRef } from "react";
+import {
+  View,
+  StyleSheet,
+  SafeAreaView,
+  Image,
+  Animated,
+  StatusBar,
+} from "react-native";
 import { useRouter } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 
 export default function SplashScreen() {
   const router = useRouter();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleAnim = useRef(new Animated.Value(0.92)).current;
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-  
-      router.replace("/screen/login");
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, [router]);
+    // Smooth fade & scale in
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        friction: 6,
+        useNativeDriver: true,
+      }),
+    ]).start();
+
+    let timer: ReturnType<typeof setTimeout>;
+    const checkDestination = async () => {
+      try {
+        const token = await SecureStore.getItemAsync("user_token");
+        const role = await SecureStore.getItemAsync("user_role");
+        timer = setTimeout(() => {
+          if (token && role) {
+            if (role === "provider") {
+              router.replace("/(provider-tabs)/jobs");
+            } else {
+              router.replace("/(customer-tabs)/home");
+            }
+          } else {
+            router.replace("/screen/login");
+          }
+        }, 2200);
+      } catch {
+        timer = setTimeout(() => {
+          router.replace("/screen/login");
+        }, 2200);
+      }
+    };
+
+    checkDestination();
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [fadeAnim, scaleAnim, router]);
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.centerBox}>
-        <View style={styles.iconContainer}>
-          <View style={styles.orangeCircleOutline} />
-          <View style={styles.blueWrenchBox}>
-            <FontAwesome5
-              name="wrench"
-              size={44}
-              color="#0052CC"
-              style={styles.wrenchIcon}
-            />
-          </View>
-        </View>
-
-        <View style={styles.brandRow}>
-          <Text style={styles.brandPrimary}>Fix</Text>
-          <Text style={styles.brandSecondary}>Link</Text>
-        </View>
-
-        <View style={styles.taglineRow}>
-          <View style={styles.dash} />
-          <Text style={styles.tagline}>
-            <Text style={styles.tagBlue}>Connect. </Text>
-            <Text style={styles.tagOrange}>Fix. </Text>
-            <Text style={styles.tagDark}>Done.</Text>
-          </Text>
-          <View style={styles.dash} />
-        </View>
-      </View>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <Animated.View
+        style={[
+          styles.centerBox,
+          {
+            opacity: fadeAnim,
+            transform: [{ scale: scaleAnim }],
+          },
+        ]}
+      >
+        <Image
+          source={require("../../assets/images/logos/bete_logo_stacked.png")}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
+      </Animated.View>
     </SafeAreaView>
   );
 }
@@ -55,46 +88,16 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  centerBox: { alignItems: "center" },
-  iconContainer: {
-    width: 100,
-    height: 100,
+  centerBox: {
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 12,
+    width: "100%",
+    paddingHorizontal: 20,
   },
-  orangeCircleOutline: {
-    position: "absolute",
-    width: 86,
-    height: 86,
-    borderRadius: 43,
-    borderWidth: 6,
-    borderColor: "#F97316",
+  logoImage: {
+    width: 290,
+    height: 320,
   },
-  blueWrenchBox: { position: "absolute" },
-  wrenchIcon: { transform: [{ rotate: "-30deg" }] },
-  brandRow: { flexDirection: "row", alignItems: "center", marginTop: 4 },
-  brandPrimary: {
-    fontSize: 44,
-    fontWeight: "900",
-    color: "#002B49",
-    letterSpacing: -0.5,
-  },
-  brandSecondary: {
-    fontSize: 44,
-    fontWeight: "900",
-    color: "#0052CC",
-    letterSpacing: -0.5,
-  },
-  taglineRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-    gap: 8,
-  },
-  dash: { width: 24, height: 2, backgroundColor: "#002B49" },
-  tagline: { fontSize: 13, fontWeight: "700" },
-  tagBlue: { color: "#0052CC" },
-  tagOrange: { color: "#F97316" },
-  tagDark: { color: "#002B49" },
 });
+
+

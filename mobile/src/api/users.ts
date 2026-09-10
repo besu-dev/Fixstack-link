@@ -4,6 +4,7 @@ import { User, ProviderDetails } from "../types";
 export const usersApi = {
   /**
    * Fetch public profile of a technician/provider by their ID
+   *
    */
   getProviderProfile: async (id: string) => {
     const res = await apiClient.get(`/auth/provider/${id}`);

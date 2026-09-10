@@ -96,18 +96,14 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
         >
           <View style={styles.header}>
-            <View style={styles.logoMark}>
-              <View style={styles.orangeArc} />
-              <FontAwesome5
-                name="wrench"
-                size={28}
-                color="#0052CC"
-                style={{ transform: [{ rotate: "-30deg" }] }}
-              />
-            </View>
-            <Text style={styles.brandTitle}>Welcome to FixLink 👋</Text>
+            <Image
+              source={require("../../assets/images/logos/bete_logo_horizontal.png")}
+              style={styles.headerLogo}
+              resizeMode="contain"
+            />
+            <Text style={styles.brandTitle}>Welcome to Bete (ቤቴ) 👋</Text>
             <Text style={styles.subtitle}>
-              Connect with certified technicians in minutes
+              Connect with trusted home technicians in minutes
             </Text>
           </View>
 
@@ -227,6 +223,11 @@ const styles = StyleSheet.create({
     flexGrow: 1,
   },
   header: { alignItems: "center", marginTop: 20, marginBottom: 24 },
+  headerLogo: {
+    width: 220,
+    height: 75,
+    marginBottom: 4,
+  },
   logoMark: {
     width: 64,
     height: 64,

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
-import { 
-  Phone, 
-  Mail, 
-  Send, 
-  CheckCircle2, 
+import {
+  Phone,
+  Mail,
+  Send,
+  CheckCircle2,
   Share2
 } from 'lucide-react';
 import './ContactPage.css';
@@ -109,36 +109,36 @@ export default function ContactPage({ onShowToast }) {
                   <div>
                     <span className="touch-label">Social Media</span>
                     <div className="contact-social-links">
-                      <a 
-                        href="https://facebook.com/fixlink" 
-                        target="_blank" 
-                        rel="noreferrer" 
+                      <a
+                        href="https://facebook.com/fixlink"
+                        target="_blank"
+                        rel="noreferrer"
                         className="social-chip facebook"
                         aria-label="Facebook"
                         title="FixLink on Facebook"
                       >
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
-                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-                        </svg>
+                          <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                        </svg>    
                         <span>Facebook</span>
                       </a>
-                      <a 
-                        href="https://linkedin.com/company/fixlink" 
-                        target="_blank" 
-                        rel="noreferrer" 
+                      <a
+                        href="https://linkedin.com/company/fixlink"
+                        target="_blank"
+                        rel="noreferrer"
                         className="social-chip linkedin"
                         aria-label="LinkedIn"
                         title="FixLink on LinkedIn"
                       >
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor" aria-hidden="true">
-                          <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
+                          <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z" />
                         </svg>
                         <span>LinkedIn</span>
                       </a>
-                      <a 
-                        href="https://x.com/fixlink" 
-                        target="_blank" 
-                        rel="noreferrer" 
+                      <a
+                        href="https://x.com/fixlink"
+                        target="_blank"
+                        rel="noreferrer"
                         className="social-chip x-twitter"
                         aria-label="X (formerly Twitter)"
                         title="FixLink on X"
@@ -178,8 +178,8 @@ export default function ContactPage({ onShowToast }) {
                   <div className="form-row-two">
                     <div className="form-group">
                       <label className="form-label" htmlFor="fullName">Full Name *</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         id="fullName"
                         className={`form-input ${errors.fullName ? 'input-error' : ''}`}
                         placeholder="e.g., Abebe Kebede"
@@ -191,8 +191,8 @@ export default function ContactPage({ onShowToast }) {
 
                     <div className="form-group">
                       <label className="form-label" htmlFor="phone">Phone Number *</label>
-                      <input 
-                        type="tel" 
+                      <input
+                        type="tel"
                         id="phone"
                         className={`form-input ${errors.phone ? 'input-error' : ''}`}
                         placeholder="e.g., +251 911 234 567"
@@ -207,8 +207,8 @@ export default function ContactPage({ onShowToast }) {
                   <div className="form-row-two">
                     <div className="form-group">
                       <label className="form-label" htmlFor="email">Email Address (Optional)</label>
-                      <input 
-                        type="email" 
+                      <input
+                        type="email"
                         id="email"
                         className="form-input"
                         placeholder="e.g., abebe@example.com"
@@ -219,8 +219,8 @@ export default function ContactPage({ onShowToast }) {
 
                     <div className="form-group">
                       <label className="form-label" htmlFor="subject">Subject</label>
-                      <input 
-                        type="text" 
+                      <input
+                        type="text"
                         id="subject"
                         className="form-input"
                         placeholder="e.g., Technician Registration Inquiry"
@@ -233,7 +233,7 @@ export default function ContactPage({ onShowToast }) {
                   {/* Message */}
                   <div className="form-group">
                     <label className="form-label" htmlFor="message">How can we help? *</label>
-                    <textarea 
+                    <textarea
                       id="message"
                       rows={5}
                       className={`form-textarea ${errors.message ? 'input-error' : ''}`}
@@ -245,8 +245,8 @@ export default function ContactPage({ onShowToast }) {
                   </div>
 
                   {/* Submit Button */}
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     className="btn btn-primary btn-lg w-full"
                     disabled={submitting}
                   >

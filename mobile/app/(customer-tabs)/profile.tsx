@@ -337,19 +337,25 @@ export default function CustomerProfileScreen() {
 
           <TouchableOpacity
             style={styles.menuItem}
-            onPress={() => router.push("/customer/support" as any)}
+            onPress={() =>
+              router.push({
+                pathname: "/screen/help-support",
+                params: { role: "customer" },
+              } as any)
+            }
+            activeOpacity={0.7}
           >
             <View style={[styles.menuIconBox, { backgroundColor: "#DCFCE7" }]}>
               <Feather
-                name="help-circle"
+                name="phone-call"
                 size={moderateScale(17)}
                 color="#16A34A"
               />
             </View>
             <View style={styles.menuTextCol}>
-              <Text style={styles.menuTitle}>Help & Support</Text>
+              <Text style={styles.menuTitle}>Contact Support</Text>
               <Text style={styles.menuSubtitle}>
-                FAQs, guides & customer assistance
+                Get help from the FixLink customer support team
               </Text>
             </View>
             <Feather
@@ -409,6 +415,8 @@ const styles = StyleSheet.create({
     paddingTop: scale(8),
     paddingBottom: scale(10),
     backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
   },
   headerTitle: {
     fontSize: scaledFont(20),

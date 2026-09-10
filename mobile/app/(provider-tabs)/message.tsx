@@ -107,6 +107,16 @@ export default function ProviderMessageScreen() {
     };
   }, []);
 
+  // Scroll to bottom when keyboard opens to keep conversation in view
+  useEffect(() => {
+    if (isKeyboardVisible) {
+      const timer = setTimeout(() => {
+        flatListRef.current?.scrollToEnd({ animated: true });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isKeyboardVisible]);
+
   // 1. Get logged-in technician ID
   useEffect(() => {
     const loadCurrentUser = async () => {
@@ -480,7 +490,7 @@ export default function ProviderMessageScreen() {
         </View>
       ) : (
         <KeyboardAvoidingView
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
           style={styles.flex}
         >
@@ -566,7 +576,7 @@ export default function ProviderMessageScreen() {
               styles.inputBar,
               {
                 paddingBottom: isKeyboardVisible
-                  ? Math.max(insets.bottom, scale(8))
+                  ? scale(8)
                   : verticalScale(92) + insets.bottom,
               },
             ]}

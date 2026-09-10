@@ -1,0 +1,2468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FixLink – University Project Defense Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --primary-light: #e0f2fe;
+      --accent: #2563eb;
+      --accent-glow: rgba(37, 99, 235, 0.15);
+      --navy: #0f172a;
+      --navy-light: #1e293b;
+      --slate-500: #64748b;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --slate-800: #1e293b;
+      --bg-page: #0b1329;
+      --bg-slide: #ffffff;
+      --bg-slide-subtle: #f8fafc;
+      --card-bg: #f8fafc;
+      --border-light: #e2e8f0;
+      --border-accent: #bae6fd;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --success: #059669;
+      --success-bg: #ecfdf5;
+      --warning: #d97706;
+      --warning-bg: #fffbeb;
+      --slide-ratio: 16 / 9;
+      --slide-width: 1200px;
+      --slide-height: 675px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      padding: 16px;
+    }
+
+    /* Top Control Bar */
+    .top-bar {
+      width: 100%;
+      max-width: var(--slide-width);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 18px;
+      margin-bottom: 12px;
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: #fff;
+    }
+
+    .brand-tag {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+    }
+
+    .brand-icon {
+      width: 28px;
+      height: 28px;
+      background: linear-gradient(135deg, #38bdf8, #2563eb);
+      border-radius: 7px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 14px;
+      box-shadow: 0 2px 8px rgba(37, 99, 235, 0.4);
+    }
+
+    .toolbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-tool {
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #f1f5f9;
+      padding: 6px 14px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+      font-family: inherit;
+    }
+
+    .btn-tool:hover {
+      background: rgba(255, 255, 255, 0.18);
+      border-color: rgba(255, 255, 255, 0.3);
+      transform: translateY(-1px);
+    }
+
+    .btn-tool.active {
+      background: #0284c7;
+      border-color: #38bdf8;
+      color: #fff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+
+    /* Presentation Screen Stage */
+    .deck-viewport {
+      width: 100%;
+      max-width: var(--slide-width);
+      aspect-ratio: var(--slide-ratio);
+      position: relative;
+      perspective: 1000px;
+      box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.1);
+      border-radius: 16px;
+      overflow: hidden;
+      background: var(--bg-slide);
+    }
+
+    .slide {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      padding: 48px 56px;
+      background: var(--bg-slide);
+      display: flex;
+      flex-direction: column;
+      opacity: 0;
+      visibility: hidden;
+      transform: scale(0.985);
+      transition: opacity 0.35s ease, transform 0.35s ease, visibility 0.35s ease;
+      overflow: hidden;
+    }
+
+    .slide.active {
+      opacity: 1;
+      visibility: visible;
+      transform: scale(1);
+      z-index: 2;
+    }
+
+    /* Subtle background grid & branding accents on slides */
+    .slide::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(90deg, #0284c7, #2563eb, #38bdf8);
+    }
+
+    .slide::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 320px;
+      height: 320px;
+      background: radial-gradient(circle, rgba(14, 165, 233, 0.05) 0%, rgba(255, 255, 255, 0) 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Slide Header */
+    .slide-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 24px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .slide-category {
+      font-size: 11px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--primary);
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .slide-category::before {
+      content: "";
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--primary);
+    }
+
+    .slide-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--navy);
+      line-height: 1.2;
+      letter-spacing: -0.5px;
+    }
+
+    .slide-subtitle {
+      font-size: 14px;
+      color: var(--slate-500);
+      margin-top: 4px;
+      font-weight: 500;
+    }
+
+    .slide-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0.3px;
+      border: 1px solid var(--border-accent);
+    }
+
+    /* Slide Content Layouts */
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      z-index: 1;
+      min-height: 0; /* allows flex children to scale nicely */
+    }
+
+    /* Slide Footer */
+    .slide-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 14px;
+      margin-top: auto;
+      border-top: 1px solid var(--border-light);
+      font-size: 11px;
+      color: var(--slate-500);
+      font-weight: 600;
+      position: relative;
+      z-index: 1;
+    }
+
+    .footer-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .footer-pill {
+      background: #f1f5f9;
+      padding: 3px 8px;
+      border-radius: 4px;
+      color: var(--slate-600);
+      font-size: 10px;
+    }
+
+    .slide-number {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary-dark);
+      background: var(--primary-light);
+      padding: 3px 10px;
+      border-radius: 12px;
+    }
+
+    /* Card Grids */
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      height: 100%;
+    }
+
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+      height: 100%;
+    }
+
+    .grid-4 {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      height: 100%;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      transition: all 0.2s ease;
+    }
+
+    .card:hover {
+      border-color: var(--border-accent);
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px -5px rgba(2, 132, 199, 0.08);
+    }
+
+    .card.highlight {
+      border: 2px solid var(--primary);
+      background: #f0f9ff;
+    }
+
+    .card-icon {
+      width: 42px;
+      height: 42px;
+      border-radius: 10px;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border-accent);
+    }
+
+    .card-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+
+    .card-text {
+      font-size: 13px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-top: 4px;
+    }
+
+    .bullet-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      font-size: 14px;
+      color: var(--slate-700);
+      line-height: 1.45;
+    }
+
+    .bullet-icon {
+      flex-shrink: 0;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--primary-light);
+      color: var(--primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10px;
+      font-weight: 800;
+      margin-top: 2px;
+    }
+
+    /* Diagram Styles (SVG-based) */
+    .diagram-container {
+      width: 100%;
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 12px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+    }
+
+    /* Title Slide Specific */
+    .slide-title-layout {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      position: relative;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #e0f2fe;
+      color: #0369a1;
+      padding: 6px 16px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+      border: 1px solid #bae6fd;
+    }
+
+    .main-project-title {
+      font-size: 46px;
+      font-weight: 800;
+      color: var(--navy);
+      letter-spacing: -1px;
+      line-height: 1.15;
+      margin-bottom: 12px;
+    }
+
+    .main-project-title span {
+      background: linear-gradient(135deg, #0284c7, #2563eb);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .main-project-subtitle {
+      font-size: 18px;
+      color: var(--slate-600);
+      max-width: 700px;
+      line-height: 1.5;
+      margin-bottom: 32px;
+      font-weight: 500;
+    }
+
+    .defense-metadata-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      width: 100%;
+      max-width: 900px;
+      background: #f8fafc;
+      padding: 18px 24px;
+      border-radius: 12px;
+      border: 1px solid var(--border-light);
+      text-align: left;
+    }
+
+    .meta-box-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      color: var(--slate-500);
+      margin-bottom: 4px;
+      letter-spacing: 0.5px;
+    }
+
+    .meta-box-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--navy);
+    }
+
+    .meta-box-sub {
+      font-size: 12px;
+      color: var(--slate-500);
+      font-weight: 500;
+    }
+
+    /* Workflow Horizontal Steps */
+    .flow-steps {
+      display: flex;
+      align-items: stretch;
+      gap: 12px;
+      width: 100%;
+      margin: auto 0;
+    }
+
+    .flow-step-card {
+      flex: 1;
+      background: #f8fafc;
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      padding: 14px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      position: relative;
+      transition: all 0.2s;
+    }
+
+    .flow-step-card:hover {
+      background: #f0f9ff;
+      border-color: #7dd3fc;
+      transform: translateY(-2px);
+    }
+
+    .flow-num {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      font-size: 11px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+    }
+
+    .flow-title {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 4px;
+      line-height: 1.25;
+    }
+
+    .flow-desc {
+      font-size: 10px;
+      color: var(--slate-500);
+      line-height: 1.3;
+    }
+
+    .flow-arrow {
+      color: #94a3b8;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+    }
+
+    /* App Screens Showcase Cards */
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      height: 100%;
+    }
+
+    .mockup-card {
+      background: #ffffff;
+      border: 1px solid var(--border-light);
+      border-radius: 10px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.03);
+      transition: all 0.2s ease;
+    }
+
+    .mockup-card:hover {
+      border-color: var(--primary);
+      box-shadow: 0 8px 16px rgba(2, 132, 199, 0.12);
+      transform: translateY(-3px);
+    }
+
+    .mockup-screen {
+      background: #0f172a;
+      height: 120px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .screen-wireframe {
+      background: #1e293b;
+      border-radius: 6px;
+      height: 100%;
+      padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      color: #94a3b8;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 9px;
+    }
+
+    .wireframe-bar {
+      height: 8px;
+      border-radius: 4px;
+      background: #334155;
+    }
+
+    .wireframe-bar.primary {
+      background: #0284c7;
+      width: 70%;
+    }
+
+    .wireframe-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .wireframe-pill {
+      flex: 1;
+      height: 24px;
+      background: #334155;
+      border-radius: 4px;
+    }
+
+    .mockup-info {
+      padding: 10px 12px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      background: #f8fafc;
+    }
+
+    .mockup-name {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--navy);
+      margin-bottom: 3px;
+    }
+
+    .mockup-desc {
+      font-size: 11px;
+      color: var(--slate-600);
+      line-height: 1.35;
+    }
+
+    /* Testing Table */
+    .test-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border-light);
+    }
+
+    .test-table th {
+      background: #f1f5f9;
+      padding: 10px 14px;
+      text-align: left;
+      font-weight: 700;
+      color: var(--navy);
+      border-bottom: 1px solid var(--border-light);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .test-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--slate-700);
+    }
+
+    .test-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .status-badge.pass {
+      background: var(--success-bg);
+      color: var(--success);
+      border: 1px solid #a7f3d0;
+    }
+
+    /* Bottom Slide Controls */
+    .bottom-controls {
+      width: 100%;
+      max-width: var(--slide-width);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      color: #94a3b8;
+      font-size: 13px;
+    }
+
+    .nav-btn-group {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn-nav {
+      background: #1e293b;
+      border: 1px solid #334155;
+      color: #fff;
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: inherit;
+      transition: all 0.2s ease;
+    }
+
+    .btn-nav:hover {
+      background: #0284c7;
+      border-color: #38bdf8;
+    }
+
+    .btn-nav:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      border-color: #334155;
+      background: #1e293b;
+    }
+
+    .slide-progress {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-family: 'JetBrains Mono', monospace;
+      font-weight: 600;
+      color: #e2e8f0;
+    }
+
+    /* Speaker Notes Panel (Drawer) */
+    .notes-drawer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: rgba(15, 23, 42, 0.96);
+      backdrop-filter: blur(16px);
+      border-top: 2px solid #0284c7;
+      color: #e2e8f0;
+      padding: 20px 32px;
+      transform: translateY(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      z-index: 100;
+      max-height: 40vh;
+      overflow-y: auto;
+      box-shadow: 0 -10px 30px rgba(0,0,0,0.5);
+    }
+
+    .notes-drawer.open {
+      transform: translateY(0);
+    }
+
+    .notes-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .notes-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #38bdf8;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .notes-body {
+      font-size: 15px;
+      line-height: 1.6;
+      color: #cbd5e1;
+      max-width: 1100px;
+    }
+
+    .notes-body strong {
+      color: #ffffff;
+    }
+
+    .close-notes-btn {
+      background: transparent;
+      border: none;
+      color: #94a3b8;
+      font-size: 18px;
+      cursor: pointer;
+      padding: 4px 8px;
+    }
+
+    .close-notes-btn:hover {
+      color: #fff;
+    }
+
+    /* Overview Modal / Thumbnails Grid */
+    .overview-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(11, 19, 41, 0.95);
+      backdrop-filter: blur(12px);
+      z-index: 200;
+      display: none;
+      padding: 40px;
+      overflow-y: auto;
+    }
+
+    .overview-modal.open {
+      display: block;
+    }
+
+    .overview-header {
+      max-width: 1200px;
+      margin: 0 auto 24px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      color: #fff;
+    }
+
+    .overview-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .thumb-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+      color: #fff;
+    }
+
+    .thumb-card:hover {
+      border-color: #38bdf8;
+      transform: translateY(-3px);
+      background: #243248;
+    }
+
+    .thumb-card.current {
+      border: 2px solid #0284c7;
+      background: #0f2747;
+    }
+
+    .thumb-num {
+      font-size: 11px;
+      font-weight: 700;
+      color: #38bdf8;
+      margin-bottom: 4px;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .thumb-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: #f1f5f9;
+      line-height: 1.3;
+    }
+
+    /* Printable Slide Deck Styles */
+    @media print {
+      body {
+        background: #fff;
+        padding: 0;
+      }
+      .top-bar, .bottom-controls, .notes-drawer, .overview-modal {
+        display: none !important;
+      }
+      .deck-viewport {
+        box-shadow: none;
+        max-width: 100%;
+        border-radius: 0;
+        height: auto;
+        perspective: none;
+        overflow: visible;
+      }
+      .slide {
+        position: relative !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+        page-break-after: always;
+        height: 100vh;
+        max-height: 100vh;
+        width: 100%;
+        border: none;
+        box-sizing: border-box;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Presentation Toolbar -->
+  <header class="top-bar">
+    <div class="brand-tag">
+      <div class="brand-icon">🔧</div>
+      <span>FixLink | Project Defense Deck</span>
+    </div>
+    <div class="toolbar-actions">
+      <button class="btn-tool" id="btn-notes" onclick="toggleNotes()" title="Press 'N' for Speaker Notes">
+        <span>📝 Speaker Notes</span>
+      </button>
+      <button class="btn-tool" id="btn-overview" onclick="toggleOverview()" title="Press 'O' for Slide Overview">
+        <span>📑 Slide Index</span>
+      </button>
+      <button class="btn-tool" onclick="window.print()" title="Print / Export to PDF">
+        <span>🖨️ PDF / Print</span>
+      </button>
+      <button class="btn-tool" onclick="toggleFullScreen()" title="Press 'F' for Fullscreen">
+        <span>⛶ Fullscreen</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Slide Viewport (16:9 Stage) -->
+  <main class="deck-viewport" id="deck-viewport">
+
+    <!-- ===================================================================
+         SLIDE 1: TITLE SLIDE
+    ==================================================================== -->
+    <section class="slide active" data-slide="1" id="slide-1">
+      <div class="slide-content">
+        <div class="slide-title-layout">
+          <div class="hero-badge">🎓 Senior Capstone / University Project Defense</div>
+          <h1 class="main-project-title">
+            <span>FixLink</span> – Household Repair Service Platform
+          </h1>
+          <p class="main-project-subtitle">
+            A modern on-demand mobile platform connecting customers with skilled local service providers with transparent pricing and real-time coordination.
+          </p>
+
+          <div class="defense-metadata-grid">
+            <div class="meta-box">
+              <div class="meta-box-label">Student Candidate</div>
+              <div class="meta-box-value">[Student Name]</div>
+              <div class="meta-box-sub">Student ID: [STU-2026-CS]</div>
+            </div>
+            <div class="meta-box">
+              <div class="meta-box-label">Department & Faculty</div>
+              <div class="meta-box-value">Dept. of Computer Science</div>
+              <div class="meta-box-sub">Faculty of Computing & Information</div>
+            </div>
+            <div class="meta-box">
+              <div class="meta-box-label">Academic Supervision</div>
+              <div class="meta-box-value">[Advisor Name]</div>
+              <div class="meta-box-sub">Date: March 2026</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left">
+          <span>FixLink Defense Presentation</span>
+          <span class="footer-pill">BS in Computer Science</span>
+        </div>
+        <div class="slide-number">01 / 15</div>
+      </footer>
+    </section>
+
+    <!-- ===================================================================
+         SLIDE 2: INTRODUCTION
+    ==================================================================== -->
+    <section class="slide" data-slide="2" id="slide-2">
+      <header class="slide-header">
+        <div>
+          <div class="slide-category">Background & Context</div>
+          <h2 class="slide-title">Introduction</h2>
+          <div class="slide-subtitle">The rapid evolution of on-demand home service marketplaces</div>
+        </div>
+        <div class="slide-badge">Context & Motivation</div>
+      </header>
+      <div class="slide-content">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-icon">🏠</div>
+            <div class="card-title">The Everyday Reality of Home Repairs</div>
+            <p class="card-text">
+              Every household routinely requires urgent or scheduled repair services—ranging from plumbing leaks and electrical faults to appliance repairs and carpentry.
+            </p>
+            <ul class="bullet-list" style="margin-top: 14px;">
+              <li class="bullet-item">
+                <span class="bullet-icon">✓</span>
+                <span>Unpredictable home breakdowns require rapid, reliable intervention.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">✓</span>
+                <span>Traditional search depends on informal word-of-mouth or paper flyers.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">✓</span>
+                <span>Lack of verified technician credentials creates safety and quality concerns.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="card highlight">
+            <div class="card-icon" style="background:#0284c7; color:#fff;">💡</div>
+            <div class="card-title">FixLink: The Digital Paradigm</div>
+            <p class="card-text">
+              <strong>FixLink</strong> bridges the physical service gap by introducing a mobile-first digital marketplace that unites homeowners and certified local technicians into a unified ecosystem.
+            </p>
+            <ul class="bullet-list" style="margin-top: 14px;">
+              <li class="bullet-item">
+                <span class="bullet-icon">✓</span>
+                <span><strong>Seamless Matching:</strong> Instant request broadcast to specialized nearby workers.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">✓</span>
+                <span><strong>Competitive Bidding:</strong> Transparent quotation model eliminating price gouging.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">✓</span>
+                <span><strong>Accountability:</strong> Verified user profiles, live in-app chat, and transparent ratings.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left"><span>FixLink Defense Presentation</span></div>
+        <div class="slide-number">02 / 15</div>
+      </footer>
+    </section>
+
+    <!-- ===================================================================
+         SLIDE 3: PROBLEM STATEMENT
+    ==================================================================== -->
+    <section class="slide" data-slide="3" id="slide-3">
+      <header class="slide-header">
+        <div>
+          <div class="slide-category">Need Analysis</div>
+          <h2 class="slide-title">Problem Statement</h2>
+          <div class="slide-subtitle">Four major friction points in conventional household repair arrangements</div>
+        </div>
+        <div class="slide-badge">Core Challenges</div>
+      </header>
+      <div class="slide-content">
+        <div class="grid-4">
+          <div class="card">
+            <div class="card-icon" style="background:#fee2e2; color:#ef4444; border-color:#fca5a5;">🔍</div>
+            <div class="card-title">1. Difficulty Finding Trusted Technicians</div>
+            <p class="card-text">
+              Homeowners struggle to find reliable, vetted handymen promptly during emergencies. Informal networks offer zero background checks or skill verification.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="card-icon" style="background:#fee2e2; color:#ef4444; border-color:#fca5a5;">📋</div>
+            <div class="card-title">2. Information Asymmetry</div>
+            <p class="card-text">
+              Customers possess virtually no visibility into a technician's past performance, genuine certifications, portfolio, or verified availability.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="card-icon" style="background:#fee2e2; color:#ef4444; border-color:#fca5a5;">💬</div>
+            <div class="card-title">3. Friction in Price & Communication</div>
+            <p class="card-text">
+              Unstandardized pricing leads to arbitrary overcharging. Phone negotiations lack audit trails, documented scope, and mutual confirmation.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="card-icon" style="background:#fee2e2; color:#ef4444; border-color:#fca5a5;">⭐</div>
+            <div class="card-title">4. Absence of Tracking & Reviews</div>
+            <p class="card-text">
+              Once hired, work progress cannot be monitored systematically. If work is substandard, customers have no recourse or platform feedback loop.
+            </p>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left"><span>FixLink Defense Presentation</span></div>
+        <div class="slide-number">03 / 15</div>
+      </footer>
+    </section>
+
+    <!-- ===================================================================
+         SLIDE 4: PROJECT OBJECTIVES
+    ==================================================================== -->
+    <section class="slide" data-slide="4" id="slide-4">
+      <header class="slide-header">
+        <div>
+          <div class="slide-category">System Goals</div>
+          <h2 class="slide-title">Project Objectives</h2>
+          <div class="slide-subtitle">Measurable software engineering deliverables designed to solve domain pain points</div>
+        </div>
+        <div class="slide-badge">Target Deliverables</div>
+      </header>
+      <div class="slide-content">
+        <div class="grid-3">
+          <div class="card">
+            <div class="card-icon">⚡</div>
+            <div class="card-title">Connect Customers & Providers</div>
+            <p class="card-text">
+              Architect an intuitive cross-platform mobile app bridging customers directly with skilled local technicians across multiple trade categories.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="card-icon">📝</div>
+            <div class="card-title">Streamline Service Requests</div>
+            <p class="card-text">
+              Enable structured job postings with categorized sub-services, detailed fault descriptions, preferred schedules, and urgency levels.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="card-icon">🏷️</div>
+            <div class="card-title">Support Dynamic Bidding</div>
+            <p class="card-text">
+              Provide a competitive quotation engine where providers submit transparent bids, allowing customers to compare cost, timeline, and ratings.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="card-icon">💬</div>
+            <div class="card-title">Real-Time In-App Chat</div>
+            <p class="card-text">
+              Incorporate instant duplex messaging with Socket.io to discuss job scope, share progress updates, and agree on technical specifics.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="card-icon">🔔</div>
+            <div class="card-title">Event-Driven Notifications</div>
+            <p class="card-text">
+              Keep both stakeholders synchronized across job status transitions—from bid receipt and acceptance to completion.
+            </p>
+          </div>
+
+          <div class="card">
+            <div class="card-icon">⭐</div>
+            <div class="card-title">Verified Ratings & Reviews</div>
+            <p class="card-text">
+              Establish a tamper-resistant two-way feedback mechanism to build reputation scores, ensuring quality and platform trust.
+            </p>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left"><span>FixLink Defense Presentation</span></div>
+        <div class="slide-number">04 / 15</div>
+      </footer>
+    </section>
+
+    <!-- ===================================================================
+         SLIDE 5: TARGET USERS
+    ==================================================================== -->
+    <section class="slide" data-slide="5" id="slide-5">
+      <header class="slide-header">
+        <div>
+          <div class="slide-category">Stakeholder Analysis</div>
+          <h2 class="slide-title">Target Users</h2>
+          <div class="slide-subtitle">Three core user personas driving the FixLink service platform</div>
+        </div>
+        <div class="slide-badge">User Roles</div>
+      </header>
+      <div class="slide-content">
+        <div class="grid-3">
+          <div class="card" style="border-top: 4px solid #0284c7;">
+            <div class="card-icon">👤</div>
+            <div class="card-title">Service Seekers (Customers)</div>
+            <div class="card-text" style="margin-bottom: 12px; font-weight:600; color:var(--primary-dark);">
+              Homeowners, Tenants & Office Managers
+            </div>
+            <ul class="bullet-list">
+              <li class="bullet-item">
+                <span class="bullet-icon">•</span>
+                <span>Seek rapid, trustworthy repair technicians nearby.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">•</span>
+                <span>Value fair market pricing via competitive bids.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">•</span>
+                <span>Need tracking, verified reviews, and secure chat.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="card" style="border-top: 4px solid #2563eb;">
+            <div class="card-icon">🛠️</div>
+            <div class="card-title">Service Providers (Technicians)</div>
+            <div class="card-text" style="margin-bottom: 12px; font-weight:600; color:var(--accent);">
+              Independent Handymen, Electricians & Plumbers
+            </div>
+            <ul class="bullet-list">
+              <li class="bullet-item">
+                <span class="bullet-icon">•</span>
+                <span>Desire continuous, localized work opportunities.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">•</span>
+                <span>Can quote prices based on job requirements.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">•</span>
+                <span>Build a credible digital reputation through ratings.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="card" style="border-top: 4px solid #0f172a;">
+            <div class="card-icon">🛡️</div>
+            <div class="card-title">System Administrator</div>
+            <div class="card-text" style="margin-bottom: 12px; font-weight:600; color:var(--navy);">
+              Platform Governance & Quality Ops
+            </div>
+            <ul class="bullet-list">
+              <li class="bullet-item">
+                <span class="bullet-icon">•</span>
+                <span>Monitors platform integrity and resolves disputes.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">•</span>
+                <span>Manages service categories, users, and reviews.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">•</span>
+                <span>Analyzes platform operational KPI metrics.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left"><span>FixLink Defense Presentation</span></div>
+        <div class="slide-number">05 / 15</div>
+      </footer>
+    </section>
+
+    <!-- ===================================================================
+         SLIDE 6: PROPOSED SOLUTION
+    ==================================================================== -->
+    <section class="slide" data-slide="6" id="slide-6">
+      <header class="slide-header">
+        <div>
+          <div class="slide-category">Conceptual Architecture</div>
+          <h2 class="slide-title">Proposed Solution</h2>
+          <div class="slide-subtitle">A centralized digital intermediary transforming informal repairs into a verified workflow</div>
+        </div>
+        <div class="slide-badge">Ecosystem Model</div>
+      </header>
+      <div class="slide-content">
+        <!-- SVG Interactive Conceptual Flow Diagram -->
+        <div class="diagram-container" style="margin-bottom: 18px;">
+          <svg viewBox="0 0 880 140" width="100%" height="130" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <linearGradient id="gradCust" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0284c7" />
+                <stop offset="100%" stop-color="#0369a1" />
+              </linearGradient>
+              <linearGradient id="gradPlatform" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#0f172a" />
+                <stop offset="100%" stop-color="#1e293b" />
+              </linearGradient>
+              <linearGradient id="gradTech" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2563eb" />
+                <stop offset="100%" stop-color="#1d4ed8" />
+              </linearGradient>
+              <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#0284c7" />
+              </marker>
+              <marker id="arrowTech" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 0 L 10 5 L 0 10 z" fill="#2563eb" />
+              </marker>
+            </defs>
+
+            <!-- Customer Node -->
+            <rect x="20" y="25" width="200" height="90" rx="12" fill="url(#gradCust)" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.1))"/>
+            <text x="120" y="58" fill="#ffffff" font-weight="700" font-size="15" text-anchor="middle" font-family="Plus Jakarta Sans">CUSTOMER</text>
+            <text x="120" y="78" fill="#e0f2fe" font-size="11" text-anchor="middle" font-family="Plus Jakarta Sans">Posts Request / Compares Bids</text>
+            <text x="120" y="94" fill="#bae6fd" font-size="10" text-anchor="middle" font-family="Plus Jakarta Sans">Rates & Pays</text>
+
+            <!-- Arrows Cust <-> Platform -->
+            <path d="M 225 55 L 305 55" stroke="#0284c7" stroke-width="2.5" marker-end="url(#arrow)" />
+            <text x="265" y="46" fill="#0369a1" font-size="9" font-weight="700" text-anchor="middle" font-family="Plus Jakarta Sans">Job Request</text>
+
+            <path d="M 305 85 L 225 85" stroke="#0284c7" stroke-width="2.5" marker-end="url(#arrow)" />
+            <text x="265" y="102" fill="#0369a1" font-size="9" font-weight="700" text-anchor="middle" font-family="Plus Jakarta Sans">Bids & Updates</text>
+
+            <!-- FixLink Core Platform Node -->
+            <rect x="315" y="15" width="250" height="110" rx="14" fill="url(#gradPlatform)" filter="drop-shadow(0 8px 16px rgba(15,23,42,0.2))"/>
+            <rect x="330" y="24" width="220" height="24" rx="6" fill="rgba(255,255,255,0.08)" />
+            <text x="440" y="40" fill="#38bdf8" font-weight="800" font-size="13" text-anchor="middle" font-family="Plus Jakarta Sans">FixLink Core Engine</text>
+            <text x="440" y="65" fill="#f8fafc" font-size="11" text-anchor="middle" font-weight="600" font-family="Plus Jakarta Sans">Matching & Dispatch Engine</text>
+            <text x="440" y="83" fill="#cbd5e1" font-size="10" text-anchor="middle" font-family="Plus Jakarta Sans">Real-Time Chat & Bid Aggregator</text>
+            <text x="440" y="100" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">JWT Auth | Cloudinary | Socket.io</text>
+
+            <!-- Arrows Platform <-> Tech -->
+            <path d="M 570 55 L 650 55" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrowTech)" />
+            <text x="610" y="46" fill="#1d4ed8" font-size="9" font-weight="700" text-anchor="middle" font-family="Plus Jakarta Sans">Notifications</text>
+
+            <path d="M 650 85 L 570 85" stroke="#2563eb" stroke-width="2.5" marker-end="url(#arrowTech)" />
+            <text x="610" y="102" fill="#1d4ed8" font-size="9" font-weight="700" text-anchor="middle" font-family="Plus Jakarta Sans">Quotes & Status</text>
+
+            <!-- Technician Node -->
+            <rect x="660" y="25" width="200" height="90" rx="12" fill="url(#gradTech)" filter="drop-shadow(0 4px 6px rgba(0,0,0,0.1))"/>
+            <text x="760" y="58" fill="#ffffff" font-weight="700" font-size="15" text-anchor="middle" font-family="Plus Jakarta Sans">SERVICE PROVIDER</text>
+            <text x="760" y="78" fill="#dbeafe" font-size="11" text-anchor="middle" font-family="Plus Jakarta Sans">Browses Jobs / Sends Bids</text>
+            <text x="760" y="94" fill="#bfdbfe" font-size="10" text-anchor="middle" font-family="Plus Jakarta Sans">Fulfills Tasks & Earns</text>
+          </svg>
+        </div>
+
+        <div class="grid-3">
+          <div class="card" style="padding:14px;">
+            <div class="card-title" style="font-size:14px;">Market Transparency</div>
+            <p class="card-text" style="font-size:12px;">Eliminates arbitrary price quotes through transparent competitive bidding.</p>
+          </div>
+          <div class="card" style="padding:14px;">
+            <div class="card-title" style="font-size:14px;">Trust Verification</div>
+            <p class="card-text" style="font-size:12px;">Authenticated user accounts, audited profiles, and authentic post-job reviews.</p>
+          </div>
+          <div class="card" style="padding:14px;">
+            <div class="card-title" style="font-size:14px;">Digital Audit Trail</div>
+            <p class="card-text" style="font-size:12px;">All interactions, timestamps, chat logs, and order states are securely logged.</p>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left"><span>FixLink Defense Presentation</span></div>
+        <div class="slide-number">06 / 15</div>
+      </footer>
+    </section>
+
+    <!-- ===================================================================
+         SLIDE 7: MAIN FEATURES
+    ==================================================================== -->
+    <section class="slide" data-slide="7" id="slide-7">
+      <header class="slide-header">
+        <div>
+          <div class="slide-category">System Capabilities</div>
+          <h2 class="slide-title">Main Features</h2>
+          <div class="slide-subtitle">Comprehensive functional modules engineered within the mobile platform</div>
+        </div>
+        <div class="slide-badge">10 Core Modules</div>
+      </header>
+      <div class="slide-content">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title" style="color:var(--primary); font-size:15px; margin-bottom:10px;">
+              User Facing & Transactional
+            </div>
+            <ul class="bullet-list">
+              <li class="bullet-item">
+                <span class="bullet-icon">🔐</span>
+                <span><strong>Auth & Role Management:</strong> Secure registration, JWT sessions, role separation (Customer, Provider, Admin).</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">📂</span>
+                <span><strong>Service Taxonomy:</strong> Categorized offerings (Plumbing, Electrical, Carpentry, Appliance repair) with sub-services.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">📋</span>
+                <span><strong>Request Posting & Search:</strong> Dynamic job creation with description, photos, schedules, and provider filtering.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">💰</span>
+                <span><strong>Quotation & Bidding Engine:</strong> Providers propose rates; customers evaluate and hire in one click.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">📦</span>
+                <span><strong>Order & Task Lifecycle:</strong> Real-time task tracking across Pending, In-Progress, and Completed states.</span>
+              </li>
+            </ul>
+          </div>
+
+          <div class="card">
+            <div class="card-title" style="color:var(--accent); font-size:15px; margin-bottom:10px;">
+              Communication, Trust & Operations
+            </div>
+            <ul class="bullet-list">
+              <li class="bullet-item">
+                <span class="bullet-icon">💬</span>
+                <span><strong>Real-Time Messaging:</strong> WebSockets (Socket.io) chat with immediate duplex delivery and chat history.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">🔔</span>
+                <span><strong>Push & In-App Alerts:</strong> Immediate notifications for bid receipts, acceptance, and messaging events.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">⭐</span>
+                <span><strong>Verified Rating System:</strong> Star ratings and qualitative feedback locked strictly to completed orders.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">👤</span>
+                <span><strong>Profile & Portfolio:</strong> Bio, skills list, Cloudinary profile photo, and operational stats.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">📊</span>
+                <span><strong>Administrative Oversight:</strong> User management, service catalogs, dispute control, and platform KPIs.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left"><span>FixLink Defense Presentation</span></div>
+        <div class="slide-number">07 / 15</div>
+      </footer>
+    </section>
+
+    <!-- ===================================================================
+         SLIDE 8: CUSTOMER WORKFLOW
+    ==================================================================== -->
+    <section class="slide" data-slide="8" id="slide-8">
+      <header class="slide-header">
+        <div>
+          <div class="slide-category">User Experience Flow</div>
+          <h2 class="slide-title">Customer Workflow</h2>
+          <div class="slide-subtitle">The eight-stage end-to-end journey of a household service seeker</div>
+        </div>
+        <div class="slide-badge">8 Linear Steps</div>
+      </header>
+      <div class="slide-content">
+        <div class="flow-steps">
+          <div class="flow-step-card">
+            <div class="flow-num">1</div>
+            <div class="flow-title">Register / Login</div>
+            <div class="flow-desc">Create secure account with role selection</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+
+          <div class="flow-step-card">
+            <div class="flow-num">2</div>
+            <div class="flow-title">Select Service</div>
+            <div class="flow-desc">Browse repair categories & sub-services</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+
+          <div class="flow-step-card">
+            <div class="flow-num">3</div>
+            <div class="flow-title">Post Request</div>
+            <div class="flow-desc">Enter description, urgency & schedule</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+
+          <div class="flow-step-card">
+            <div class="flow-num">4</div>
+            <div class="flow-title">Receive Quotes</div>
+            <div class="flow-desc">Evaluate bids from certified providers</div>
+          </div>
+        </div>
+
+        <div class="flow-steps" style="margin-top: 14px;">
+          <div class="flow-step-card">
+            <div class="flow-num">5</div>
+            <div class="flow-title">Select Provider</div>
+            <div class="flow-desc">Accept optimal quote to spawn Order</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+
+          <div class="flow-step-card">
+            <div class="flow-num">6</div>
+            <div class="flow-title">Chat & Track</div>
+            <div class="flow-desc">Coordinate in real-time & follow status</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+
+          <div class="flow-step-card">
+            <div class="flow-num">7</div>
+            <div class="flow-title">Complete Job</div>
+            <div class="flow-desc">Inspect work and confirm completion</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+
+          <div class="flow-step-card highlight">
+            <div class="flow-num" style="background:#059669;">8</div>
+            <div class="flow-title">Rate & Review</div>
+            <div class="flow-desc">Submit 5-star feedback to build trust</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 16px; background:#f0fdf4; border-color:#bbf7d0; padding:12px 18px;">
+          <div style="font-size:12px; color:#166534; font-weight:600;">
+            💡 <strong>Key UX Benefit:</strong> Customers are shielded from cold-calling technicians; verified providers compete for their business, lowering cost and reducing waiting times.
+          </div>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left"><span>FixLink Defense Presentation</span></div>
+        <div class="slide-number">08 / 15</div>
+      </footer>
+    </section>
+
+    <!-- ===================================================================
+         SLIDE 9: SERVICE PROVIDER WORKFLOW
+    ==================================================================== -->
+    <section class="slide" data-slide="9" id="slide-9">
+      <header class="slide-header">
+        <div>
+          <div class="slide-category">User Experience Flow</div>
+          <h2 class="slide-title">Service Provider Workflow</h2>
+          <div class="slide-subtitle">Structured acquisition and delivery cycle for independent service professionals</div>
+        </div>
+        <div class="slide-badge">Technician Journey</div>
+      </header>
+      <div class="slide-content">
+        <div class="flow-steps">
+          <div class="flow-step-card">
+            <div class="flow-num">1</div>
+            <div class="flow-title">Register / Setup</div>
+            <div class="flow-desc">Provider sign-up and credential profile</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+
+          <div class="flow-step-card">
+            <div class="flow-num">2</div>
+            <div class="flow-title">Configure Skills</div>
+            <div class="flow-desc">Pick trade skills & service coverage area</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+
+          <div class="flow-step-card">
+            <div class="flow-num">3</div>
+            <div class="flow-title">Job Alerts</div>
+            <div class="flow-desc">Receive real-time matching job notices</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+
+          <div class="flow-step-card">
+            <div class="flow-num">4</div>
+            <div class="flow-title">Inspect Leads</div>
+            <div class="flow-desc">Review task scope, location & budget</div>
+          </div>
+        </div>
+
+        <div class="flow-steps" style="margin-top: 14px;">
+          <div class="flow-step-card">
+            <div class="flow-num">5</div>
+            <div class="flow-title">Send Quote</div>
+            <div class="flow-desc">Submit competitive price & proposal</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+
+          <div class="flow-step-card">
+            <div class="flow-num">6</div>
+            <div class="flow-title">Direct Chat</div>
+            <div class="flow-desc">Clarify details and schedule on-site visit</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+
+          <div class="flow-step-card">
+            <div class="flow-num">7</div>
+            <div class="flow-title">Execute Service</div>
+            <div class="flow-desc">Perform technical work & mark complete</div>
+          </div>
+          <div class="flow-arrow">➔</div>
+
+          <div class="flow-step-card highlight">
+            <div class="flow-num" style="background:#059669;">8</div>
+            <div class="flow-title">Earn & Build Rep</div>
+            <div class="flow-desc">Receive review & climb platform ranks</div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-top: 16px; background:#eff6ff; border-color:#bfdbfe; padding:12px 18px;">
+          <div style="font-size:12px; color:#1e40af; font-weight:600;">
+            💡 <strong>Economic Empowerment:</strong> Eliminates marketing overhead for local tradespeople; technicians gain guaranteed market reach based strictly on skill and customer ratings.
+          </div>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left"><span>FixLink Defense Presentation</span></div>
+        <div class="slide-number">09 / 15</div>
+      </footer>
+    </section>
+
+    <!-- ===================================================================
+         SLIDE 10: SYSTEM ARCHITECTURE
+    ==================================================================== -->
+    <section class="slide" data-slide="10" id="slide-10">
+      <header class="slide-header">
+        <div>
+          <div class="slide-category">Technical Implementation</div>
+          <h2 class="slide-title">System Architecture</h2>
+          <div class="slide-subtitle">Multi-tier decoupled stack utilizing React Native, Node.js/Express, and MongoDB</div>
+        </div>
+        <div class="slide-badge">Full-Stack Stack</div>
+      </header>
+      <div class="slide-content">
+        <!-- SVG Architecture Tier Diagram -->
+        <div class="diagram-container" style="padding:10px 14px;">
+          <svg viewBox="0 0 900 240" width="100%" height="210" xmlns="http://www.w3.org/2000/svg">
+            <!-- Tier 1: Client Layer -->
+            <rect x="20" y="15" width="220" height="210" rx="10" fill="#f8fafc" stroke="#0284c7" stroke-width="1.5" stroke-dasharray="3,3" />
+            <text x="130" y="38" fill="#0369a1" font-size="12" font-weight="800" text-anchor="middle" font-family="Plus Jakarta Sans">CLIENT LAYER</text>
+
+            <rect x="35" y="55" width="190" height="70" rx="8" fill="#ffffff" stroke="#cbd5e1" />
+            <text x="130" y="80" fill="#0f172a" font-size="12" font-weight="700" text-anchor="middle" font-family="Plus Jakarta Sans">Mobile Application</text>
+            <text x="130" y="98" fill="#0284c7" font-size="10" font-weight="600" text-anchor="middle" font-family="Plus Jakarta Sans">React Native / Expo</text>
+            <text x="130" y="112" fill="#64748b" font-size="9" text-anchor="middle" font-family="Plus Jakarta Sans">iOS & Android Compatible</text>
+
+            <rect x="35" y="135" width="190" height="70" rx="8" fill="#ffffff" stroke="#cbd5e1" />
+            <text x="130" y="160" fill="#0f172a" font-size="12" font-weight="700" text-anchor="middle" font-family="Plus Jakarta Sans">Admin Web Portal</text>
+            <text x="130" y="178" fill="#2563eb" font-size="10" font-weight="600" text-anchor="middle" font-family="Plus Jakarta Sans">React.js + Vite</text>
+            <text x="130" y="192" fill="#64748b" font-size="9" text-anchor="middle" font-family="Plus Jakarta Sans">Dashboard & Ops Control</text>
+
+            <!-- Arrows to Gateway -->
+            <path d="M 240 90 L 310 90" stroke="#0284c7" stroke-width="2" marker-end="url(#arrow)" />
+            <text x="275" y="82" fill="#0369a1" font-size="8" font-weight="700" text-anchor="middle">REST / JSON</text>
+
+            <path d="M 240 170 L 310 135" stroke="#2563eb" stroke-width="2" marker-end="url(#arrowTech)" />
+            <text x="275" y="162" fill="#1d4ed8" font-size="8" font-weight="700" text-anchor="middle">WebSocket</text>
+
+            <!-- Tier 2: Server Layer -->
+            <rect x="320" y="15" width="280" height="210" rx="10" fill="#0f172a" />
+            <text x="460" y="38" fill="#38bdf8" font-size="12" font-weight="800" text-anchor="middle" font-family="Plus Jakarta Sans">APPLICATION SERVER LAYER</text>
+
+            <rect x="340" y="55" width="240" height="42" rx="6" fill="#1e293b" />
+            <text x="460" y="74" fill="#f8fafc" font-size="11" font-weight="700" text-anchor="middle" font-family="Plus Jakarta Sans">Node.js + Express.js</text>
+            <text x="460" y="88" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">RESTful API Routing & Middleware</text>
+
+            <rect x="340" y="105" width="240" height="42" rx="6" fill="#1e293b" />
+            <text x="460" y="124" fill="#f8fafc" font-size="11" font-weight="700" text-anchor="middle" font-family="Plus Jakarta Sans">Real-Time Socket.io Server</text>
+            <text x="460" y="138" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Chat & Instant Notification Events</text>
+
+            <rect x="340" y="155" width="240" height="52" rx="6" fill="#1e293b" />
+            <text x="460" y="173" fill="#f8fafc" font-size="11" font-weight="700" text-anchor="middle" font-family="Plus Jakarta Sans">Security & Auth Subsystem</text>
+            <text x="460" y="188" fill="#94a3b8" font-size="9" text-anchor="middle" font-family="JetBrains Mono">JWT Token Validation & Bcrypt Hashing</text>
+            <text x="460" y="200" fill="#38bdf8" font-size="8" text-anchor="middle" font-family="Plus Jakarta Sans">Role-Based Access Control</text>
+
+            <!-- Arrows to DB/Services -->
+            <path d="M 600 80 L 670 80" stroke="#059669" stroke-width="2" />
+            <path d="M 600 170 L 670 170" stroke="#0284c7" stroke-width="2" />
+
+            <!-- Tier 3: Data & Media Layer -->
+            <rect x="680" y="15" width="200" height="210" rx="10" fill="#f8fafc" stroke="#64748b" stroke-width="1.5" stroke-dasharray="3,3" />
+            <text x="780" y="38" fill="#334155" font-size="12" font-weight="800" text-anchor="middle" font-family="Plus Jakarta Sans">DATA & STORAGE</text>
+
+            <rect x="695" y="55" width="170" height="70" rx="8" fill="#ffffff" stroke="#059669" stroke-width="1.5" />
+            <text x="780" y="80" fill="#059669" font-size="12" font-weight="800" text-anchor="middle" font-family="Plus Jakarta Sans">MongoDB Atlas</text>
+            <text x="780" y="98" fill="#0f172a" font-size="10" font-weight="600" text-anchor="middle" font-family="Plus Jakarta Sans">NoSQL Document Store</text>
+            <text x="780" y="112" fill="#64748b" font-size="9" text-anchor="middle" font-family="JetBrains Mono">Mongoose ODM Schemas</text>
+
+            <rect x="695" y="135" width="170" height="70" rx="8" fill="#ffffff" stroke="#0284c7" stroke-width="1.5" />
+            <text x="780" y="160" fill="#0284c7" font-size="12" font-weight="800" text-anchor="middle" font-family="Plus Jakarta Sans">Cloudinary CDN</text>
+            <text x="780" y="178" fill="#0f172a" font-size="10" font-weight="600" text-anchor="middle" font-family="Plus Jakarta Sans">Media Assets & Images</text>
+            <text x="780" y="192" fill="#64748b" font-size="9" text-anchor="middle" font-family="Plus Jakarta Sans">Fast Global Asset Delivery</text>
+          </svg>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left"><span>FixLink Defense Presentation</span></div>
+        <div class="slide-number">10 / 15</div>
+      </footer>
+    </section>
+
+    <!-- ===================================================================
+         SLIDE 11: DATABASE DESIGN
+    ==================================================================== -->
+    <section class="slide" data-slide="11" id="slide-11">
+      <header class="slide-header">
+        <div>
+          <div class="slide-category">Data Modeling</div>
+          <h2 class="slide-title">Database Design & Data Entities</h2>
+          <div class="slide-subtitle">Normalized Mongoose schemas illustrating primary collections and relational references</div>
+        </div>
+        <div class="slide-badge">MongoDB Schemas</div>
+      </header>
+      <div class="slide-content">
+        <div class="grid-4" style="margin-bottom: 12px;">
+          <!-- User Entity -->
+          <div class="card" style="padding:12px;">
+            <div style="font-family:'JetBrains Mono'; font-size:11px; font-weight:700; color:var(--primary); margin-bottom:6px;">
+              User Collection
+            </div>
+            <div style="font-size:10px; color:var(--slate-600); line-height:1.4;">
+              • <strong>_id:</strong> ObjectId<br>
+              • <strong>name, email, phone:</strong> String<br>
+              • <strong>passwordHash:</strong> String<br>
+              • <strong>role:</strong> Customer|Provider|Admin<br>
+              • <strong>avatarUrl:</strong> String (Cloudinary)<br>
+              • <strong>skills:</strong> [CategoryRef]<br>
+              • <strong>ratingAverage:</strong> Number
+            </div>
+          </div>
+
+          <!-- Service Entity -->
+          <div class="card" style="padding:12px;">
+            <div style="font-family:'JetBrains Mono'; font-size:11px; font-weight:700; color:var(--primary); margin-bottom:6px;">
+              Service / Category
+            </div>
+            <div style="font-size:10px; color:var(--slate-600); line-height:1.4;">
+              • <strong>_id:</strong> ObjectId<br>
+              • <strong>title:</strong> String<br>
+              • <strong>description:</strong> String<br>
+              • <strong>iconUrl:</strong> String<br>
+              • <strong>subServices:</strong> [Array]<br>
+              • <strong>basePrice:</strong> Number<br>
+              • <strong>isActive:</strong> Boolean
+            </div>
+          </div>
+
+          <!-- ServiceRequest / Job Entity -->
+          <div class="card" style="padding:12px;">
+            <div style="font-family:'JetBrains Mono'; font-size:11px; font-weight:700; color:var(--accent); margin-bottom:6px;">
+              ServiceRequest (Job)
+            </div>
+            <div style="font-size:10px; color:var(--slate-600); line-height:1.4;">
+              • <strong>_id:</strong> ObjectId<br>
+              • <strong>customer:</strong> Ref(User)<br>
+              • <strong>service:</strong> Ref(Service)<br>
+              • <strong>title, description:</strong> String<br>
+              • <strong>status:</strong> Open|Bidding|Assigned<br>
+              • <strong>location:</strong> Coordinates<br>
+              • <strong>scheduledDate:</strong> Date
+            </div>
+          </div>
+
+          <!-- Bid / Proposal Entity -->
+          <div class="card" style="padding:12px;">
+            <div style="font-family:'JetBrains Mono'; font-size:11px; font-weight:700; color:var(--accent); margin-bottom:6px;">
+              Bid / Quote
+            </div>
+            <div style="font-size:10px; color:var(--slate-600); line-height:1.4;">
+              • <strong>_id:</strong> ObjectId<br>
+              • <strong>job:</strong> Ref(ServiceRequest)<br>
+              • <strong>provider:</strong> Ref(User)<br>
+              • <strong>proposedPrice:</strong> Number<br>
+              • <strong>noteMessage:</strong> String<br>
+              • <strong>status:</strong> Pending|Accepted|Rejected<br>
+              • <strong>createdAt:</strong> Timestamp
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-4">
+          <!-- Order Entity -->
+          <div class="card" style="padding:12px;">
+            <div style="font-family:'JetBrains Mono'; font-size:11px; font-weight:700; color:var(--navy); margin-bottom:6px;">
+              Order / Task
+            </div>
+            <div style="font-size:10px; color:var(--slate-600); line-height:1.4;">
+              • <strong>_id:</strong> ObjectId<br>
+              • <strong>job:</strong> Ref(ServiceRequest)<br>
+              • <strong>acceptedBid:</strong> Ref(Bid)<br>
+              • <strong>customer, provider:</strong> Ref(User)<br>
+              • <strong>agreedCost:</strong> Number<br>
+              • <strong>status:</strong> In-Progress|Completed<br>
+              • <strong>completionDate:</strong> Date
+            </div>
+          </div>
+
+          <!-- Message Entity -->
+          <div class="card" style="padding:12px;">
+            <div style="font-family:'JetBrains Mono'; font-size:11px; font-weight:700; color:var(--navy); margin-bottom:6px;">
+              Message
+            </div>
+            <div style="font-size:10px; color:var(--slate-600); line-height:1.4;">
+              • <strong>_id:</strong> ObjectId<br>
+              • <strong>sender, receiver:</strong> Ref(User)<br>
+              • <strong>orderOrJob:</strong> Ref(Order)<br>
+              • <strong>text:</strong> String<br>
+              • <strong>attachments:</strong> [String]<br>
+              • <strong>isRead:</strong> Boolean<br>
+              • <strong>timestamp:</strong> Date
+            </div>
+          </div>
+
+          <!-- Notification Entity -->
+          <div class="card" style="padding:12px;">
+            <div style="font-family:'JetBrains Mono'; font-size:11px; font-weight:700; color:var(--navy); margin-bottom:6px;">
+              Notification
+            </div>
+            <div style="font-size:10px; color:var(--slate-600); line-height:1.4;">
+              • <strong>_id:</strong> ObjectId<br>
+              • <strong>recipient:</strong> Ref(User)<br>
+              • <strong>title:</strong> String<br>
+              • <strong>body:</strong> String<br>
+              • <strong>type:</strong> BID|ORDER|CHAT<br>
+              • <strong>targetId:</strong> ObjectId<br>
+              • <strong>read:</strong> Boolean
+            </div>
+          </div>
+
+          <!-- Review Entity -->
+          <div class="card" style="padding:12px;">
+            <div style="font-family:'JetBrains Mono'; font-size:11px; font-weight:700; color:var(--navy); margin-bottom:6px;">
+              Review
+            </div>
+            <div style="font-size:10px; color:var(--slate-600); line-height:1.4;">
+              • <strong>_id:</strong> ObjectId<br>
+              • <strong>order:</strong> Ref(Order)<br>
+              • <strong>customer:</strong> Ref(User)<br>
+              • <strong>provider:</strong> Ref(User)<br>
+              • <strong>rating:</strong> Number (1 to 5)<br>
+              • <strong>comment:</strong> String<br>
+              • <strong>createdAt:</strong> Timestamp
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left"><span>FixLink Defense Presentation</span></div>
+        <div class="slide-number">11 / 15</div>
+      </footer>
+    </section>
+
+    <!-- ===================================================================
+         SLIDE 12: ADMIN DASHBOARD
+    ==================================================================== -->
+    <section class="slide" data-slide="12" id="slide-12">
+      <header class="slide-header">
+        <div>
+          <div class="slide-category">Platform Governance</div>
+          <h2 class="slide-title">Admin Dashboard & Operations</h2>
+          <div class="slide-subtitle">Centralized portal for platform moderation, analytics, and service management</div>
+        </div>
+        <div class="slide-badge">React Admin Web</div>
+      </header>
+      <div class="slide-content">
+        <div class="grid-2">
+          <!-- Left: Key Admin Features -->
+          <div class="card">
+            <div class="card-title" style="font-size:15px; color:var(--navy);">Administrative Responsibilities</div>
+            <ul class="bullet-list" style="margin-top: 8px;">
+              <li class="bullet-item">
+                <span class="bullet-icon">🛡️</span>
+                <span><strong>User Lifecycle Management:</strong> Verify provider trade credentials, suspend violating accounts, and manage roles.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">📦</span>
+                <span><strong>Catalog Configuration:</strong> Dynamically introduce new repair categories, edit sub-services, and set pricing baselines.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">📋</span>
+                <span><strong>Order & Request Auditing:</strong> Inspect live orders, investigate disputed quotes, and arbitrate complaints.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">⭐</span>
+                <span><strong>Review Moderation:</strong> Audit abusive comments or fraudulent reviews to guarantee platform authenticity.</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Right: Visual Wireframe / Mockup of Dashboard -->
+          <div class="card" style="background:#ffffff; border:2px solid var(--border-accent);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; border-bottom:1px solid #e2e8f0; padding-bottom:8px;">
+              <div style="font-weight:700; font-size:13px; color:var(--navy);">FixLink Admin Portal</div>
+              <span class="status-badge pass">Admin Authenticated</span>
+            </div>
+
+            <!-- KPI metrics row -->
+            <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:12px;">
+              <div style="background:#f8fafc; padding:8px; border-radius:6px; border:1px solid #e2e8f0; text-align:center;">
+                <div style="font-size:9px; color:#64748b; font-weight:700;">TOTAL USERS</div>
+                <div style="font-size:16px; font-weight:800; color:#0284c7;">1,248</div>
+              </div>
+              <div style="background:#f8fafc; padding:8px; border-radius:6px; border:1px solid #e2e8f0; text-align:center;">
+                <div style="font-size:9px; color:#64748b; font-weight:700;">ACTIVE JOBS</div>
+                <div style="font-size:16px; font-weight:800; color:#2563eb;">84</div>
+              </div>
+              <div style="background:#f8fafc; padding:8px; border-radius:6px; border:1px solid #e2e8f0; text-align:center;">
+                <div style="font-size:9px; color:#64748b; font-weight:700;">COMPLETED</div>
+                <div style="font-size:16px; font-weight:800; color:#059669;">912</div>
+              </div>
+            </div>
+
+            <!-- Table snapshot mockup -->
+            <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:8px; font-size:10px;">
+              <div style="display:flex; justify-content:space-between; font-weight:700; color:#475569; padding-bottom:4px; border-bottom:1px solid #e2e8f0;">
+                <span>User / Provider</span>
+                <span>Category</span>
+                <span>Status</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px solid #f1f5f9;">
+                <span>John D. (Technician)</span>
+                <span>House Wiring</span>
+                <span style="color:#059669; font-weight:600;">Verified</span>
+              </div>
+              <div style="display:flex; justify-content:space-between; padding:4px 0;">
+                <span>Sarah M. (Customer)</span>
+                <span>Plumbing Leak</span>
+                <span style="color:#0284c7; font-weight:600;">Active</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left"><span>FixLink Defense Presentation</span></div>
+        <div class="slide-number">12 / 15</div>
+      </footer>
+    </section>
+
+    <!-- ===================================================================
+         SLIDE 13: USER INTERFACE SHOWCASE
+    ==================================================================== -->
+    <section class="slide" data-slide="13" id="slide-13">
+      <header class="slide-header">
+        <div>
+          <div class="slide-category">System Design & Implementation</div>
+          <h2 class="slide-title">User Interface & Screen Showcase</h2>
+          <div class="slide-subtitle">Intuitive, mobile-first design built with React Native and modern visual hierarchy</div>
+        </div>
+        <div class="slide-badge">8 Key UI Flows</div>
+      </header>
+      <div class="slide-content">
+        <div class="mockup-grid">
+          <!-- 1. Home -->
+          <div class="mockup-card">
+            <div class="mockup-screen">
+              <div class="screen-wireframe">
+                <div class="wireframe-bar primary"></div>
+                <div class="wireframe-row">
+                  <div class="wireframe-pill"></div>
+                  <div class="wireframe-pill"></div>
+                </div>
+                <div class="wireframe-bar"></div>
+              </div>
+            </div>
+            <div class="mockup-info">
+              <div class="mockup-name">1. Home Screen</div>
+              <div class="mockup-desc">Category quick-launch cards, banner alerts, and active job status widget.</div>
+            </div>
+          </div>
+
+          <!-- 2. Services -->
+          <div class="mockup-card">
+            <div class="mockup-screen">
+              <div class="screen-wireframe">
+                <div class="wireframe-bar" style="background:#38bdf8;"></div>
+                <div class="wireframe-row"><div class="wireframe-pill"></div></div>
+                <div class="wireframe-row"><div class="wireframe-pill"></div></div>
+              </div>
+            </div>
+            <div class="mockup-info">
+              <div class="mockup-name">2. Services Catalog</div>
+              <div class="mockup-desc">Categorized listings for electrical, plumbing, HVAC, and painting with sub-services.</div>
+            </div>
+          </div>
+
+          <!-- 3. Provider Profile -->
+          <div class="mockup-card">
+            <div class="mockup-screen">
+              <div class="screen-wireframe">
+                <div style="width:20px; height:20px; border-radius:50%; background:#0284c7; margin:0 auto;"></div>
+                <div class="wireframe-bar primary" style="width:50%; margin:0 auto;"></div>
+                <div class="wireframe-bar"></div>
+              </div>
+            </div>
+            <div class="mockup-info">
+              <div class="mockup-name">3. Provider Profile</div>
+              <div class="mockup-desc">Verified badges, star metrics, past job reviews, and verified trade skills.</div>
+            </div>
+          </div>
+
+          <!-- 4. Available Jobs -->
+          <div class="mockup-card">
+            <div class="mockup-screen">
+              <div class="screen-wireframe">
+                <div class="wireframe-bar" style="background:#2563eb;"></div>
+                <div class="wireframe-row"><div class="wireframe-pill"></div></div>
+                <div class="wireframe-bar"></div>
+              </div>
+            </div>
+            <div class="mockup-info">
+              <div class="mockup-name">4. Available Jobs</div>
+              <div class="mockup-desc">Provider job board with distance, urgency tags, and one-tap bidding proposal.</div>
+            </div>
+          </div>
+
+          <!-- 5. My Orders/Tasks -->
+          <div class="mockup-card">
+            <div class="mockup-screen">
+              <div class="screen-wireframe">
+                <div class="wireframe-bar primary"></div>
+                <div class="wireframe-pill" style="height:14px; background:#059669;"></div>
+                <div class="wireframe-pill" style="height:14px; background:#0284c7;"></div>
+              </div>
+            </div>
+            <div class="mockup-info">
+              <div class="mockup-name">5. Orders & Tasks</div>
+              <div class="mockup-desc">Segmented tabs for Pending, Active, and Completed repairs with live status.</div>
+            </div>
+          </div>
+
+          <!-- 6. Real-Time Chat -->
+          <div class="mockup-card">
+            <div class="mockup-screen">
+              <div class="screen-wireframe">
+                <div style="background:#0284c7; height:12px; width:60%; border-radius:4px; align-self:flex-end;"></div>
+                <div style="background:#334155; height:12px; width:60%; border-radius:4px; align-self:flex-start;"></div>
+              </div>
+            </div>
+            <div class="mockup-info">
+              <div class="mockup-name">6. In-App Chat</div>
+              <div class="mockup-desc">Socket.io real-time conversational messaging with read receipts and timestamps.</div>
+            </div>
+          </div>
+
+          <!-- 7. Profile & Settings -->
+          <div class="mockup-card">
+            <div class="mockup-screen">
+              <div class="screen-wireframe">
+                <div class="wireframe-bar"></div>
+                <div class="wireframe-bar primary"></div>
+                <div class="wireframe-row"><div class="wireframe-pill"></div></div>
+              </div>
+            </div>
+            <div class="mockup-info">
+              <div class="mockup-name">7. Profile & Settings</div>
+              <div class="mockup-desc">Manage account credentials, role toggle, notification preferences, and logout.</div>
+            </div>
+          </div>
+
+          <!-- 8. Admin Dashboard -->
+          <div class="mockup-card">
+            <div class="mockup-screen">
+              <div class="screen-wireframe">
+                <div class="wireframe-row">
+                  <div class="wireframe-pill" style="background:#0284c7;"></div>
+                  <div class="wireframe-pill" style="background:#059669;"></div>
+                </div>
+                <div class="wireframe-bar"></div>
+              </div>
+            </div>
+            <div class="mockup-info">
+              <div class="mockup-name">8. Admin Portal</div>
+              <div class="mockup-desc">Web desktop dashboard for monitoring platform operations, metrics, and catalog.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left"><span>FixLink Defense Presentation</span></div>
+        <div class="slide-number">13 / 15</div>
+      </footer>
+    </section>
+
+    <!-- ===================================================================
+         SLIDE 14: TESTING & RESULTS
+    ==================================================================== -->
+    <section class="slide" data-slide="14" id="slide-14">
+      <header class="slide-header">
+        <div>
+          <div class="slide-category">Verification & Quality Assurance</div>
+          <h2 class="slide-title">Testing & Evaluation Results</h2>
+          <div class="slide-subtitle">Rigorous functional and integration verification of primary application workflows</div>
+        </div>
+        <div class="slide-badge">100% Core Passes</div>
+      </header>
+      <div class="slide-content">
+        <table class="test-table">
+          <thead>
+            <tr>
+              <th>Test Module</th>
+              <th>Test Objective & Scenario</th>
+              <th>Observed Outcome</th>
+              <th>Verdict</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Authentication & JWT</strong></td>
+              <td>Registration, bcrypt hashing, JWT issuance & route guard protection</td>
+              <td>Unauthorized requests rejected (401/403); secure sessions preserved</td>
+              <td><span class="status-badge pass">✔ PASS</span></td>
+            </tr>
+            <tr>
+              <td><strong>Service Request Flow</strong></td>
+              <td>Job creation, category binding, payload validation & broadcasting</td>
+              <td>Jobs successfully persisted in MongoDB with correct status flags</td>
+              <td><span class="status-badge pass">✔ PASS</span></td>
+            </tr>
+            <tr>
+              <td><strong>Provider Bidding</strong></td>
+              <td>Submitting quotes, price input validation, bid selection & order creation</td>
+              <td>Acceptance seamlessly converts bid to active Order state</td>
+              <td><span class="status-badge pass">✔ PASS</span></td>
+            </tr>
+            <tr>
+              <td><strong>Real-Time Chat</strong></td>
+              <td>Duplex messaging via Socket.io, message ordering & storage</td>
+              <td>Instant delivery across active clients without message loss</td>
+              <td><span class="status-badge pass">✔ PASS</span></td>
+            </tr>
+            <tr>
+              <td><strong>Notifications</strong></td>
+              <td>Event-driven alert triggers on new bids, messages, and job updates</td>
+              <td>Real-time badges updated and unread counters synchronized</td>
+              <td><span class="status-badge pass">✔ PASS</span></td>
+            </tr>
+            <tr>
+              <td><strong>Rating & Review Engine</strong></td>
+              <td>Submitting post-service ratings and dynamic provider score recalculation</td>
+              <td>Aggregate score averages accurately reflected on provider profiles</td>
+              <td><span class="status-badge pass">✔ PASS</span></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="card highlight" style="margin-top: 14px; padding:12px 16px;">
+          <div style="font-size:12px; color:var(--primary-dark); font-weight:600;">
+            📊 <strong>Evaluation Summary:</strong> All primary end-to-end user workflows executed successfully with zero critical errors. Data consistency across MongoDB, Express REST endpoints, and the React Native client UI was rigorously confirmed.
+          </div>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left"><span>FixLink Defense Presentation</span></div>
+        <div class="slide-number">14 / 15</div>
+      </footer>
+    </section>
+
+    <!-- ===================================================================
+         SLIDE 15: CONCLUSION & FUTURE IMPROVEMENTS
+    ==================================================================== -->
+    <section class="slide" data-slide="15" id="slide-15">
+      <header class="slide-header">
+        <div>
+          <div class="slide-category">Summary & Roadmap</div>
+          <h2 class="slide-title">Conclusion & Future Improvements</h2>
+          <div class="slide-subtitle">Platform impact and continuous engineering roadmap</div>
+        </div>
+        <div class="slide-badge">Defense Conclusion</div>
+      </header>
+      <div class="slide-content">
+        <div class="grid-2">
+          <!-- Achievements -->
+          <div class="card" style="border-top: 4px solid var(--success);">
+            <div class="card-title" style="color:var(--navy); font-size:15px; margin-bottom:8px;">
+              Project Accomplishments
+            </div>
+            <p class="card-text" style="margin-bottom: 10px;">
+              <strong>FixLink</strong> successfully solves the fragmented household repairs dilemma through an elegant digital platform:
+            </p>
+            <ul class="bullet-list">
+              <li class="bullet-item">
+                <span class="bullet-icon">✔</span>
+                <span><strong>Efficiency:</strong> Eliminated search friction and phone-based haggling.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">✔</span>
+                <span><strong>Fair Competition:</strong> Provider bidding lowers consumer costs.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">✔</span>
+                <span><strong>Accountability:</strong> Ratings and chat logs ensure professional conduct.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">✔</span>
+                <span><strong>Solid Engineering:</strong> Scalable React Native, Express, and MongoDB architecture.</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- Future Roadmap -->
+          <div class="card" style="border-top: 4px solid var(--primary);">
+            <div class="card-title" style="color:var(--navy); font-size:15px; margin-bottom:8px;">
+              Future Enhancements Roadmap
+            </div>
+            <ul class="bullet-list">
+              <li class="bullet-item">
+                <span class="bullet-icon">💳</span>
+                <span><strong>In-App Escrow Payments:</strong> Integrated Stripe/PayPal gateway with payment release upon customer sign-off.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">📍</span>
+                <span><strong>Live GPS Location & Routing:</strong> Real-time map tracking of arriving technicians via Mapbox/Google Maps.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">🤖</span>
+                <span><strong>AI-Powered Diagnostics:</strong> Computer-vision image analysis to suggest repair classifications and estimated costs.</span>
+              </li>
+              <li class="bullet-item">
+                <span class="bullet-icon">☁️</span>
+                <span><strong>Enterprise Cloud Deployment:</strong> Containerization via Docker, Kubernetes orchestration, and AWS CI/CD.</span>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div style="margin-top:16px; text-align:center; background:#0f172a; color:#ffffff; padding:14px; border-radius:10px;">
+          <div style="font-size:15px; font-weight:800; color:#38bdf8;">Thank You! Questions & Discussion</div>
+          <div style="font-size:12px; color:#94a3b8; margin-top:2px;">FixLink: Connecting customers with skilled local service providers</div>
+        </div>
+      </div>
+      <footer class="slide-footer">
+        <div class="footer-left"><span>FixLink Defense Presentation</span></div>
+        <div class="slide-number">15 / 15</div>
+      </footer>
+    </section>
+
+  </main>
+
+  <!-- Bottom Navigation and Progress Controls -->
+  <div class="bottom-controls">
+    <div class="nav-btn-group">
+      <button class="btn-nav" id="btn-prev" onclick="prevSlide()">◀ Previous</button>
+      <button class="btn-nav" id="btn-next" onclick="nextSlide()">Next ▶</button>
+    </div>
+
+    <div class="slide-progress">
+      <span id="current-slide-num">1</span> / <span id="total-slide-num">15</span>
+    </div>
+
+    <div style="font-size: 11px; color:#64748b;">
+      Use <strong>Left / Right Arrow</strong> to navigate • Press <strong>N</strong> for Notes • <strong>F</strong> for Fullscreen
+    </div>
+  </div>
+
+  <!-- Speaker Notes Drawer -->
+  <aside class="notes-drawer" id="notes-drawer">
+    <div class="notes-header">
+      <div class="notes-title">
+        <span>🎤 Speaker Notes (Defense Script)</span>
+        <span class="footer-pill" id="notes-slide-pill" style="background:#0284c7; color:#fff;">Slide 1</span>
+      </div>
+      <button class="close-notes-btn" onclick="toggleNotes()" title="Close Notes">✕</button>
+    </div>
+    <div class="notes-body" id="notes-content">
+      <!-- Injected by JavaScript based on active slide -->
+    </div>
+  </aside>
+
+  <!-- Slide Overview Modal -->
+  <div class="overview-modal" id="overview-modal" onclick="closeOverviewOnBackdrop(event)">
+    <div class="overview-header">
+      <h3 style="font-size: 20px; font-weight: 800;">Slide Overview & Quick Jump</h3>
+      <button class="btn-tool" onclick="toggleOverview()">✕ Close</button>
+    </div>
+    <div class="overview-grid" id="overview-grid">
+      <!-- Injected by JavaScript -->
+    </div>
+  </div>
+
+  <script>
+    // Speaker Notes Data Dictionary for each of the 15 slides
+    const speakerNotes = {
+      1: "<strong>Opening & Introduction:</strong> 'Honorable committee members, esteemed advisor, and faculty: Good morning/afternoon. Today, I am proud to present my senior mobile application project: FixLink – Household Repair Service Platform. FixLink is designed to bridge the gap between everyday homeowners and skilled local technicians through transparency, speed, and trust.'",
+      2: "<strong>Contextualizing the Problem:</strong> 'To set the context, household maintenance is an unavoidable universal need. Whether it is an unexpected pipe rupture or an electrical short circuit, people need prompt help. However, the existing traditional marketplace is extremely fragmented and relies almost entirely on informal recommendations, leading to significant inconvenience.'",
+      3: "<strong>Identifying Key Pain Points:</strong> 'We identified four primary barriers in current practices: First, severe difficulty verifying technician skills and trustworthiness. Second, massive information asymmetry where customers cannot evaluate track records. Third, painful price negotiation with arbitrary overcharging. And fourth, no structured accountability or feedback loop when work is completed.'",
+      4: "<strong>Highlighting Project Objectives:</strong> 'To solve these challenges, our project established six clear engineering objectives: create a streamlined mobile interface, design a dynamic quotation/bidding engine, implement real-time communication via WebSockets, establish automated event notifications, and construct a reliable verified rating system.'",
+      5: "<strong>Defining User Personas:</strong> 'Our platform serves three distinct user roles: Customers who post jobs and evaluate bids; Service Providers who view matching job opportunities and submit quotes; and the Administrator who oversees compliance, manages service catalogs, and monitors platform analytics.'",
+      6: "<strong>Explaining Conceptual Architecture:</strong> 'Here you see the high-level operational paradigm. FixLink acts as the trusted digital bridge. Notice the bidirectional flow: customers publish needs, our matching engine notifies relevant tradespeople, and providers respond with competitive quotes. This replaces phone tag with structured data.'",
+      7: "<strong>Walking Through Core Features:</strong> 'FixLink delivers ten robust modules. On the client side, we provide role-based authentication, structured categories from plumbing to electrical, and an active order tracker. For communication and trust, we integrated real-time Socket.io chat, instant notifications, and tamper-resistant reviews.'",
+      8: "<strong>Customer Journey Walkthrough:</strong> 'Examining the customer workflow: An eight-step frictionless progression. From logging in and browsing categories to posting a job, comparing competitive bids, selecting the best technician, tracking work via chat, and finally rating the provider. This guarantees the customer is always in control.'",
+      9: "<strong>Provider Journey Walkthrough:</strong> 'From the technician’s perspective, FixLink acts as a business-in-a-pocket. Providers register their specific trade skills, receive targeted job alerts, review scope details, submit quotes, coordinate directly via chat, and build a verifiable digital reputation that drives future earnings.'",
+      10: "<strong>Explaining System Architecture:</strong> 'Turning to our technical architecture: The client layer is built with React Native and Expo for unified cross-platform mobile delivery, paired with a React admin web console. The backend layer runs on Node.js and Express with JWT security and Socket.io for duplex messaging. Media is hosted on Cloudinary, while all relational document structures reside in MongoDB.'",
+      11: "<strong>Database Schema & Relational Design:</strong> 'Our database architecture comprises eight primary collections. We enforced referential integrity in Mongoose between Users, ServiceRequests, Bids, Orders, Messages, and Reviews. For instance, Reviews are strictly coupled to completed Orders, ensuring no fake ratings can be created.'",
+      12: "<strong>Admin Governance Capabilities:</strong> 'The administrative web portal empowers platform operators with comprehensive oversight: verifying provider credentials, managing repair categories and base fees, arbitrating customer disputes, and viewing live operational KPIs such as active jobs and total service volume.'",
+      13: "<strong>User Interface & Experience:</strong> 'Here is a showcase of eight primary application screens. We focused on a clean, modern aesthetic with high contrast, legible typography, and intuitive affordances. Notice how each screen—from the Home feed to the In-App Chat and Order tracker—reduces cognitive load for the user.'",
+      14: "<strong>Testing Methodology & Results:</strong> 'Quality assurance was paramount throughout development. We tested each subsystem thoroughly: authentication guards, job lifecycle status changes, bidding race conditions, WebSocket chat persistence, and rating recalculations. All core scenarios achieved a 100% pass rate.'",
+      15: "<strong>Conclusion & Future Work:</strong> 'In conclusion, FixLink delivers an end-to-end, tested digital solution that modernizes home repairs. For future iterations, we plan to integrate in-app escrow payments, live GPS tracking for arriving technicians, and AI-driven damage diagnostics. Thank you for your time and attention. I look forward to your questions.'"
+    };
+
+    const slideTitles = [
+      "Title & Defense Information",
+      "Introduction & Context",
+      "Problem Statement",
+      "Project Objectives",
+      "Target Users & Personas",
+      "Proposed Solution & Diagram",
+      "Main Features & Modules",
+      "Customer Workflow",
+      "Service Provider Workflow",
+      "System Architecture",
+      "Database Design & Entities",
+      "Admin Dashboard & Operations",
+      "User Interface & Screen Showcase",
+      "Testing & Evaluation Results",
+      "Conclusion & Future Improvements"
+    ];
+
+    let currentSlide = 1;
+    const totalSlides = 15;
+
+    function showSlide(index) {
+      if (index < 1) index = 1;
+      if (index > totalSlides) index = totalSlides;
+
+      currentSlide = index;
+
+      // Update slides active class
+      document.querySelectorAll('.slide').forEach(slide => {
+        slide.classList.remove('active');
+      });
+      const activeSlideEl = document.getElementById(`slide-${currentSlide}`);
+      if (activeSlideEl) {
+        activeSlideEl.classList.add('active');
+      }
+
+      // Update counters
+      document.getElementById('current-slide-num').innerText = currentSlide;
+      document.getElementById('total-slide-num').innerText = totalSlides;
+
+      // Update navigation button states
+      document.getElementById('btn-prev').disabled = (currentSlide === 1);
+      document.getElementById('btn-next').disabled = (currentSlide === totalSlides);
+
+      // Update speaker notes
+      updateNotesContent();
+
+      // Update overview thumbnails current state
+      document.querySelectorAll('.thumb-card').forEach((card, idx) => {
+        if (idx + 1 === currentSlide) {
+          card.classList.add('current');
+        } else {
+          card.classList.remove('current');
+        }
+      });
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        showSlide(currentSlide + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        showSlide(currentSlide - 1);
+      }
+    }
+
+    function updateNotesContent() {
+      const contentEl = document.getElementById('notes-content');
+      const pillEl = document.getElementById('notes-slide-pill');
+      if (speakerNotes[currentSlide]) {
+        contentEl.innerHTML = speakerNotes[currentSlide];
+        pillEl.innerText = `Slide ${currentSlide} of ${totalSlides}`;
+      } else {
+        contentEl.innerHTML = "<em>No speaker notes registered for this slide.</em>";
+      }
+    }
+
+    function toggleNotes() {
+      const drawer = document.getElementById('notes-drawer');
+      const btn = document.getElementById('btn-notes');
+      drawer.classList.toggle('open');
+      btn.classList.toggle('active');
+    }
+
+    function toggleOverview() {
+      const modal = document.getElementById('overview-modal');
+      const btn = document.getElementById('btn-overview');
+      modal.classList.toggle('open');
+      btn.classList.toggle('active');
+    }
+
+    function closeOverviewOnBackdrop(e) {
+      if (e.target.id === 'overview-modal') {
+        toggleOverview();
+      }
+    }
+
+    function goToSlide(num) {
+      showSlide(num);
+      const modal = document.getElementById('overview-modal');
+      const btn = document.getElementById('btn-overview');
+      modal.classList.remove('open');
+      btn.classList.remove('active');
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.warn(`Fullscreen error: ${err.message}`);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // Populate Overview Grid
+    function populateOverviewGrid() {
+      const grid = document.getElementById('overview-grid');
+      grid.innerHTML = '';
+      for (let i = 1; i <= totalSlides; i++) {
+        const card = document.createElement('div');
+        card.className = `thumb-card ${i === currentSlide ? 'current' : ''}`;
+        card.onclick = () => goToSlide(i);
+        card.innerHTML = `
+          <div class="thumb-num">SLIDE ${String(i).padStart(2, '0')}</div>
+          <div class="thumb-title">${slideTitles[i-1] || 'Slide ' + i}</div>
+        `;
+        grid.appendChild(card);
+      }
+    }
+
+    // Keyboard controls
+    document.addEventListener('keydown', (e) => {
+      // Don't trigger if typing in an input
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      switch(e.key) {
+        case 'ArrowRight':
+        case 'PageDown':
+        case ' ':
+          e.preventDefault();
+          nextSlide();
+          break;
+        case 'ArrowLeft':
+        case 'PageUp':
+          e.preventDefault();
+          prevSlide();
+          break;
+        case 'n':
+        case 'N':
+          toggleNotes();
+          break;
+        case 'o':
+        case 'O':
+          toggleOverview();
+          break;
+        case 'f':
+        case 'F':
+          toggleFullScreen();
+          break;
+        case 'Home':
+          showSlide(1);
+          break;
+        case 'End':
+          showSlide(totalSlides);
+          break;
+      }
+    });
+
+    // Initialize presentation on load
+    window.addEventListener('DOMContentLoaded', () => {
+      populateOverviewGrid();
+      showSlide(1);
+    });
+  </script>
+</body>
+</html>
