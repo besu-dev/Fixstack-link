@@ -1,9 +1,9 @@
 import React, { useState, useMemo } from 'react';
 import { SERVICE_CATEGORIES } from '../api/services';
-import { 
-  Search, 
-  Smartphone, 
-  ArrowRight, 
+import {
+  Search,
+  Smartphone,
+  ArrowRight,
   Wrench
 } from 'lucide-react';
 import './ServicesPage.css';
@@ -23,7 +23,7 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
       const query = searchQuery.toLowerCase();
       const matchTitle = cat.title.toLowerCase().includes(query);
       const matchTagline = cat.tagline.toLowerCase().includes(query);
-      const matchSub = cat.subservices.some((sub) => 
+      const matchSub = cat.subservices.some((sub) =>
         sub.name.toLowerCase().includes(query) || sub.desc.toLowerCase().includes(query)
       );
 
@@ -43,16 +43,15 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
           <span className="section-tag">Our Services</span>
           <h1 className="services-main-title">Household Repair & Maintenance Services</h1>
           <p className="services-hero-desc">
-            Browse our verified repair categories and specialties across Addis Ababa. To request a service, receive quotes, and book a technician, please use the Bete mobile app.
-          </p>
+            Find trusted technicians for your household repair and maintenance needs. Bete offers services including plumbing, electrical work, water pump repair, appliance repair, and general maintenance.          </p>
 
           {/* Search & Filter Toolbar */}
           <div className="services-toolbar">
             {/* Search Input */}
             <div className="services-search-box">
               <Search size={18} className="search-icon" />
-              <input 
-                type="text" 
+              <input
+                type="text"
                 placeholder="Search repair services (e.g., Water Heater, House Wiring, Generator)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
@@ -67,7 +66,7 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
 
             {/* Filter Chips */}
             <div className="services-filter-chips">
-              <button 
+              <button
                 className={`filter-chip ${selectedCategory === 'all' ? 'active' : ''}`}
                 onClick={() => setSelectedCategory('all')}
               >
@@ -75,7 +74,7 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
               </button>
 
               {SERVICE_CATEGORIES.map((cat) => (
-                <button 
+                <button
                   key={cat.id}
                   className={`filter-chip ${selectedCategory === cat.id ? 'active' : ''}`}
                   onClick={() => setSelectedCategory(cat.id)}
@@ -96,8 +95,8 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
               <Wrench size={48} className="empty-icon" />
               <h3>No repair services matched your search</h3>
               <p>Try searching for broader keywords such as "pipe", "wire", "pump", or "stove".</p>
-              <button 
-                className="btn btn-primary btn-sm" 
+              <button
+                className="btn btn-primary btn-sm"
                 onClick={() => { setSearchQuery(''); setSelectedCategory('all'); }}
               >
                 Reset Filters
@@ -121,16 +120,16 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
                       {category.subservices.map((sub) => (
                         <div key={sub.id} className="subservice-item-card">
                           <div className="subservice-img-wrap">
-                            <img 
-                              src={sub.image} 
-                              alt={sub.name} 
+                            <img
+                              src={sub.image}
+                              alt={sub.name}
                               loading="lazy"
                               onError={(e) => {
                                 // Fallback image
                                 e.target.src = 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&q=80&w=400';
                               }}
                             />
-                            <span 
+                            <span
                               className="subservice-trade-tag"
                               style={{ backgroundColor: category.accentColor }}
                             >
@@ -146,7 +145,7 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
                               <span className="informational-label">
                                 <Smartphone size={14} /> Book on Mobile App
                               </span>
-                              <button 
+                              <button
                                 className="subservice-action-link"
                                 onClick={() => handleBookingNotice(sub.name)}
                               >
@@ -163,21 +162,6 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
               })}
             </div>
           )}
-
-          {/* Bottom App Callout Strip */}
-          <div className="services-bottom-cta">
-            <div className="cta-left">
-              <Smartphone size={32} className="cta-icon" />
-              <div>
-                <h3>Need a custom repair or diagnostic quote?</h3>
-                <p>Post your job in the Bete mobile app to receive competitive bids from Addis Ababa's verified technicians.</p>
-              </div>
-            </div>
-            <button className="btn btn-white" onClick={() => (onNavigate ? onNavigate('how-it-works') : setActivePage && setActivePage('how-it-works'))}>
-              <span>View How It Works</span>
-              <ArrowRight size={16} />
-            </button>
-          </div>
         </div>
       </section>
     </div>

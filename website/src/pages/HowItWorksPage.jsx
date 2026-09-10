@@ -9,10 +9,9 @@ export default function HowItWorksPage({ onNavigate, setActivePage }) {
       {/* Hero Header */}
       <section className="hiw-header-section">
         <div className="container">
-          <span className="section-tag orange">Clear & Transparent Process</span>
-          <h1 className="hiw-main-title">How Bete Works for Ethiopia</h1>
+          <h1 className="hiw-main-title">How Bete Works</h1>
           <p className="hiw-subtitle">
-            Whether you need a household emergency fixed fast or you are a skilled technician seeking reliable daily orders, Bete makes the entire workflow seamless and secure.
+            Whether you need a quick household repair or you are a skilled technician looking for more jobs, Bete makes it easy to connect, request, and complete services.
           </p>
         </div>
       </section>

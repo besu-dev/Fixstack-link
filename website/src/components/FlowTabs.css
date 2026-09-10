@@ -1,161 +1,126 @@
 /* ==========================================================================
-   Flow Tabs Styles
+   Simple & Modern Flow Tabs Styles
    ========================================================================== */
 
 .flow-tabs-container {
   display: flex;
   flex-direction: column;
-  gap: 36px;
+  gap: 32px;
+  width: 100%;
 }
 
 /* Tab Switcher */
-.flow-tab-nav {
+.flow-tab-wrapper {
   display: flex;
   justify-content: center;
-  gap: 10px;
-  background: var(--bg-surface);
-  border: 1px solid var(--border-light);
-  padding: 6px;
-  border-radius: var(--radius-pill);
-  max-width: 520px;
-  margin: 0 auto;
+}
+
+.flow-tab-nav {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #F1F5F9;
+  border: 1px solid #E2E8F0;
+  padding: 4px;
+  border-radius: 9999px;
 }
 
 .flow-tab-btn {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: transparent;
   border: none;
-  padding: 14px 24px;
-  border-radius: var(--radius-pill);
+  background: transparent;
+  padding: 10px 24px;
+  border-radius: 9999px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #64748B;
   cursor: pointer;
-  transition: all var(--transition-base);
-  text-align: center;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  white-space: nowrap;
 }
 
 .flow-tab-btn:hover {
-  background: rgba(255, 255, 255, 0.6);
+  color: var(--brand-navy);
 }
 
 .flow-tab-btn.active {
   background: #FFFFFF;
-  box-shadow: var(--shadow-md);
-}
-
-.tab-pill-icon {
-  font-size: 1.5rem;
-}
-
-.tab-btn-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.tab-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--brand-navy);
-}
-
-.tab-subtitle {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-}
-
-.flow-tab-btn.active .tab-title {
   color: var(--brand-blue);
+  box-shadow: 0 2px 8px rgba(0, 43, 73, 0.08);
+  font-weight: 700;
 }
 
 /* Steps Grid */
 .steps-flow-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 24px;
-  position: relative;
+  gap: 20px;
 }
 
 .flow-step-card {
   background: #FFFFFF;
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-lg);
-  padding: 28px 24px;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 24px 20px;
   display: flex;
   flex-direction: column;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.25s ease;
   position: relative;
-  transition: all var(--transition-base);
 }
 
 .flow-step-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 16px 32px -4px rgba(0, 43, 73, 0.1);
-  border-color: rgba(0, 82, 204, 0.3);
+  transform: translateY(-4px);
+  border-color: #BFDBFE;
+  box-shadow: 0 12px 24px -4px rgba(0, 82, 204, 0.1);
 }
 
-.step-card-header {
+.step-top-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 }
 
-.step-number {
-  font-family: var(--font-display);
-  font-size: 1.8rem;
-  font-weight: 900;
-  color: #CBD5E1;
-  line-height: 1;
-}
-
-.flow-step-card:hover .step-number {
-  color: var(--brand-orange);
-}
-
-.step-icon-wrap {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-md);
-  background: var(--bg-surface-tint);
+.step-badge {
+  font-size: 0.75rem;
+  font-weight: 700;
   color: var(--brand-blue);
+  background: var(--brand-sky-light);
+  padding: 4px 10px;
+  border-radius: 9999px;
+  letter-spacing: 0.03em;
+}
+
+.step-icon-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #F8FAFC;
+  color: #64748B;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all var(--transition-fast);
+  transition: all 0.2s ease;
 }
 
-.flow-step-card:hover .step-icon-wrap {
+.flow-step-card:hover .step-icon-circle {
   background: var(--brand-blue);
   color: #FFFFFF;
 }
 
-.step-highlight-tag {
-  display: inline-block;
-  font-size: 0.72rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--brand-orange);
-  margin-bottom: 8px;
-}
-
 .step-title {
-  font-size: 1.15rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--brand-navy);
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   line-height: 1.35;
 }
 
 .step-description {
-  font-size: 0.88rem;
-  color: var(--text-muted);
-  line-height: 1.6;
-}
-
-.step-connector-arrow {
-  display: none; /* Can be enabled on large screens if desired */
+  font-size: 0.875rem;
+  color: #64748B;
+  line-height: 1.55;
+  margin: 0;
 }
 
 /* Responsive */
@@ -166,14 +131,13 @@
 }
 
 @media (max-width: 640px) {
-  .flow-tab-nav {
-    flex-direction: column;
-    border-radius: var(--radius-lg);
-  }
-  .flow-tab-btn {
-    border-radius: var(--radius-md);
-  }
   .steps-flow-grid {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .flow-tab-btn {
+    padding: 8px 16px;
+    font-size: 0.88rem;
   }
 }

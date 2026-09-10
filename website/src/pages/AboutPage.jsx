@@ -1,12 +1,5 @@
 import React from 'react';
-import { 
-  Zap, 
-  Droplets, 
-  Tv, 
-  Hammer, 
-  ArrowRight, 
-  ShieldCheck 
-} from 'lucide-react';
+import { ArrowRight, ShieldCheck } from 'lucide-react';
 import './AboutPage.css';
 
 export default function AboutPage({ onNavigate, setActivePage }) {
@@ -17,13 +10,6 @@ export default function AboutPage({ onNavigate, setActivePage }) {
       setActivePage('services');
     }
   };
-
-  const serviceHighlights = [
-    { label: 'Plumbing & Water Pumps', icon: Droplets },
-    { label: 'Electrical Repairs', icon: Zap },
-    { label: 'Appliance Repair', icon: Tv },
-    { label: 'General Maintenance', icon: Hammer },
-  ];
 
   return (
     <div className="about-page">
@@ -47,19 +33,6 @@ export default function AboutPage({ onNavigate, setActivePage }) {
                 <p>
                   From plumbing, water pumps, and electrical repairs to appliances and general maintenance, we eliminate the hassle of informal street searches with upfront pricing and verified workmanship.
                 </p>
-              </div>
-
-              {/* Service Focus Chips */}
-              <div className="about-services-chips" aria-label="Core Services">
-                {serviceHighlights.map((item, index) => {
-                  const Icon = item.icon;
-                  return (
-                    <span key={index} className="about-service-chip">
-                      <Icon size={15} className="chip-icon" />
-                      <span>{item.label}</span>
-                    </span>
-                  );
-                })}
               </div>
 
               {/* Action Button */}

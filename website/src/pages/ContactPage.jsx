@@ -60,8 +60,7 @@ export default function ContactPage({ onShowToast }) {
           <span className="section-tag">Get in Touch</span>
           <h1 className="contact-main-title">We’re Here to Help You in Ethiopia</h1>
           <p className="contact-subtitle">
-            Have questions about Bete, technician onboarding, or need partnership support? Reach out to our Addis Ababa headquarters.
-          </p>
+            Having a problem with a service, technician, or your Bete account? Our support team is here to help. You can also contact us with questions about becoming a technician, partnerships, or other inquiries.          </p>
         </div>
       </section>
 
@@ -74,8 +73,7 @@ export default function ContactPage({ onShowToast }) {
               <div className="info-header-box">
                 <h3 className="info-col-title">Bete Support</h3>
                 <p className="info-col-desc">
-                  Our operations team is available to assist households, technicians, and municipal partners.
-                </p>
+                  Our support team is here to assist customers, technicians                </p>
               </div>
 
               <div className="contact-cards-stack">

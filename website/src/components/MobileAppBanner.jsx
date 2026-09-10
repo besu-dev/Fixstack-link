@@ -28,16 +28,6 @@ export default function MobileAppBanner() {
               Whether you’re a customer looking for a reliable technician or a skilled service provider looking for new job opportunities, the Bete mobile app makes it easy to request services, receive job offers, submit bids, communicate, and track repairs—all from your phone.
             </p>
 
-            <div className="app-features-grid">
-              <div className="app-feat-item">
-                <Zap size={16} className="feat-icon" />
-                <span>Instant In-App Bidding</span>
-              </div>
-              <div className="app-feat-item">
-                <MessageSquare size={16} className="feat-icon" />
-                <span>Direct Provider Chat</span>
-              </div>
-            </div>
 
             <div className="app-store-actions">
               <a
