@@ -12,7 +12,7 @@ import {
   Image,
   ActivityIndicator,
 } from "react-native";
-import { Feather, FontAwesome5 } from "@expo/vector-icons";
+import { Feather, FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../src/api/client";
@@ -97,7 +97,7 @@ export default function LoginScreen() {
         >
           <View style={styles.header}>
             <Image
-              source={require("../../assets/images/logos/bete_logo_horizontal.png")}
+              source={require("../../assets/images/logos/bete_logo_mark.png")}
               style={styles.headerLogo}
               resizeMode="contain"
             />
@@ -180,21 +180,19 @@ export default function LoginScreen() {
               )}
             </TouchableOpacity>
 
-            <Text style={styles.otherText}>other way to sign in</Text>
+            <Text style={styles.otherText}>or Continue with</Text>
             <View style={styles.socialRow}>
-              <TouchableOpacity style={styles.socialCircle}>
-                <Image
-                  source={require("../../assets/SVG/google.svg")}
-                  resizeMode="contain"
-                  style={styles.socialIcon}
-                />
+              <TouchableOpacity
+                style={styles.socialCircle}
+                activeOpacity={0.7}
+              >
+                <FontAwesome name="google" size={20} color="#EA4335" />
               </TouchableOpacity>
-              <TouchableOpacity style={styles.socialCircle}>
-                <Image
-                  source={require("../../assets/SVG/facebook.svg")}
-                  resizeMode="contain"
-                  style={styles.socialIcon}
-                />
+              <TouchableOpacity
+                style={styles.socialCircle}
+                activeOpacity={0.7}
+              >
+                <FontAwesome name="facebook" size={20} color="#1877F2" />
               </TouchableOpacity>
             </View>
           </View>
@@ -224,29 +222,15 @@ const styles = StyleSheet.create({
   },
   header: { alignItems: "center", marginTop: 20, marginBottom: 24 },
   headerLogo: {
-    width: 220,
-    height: 75,
+    width: 72,
+    height: 72,
     marginBottom: 4,
-  },
-  logoMark: {
-    width: 64,
-    height: 64,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  orangeArc: {
-    position: "absolute",
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    borderWidth: 4,
-    borderColor: "#F97316",
   },
   brandTitle: {
     fontSize: 22,
     fontWeight: "800",
     color: "#0F172A",
-    marginTop: 10,
+    marginTop: 8,
     textAlign: "center",
   },
   subtitle: {
@@ -320,6 +304,12 @@ const styles = StyleSheet.create({
     borderColor: "#E2E8F0",
     alignItems: "center",
     justifyContent: "center",
+    backgroundColor: "#FFFFFF",
+    elevation: 1,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
   },
   socialIcon: { width: 22, height: 22 },
   footer: {

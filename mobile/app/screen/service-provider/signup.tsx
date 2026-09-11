@@ -122,6 +122,34 @@ export default function ProviderSignupStep1() {
           </View>
 
           <View style={styles.form}>
+            {/* Profile Picture Picker Section */}
+            <View style={styles.avatarSection}>
+              <View style={styles.avatarWrapper}>
+                <UserAvatar
+                  avatarUrl={avatarUri}
+                  name={firstName.trim() ? `${firstName.trim()} ${lastName.trim()}` : "Provider"}
+                  size={moderateScale(86)}
+                  onPress={handlePickAvatar}
+                />
+                <TouchableOpacity
+                  style={styles.cameraBadge}
+                  onPress={handlePickAvatar}
+                  activeOpacity={0.8}
+                >
+                  <Feather
+                    name="camera"
+                    size={moderateScale(13)}
+                    color="#FFFFFF"
+                  />
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
+                <Text style={styles.avatarActionText}>
+                  {avatarUri ? "Change Profile Picture" : "Add Profile Picture (Optional)"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.nameRow}>
               <View style={styles.halfInputContainer}>
                 <Text style={styles.label}>First Name</Text>
@@ -203,34 +231,6 @@ export default function ProviderSignupStep1() {
               </TouchableOpacity>
             </View>
 
-            {/* Profile Picture Picker Section */}
-            <View style={styles.avatarSection}>
-              <View style={styles.avatarWrapper}>
-                <UserAvatar
-                  avatarUrl={avatarUri}
-                  name={firstName.trim() ? `${firstName.trim()} ${lastName.trim()}` : "Provider"}
-                  size={moderateScale(86)}
-                  onPress={handlePickAvatar}
-                />
-                <TouchableOpacity
-                  style={styles.cameraBadge}
-                  onPress={handlePickAvatar}
-                  activeOpacity={0.8}
-                >
-                  <Feather
-                    name="camera"
-                    size={moderateScale(13)}
-                    color="#FFFFFF"
-                  />
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
-                <Text style={styles.avatarActionText}>
-                  {avatarUri ? "Change Profile Picture" : "Add Profile Picture (Optional)"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
             <TouchableOpacity
               style={styles.continueButton}
               onPress={handleContinue}
@@ -268,7 +268,10 @@ const styles = StyleSheet.create({
   backButton: {
     flexDirection: "row",
     alignItems: "center",
+    alignSelf: "flex-start",
     gap: scale(4),
+    paddingVertical: scale(6),
+    paddingRight: scale(16),
     marginBottom: scale(6),
   },
   backText: {
@@ -299,8 +302,8 @@ const styles = StyleSheet.create({
   },
   avatarSection: {
     alignItems: "center",
-    marginTop: scale(18),
-    marginBottom: scale(16),
+    marginTop: scale(4),
+    marginBottom: scale(14),
   },
   avatarWrapper: {
     position: "relative",

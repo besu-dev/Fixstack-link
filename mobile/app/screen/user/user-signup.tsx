@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   StatusBar,
@@ -13,6 +12,7 @@ import {
   Platform,
   Image,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -164,6 +164,30 @@ export default function CustomerSignupScreen() {
           </View>
 
           <View style={styles.form}>
+            {/* Profile Picture Picker Section */}
+            <View style={styles.avatarSection}>
+              <View style={styles.avatarWrapper}>
+                <UserAvatar
+                  avatarUrl={avatarUri}
+                  name={firstName.trim() ? `${firstName.trim()} ${lastName.trim()}` : "Customer"}
+                  size={86}
+                  onPress={handlePickAvatar}
+                />
+                <TouchableOpacity
+                  style={styles.cameraBadge}
+                  onPress={handlePickAvatar}
+                  activeOpacity={0.8}
+                >
+                  <Feather name="camera" size={13} color="#FFFFFF" />
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
+                <Text style={styles.avatarActionText}>
+                  {avatarUri ? "Change Profile Picture" : "Add Profile Picture (Optional)"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
             <View style={styles.row}>
               <View style={styles.halfCol}>
                 <Text style={styles.label}>First Name</Text>
@@ -255,30 +279,6 @@ export default function CustomerSignupScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Profile Picture Picker Section */}
-            <View style={styles.avatarSection}>
-              <View style={styles.avatarWrapper}>
-                <UserAvatar
-                  avatarUrl={avatarUri}
-                  name={firstName.trim() ? `${firstName.trim()} ${lastName.trim()}` : "Customer"}
-                  size={86}
-                  onPress={handlePickAvatar}
-                />
-                <TouchableOpacity
-                  style={styles.cameraBadge}
-                  onPress={handlePickAvatar}
-                  activeOpacity={0.8}
-                >
-                  <Feather name="camera" size={13} color="#FFFFFF" />
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
-                <Text style={styles.avatarActionText}>
-                  {avatarUri ? "Change Profile Picture" : "Add Profile Picture (Optional)"}
-                </Text>
-              </TouchableOpacity>
-            </View>
-
             <View style={styles.checkboxRow}>
               <TouchableOpacity
                 onPress={() => setAgreed(!agreed)}
@@ -323,12 +323,15 @@ export default function CustomerSignupScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#FFFFFF" },
   flex: { flex: 1 },
-  scroll: { paddingHorizontal: 24, paddingTop: 24, paddingBottom: 36 },
+  scroll: { paddingHorizontal: 24, paddingTop: 12, paddingBottom: 36 },
   backBtn: {
     flexDirection: "row",
     alignItems: "center",
+    alignSelf: "flex-start",
     gap: 4,
-    marginBottom: 12,
+    paddingVertical: 8,
+    paddingRight: 16,
+    marginBottom: 8,
   },
   backText: { fontSize: 16, fontWeight: "700", color: "#0F172A" },
   header: { alignItems: "center", marginBottom: 24 },
@@ -351,8 +354,8 @@ const styles = StyleSheet.create({
   },
   avatarSection: {
     alignItems: "center",
-    marginTop: 18,
-    marginBottom: 16,
+    marginTop: 4,
+    marginBottom: 14,
   },
   avatarWrapper: {
     position: "relative",
