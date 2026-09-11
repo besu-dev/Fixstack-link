@@ -22,7 +22,6 @@ import {
   moderateScale,
   scaledFont,
 } from "../../../src/utils/responsive";
-import UserAvatar from "../../../components/common/UserAvatar";
 
 interface AttachedDoc {
   uri: string;
@@ -262,24 +261,7 @@ export default function UploadDocumentsScreen() {
           </Text>
         </View>
 
-        {params.avatarUri ? (
-          <View style={styles.avatarPreviewBanner}>
-            <UserAvatar
-              avatarUrl={params.avatarUri as string}
-              name={(params.firstName as string) || "Provider"}
-              size={moderateScale(46)}
-            />
-            <View style={styles.avatarPreviewInfo}>
-              <Text style={styles.avatarPreviewTitle}>Profile Photo Attached</Text>
-              <Text style={styles.avatarPreviewSub}>
-                Will be stored securely on Cloudinary
-              </Text>
-            </View>
-            <View style={styles.avatarCheckBadge}>
-              <Text style={styles.avatarCheckText}>✓</Text>
-            </View>
-          </View>
-        ) : null}
+
 
         {/* Kebele ID Box */}
         <Text style={styles.sectionLabel}>
@@ -467,44 +449,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: scale(4),
   },
-  avatarPreviewBanner: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#F0FDF4",
-    borderWidth: 1,
-    borderColor: "#BBF7D0",
-    borderRadius: moderateScale(12),
-    paddingHorizontal: scale(14),
-    paddingVertical: scale(10),
-    marginBottom: scale(12),
-    gap: scale(12),
-  },
-  avatarPreviewInfo: {
-    flex: 1,
-  },
-  avatarPreviewTitle: {
-    fontSize: scaledFont(13),
-    fontWeight: "700",
-    color: "#166534",
-  },
-  avatarPreviewSub: {
-    fontSize: scaledFont(11),
-    color: "#15803D",
-    marginTop: 2,
-  },
-  avatarCheckBadge: {
-    width: moderateScale(22),
-    height: moderateScale(22),
-    borderRadius: moderateScale(11),
-    backgroundColor: "#16A34A",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  avatarCheckText: {
-    color: "#FFFFFF",
-    fontSize: scaledFont(12),
-    fontWeight: "800",
-  },
+
   sectionLabel: {
     fontSize: scaledFont(14),
     fontWeight: "700",
