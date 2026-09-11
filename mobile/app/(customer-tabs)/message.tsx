@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { io, Socket } from "socket.io-client";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../src/api/client";
@@ -53,7 +53,7 @@ interface ProviderSummary {
 
 interface ConversationItem {
   providerId: string;
-  jobId: string;
+  jobId?: string;
   provider: ProviderSummary;
   jobTitle: string;
   subcity: string;
@@ -135,59 +135,10 @@ export default function CustomerMessageScreen() {
   const fetchConversations = useCallback(async () => {
     setLoadingList(true);
     try {
-      const res = await apiClient.get("/jobs/my-jobs");
-      const assignedJobs = res.data.filter(
-        (j: any) => j.assignedProvider && j.assignedProvider._id,
-      );
-
-      const providerMap = new Map<string, ConversationItem>();
-
-      for (const job of assignedJobs) {
-        const pId = job.assignedProvider._id;
-        if (!providerMap.has(pId)) {
-          providerMap.set(pId, {
-            providerId: pId,
-            jobId: job._id,
-            provider: job.assignedProvider,
-            jobTitle: job.title,
-            subcity: job.subcity,
-            lastMessage: "Tap to open chat history",
-            lastMessageTime: job.updatedAt || job.createdAt,
-          });
-        }
+      const res = await apiClient.get("/messages/conversations");
+      if (Array.isArray(res.data)) {
+        setConversations(res.data);
       }
-
-      const convArray = Array.from(providerMap.values());
-
-      const hydratedConversations = await Promise.all(
-        convArray.map(async (conv) => {
-          try {
-            const msgRes = await apiClient.get(
-              `/messages/${conv.jobId}?receiverId=${conv.providerId}`,
-            );
-            if (Array.isArray(msgRes.data) && msgRes.data.length > 0) {
-              const latestMsg = msgRes.data[msgRes.data.length - 1];
-              const unread = msgRes.data.filter(
-                (m: any) =>
-                  !m.read &&
-                  (m.sender?._id === conv.providerId ||
-                    m.sender === conv.providerId),
-              ).length;
-              return {
-                ...conv,
-                lastMessage: latestMsg.text,
-                lastMessageTime: latestMsg.createdAt,
-                unreadCount: unread,
-              };
-            }
-          } catch {
-            // Keep fallback placeholder
-          }
-          return conv;
-        }),
-      );
-
-      setConversations(hydratedConversations);
     } catch (err: any) {
       console.error(
         "Error loading chat list:",
@@ -197,6 +148,14 @@ export default function CustomerMessageScreen() {
       setLoadingList(false);
     }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!jobId && !receiverId) {
+        fetchConversations();
+      }
+    }, [jobId, receiverId, fetchConversations])
+  );
 
   useEffect(() => {
     if (!jobId && !receiverId) {
@@ -366,11 +325,11 @@ export default function CustomerMessageScreen() {
                   router.push({
                     pathname: "/(customer-tabs)/message",
                     params: {
-                      jobId: item.jobId,
-                      recipientName: item.provider.fullName,
-                      receiverId: item.provider._id,
-                      recipientPhone: item.provider.phone,
-                      recipientAvatar: item.provider.avatarUrl,
+                      jobId: item.jobId || "",
+                      recipientName: item.provider?.fullName,
+                      receiverId: item.provider?._id || item.providerId,
+                      recipientPhone: item.provider?.phone || "",
+                      recipientAvatar: item.provider?.avatarUrl || "",
                     },
                   })
                 }
@@ -473,7 +432,7 @@ export default function CustomerMessageScreen() {
           </Text>
           <View style={styles.statusWrap}>
             <View style={styles.activeDot} />
-            <Text style={styles.onlineBadge}>Live Session</Text>
+            <Text style={styles.onlineBadge}>Online</Text>
           </View>
         </View>
 

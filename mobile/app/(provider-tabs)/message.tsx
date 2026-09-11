@@ -17,7 +17,7 @@ import {
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
 import { io, Socket } from "socket.io-client";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../src/api/client";
@@ -51,7 +51,7 @@ interface ClientSummary {
 
 interface ProviderConversationItem {
   clientId: string;
-  jobId: string;
+  jobId?: string;
   client: ClientSummary;
   jobTitle: string;
   subcity: string;
@@ -133,65 +133,14 @@ export default function ProviderMessageScreen() {
     loadCurrentUser();
   }, []);
 
-  // 2. Fetch conversations deduplicated strictly per customer
+  // 2. Fetch conversations from /messages/conversations
   const fetchConversations = useCallback(async () => {
     setLoadingList(true);
     try {
-      const res = await apiClient.get("/jobs/provider-tasks");
-      const assignedJobs = (Array.isArray(res.data) ? res.data : []).filter(
-        (j: any) => j.customer && (j.customer._id || j.customer.id),
-      );
-
-      // Single card per client
-      const clientMap = new Map<string, ProviderConversationItem>();
-
-      for (const job of assignedJobs) {
-        const cId = job.customer._id || job.customer.id;
-        if (!clientMap.has(cId)) {
-          clientMap.set(cId, {
-            clientId: cId,
-            jobId: job._id,
-            client: job.customer,
-            jobTitle: job.title,
-            subcity: job.subcity,
-            lastMessage: "Tap to open chat history",
-            lastMessageTime: job.updatedAt || job.createdAt,
-          });
-        }
+      const res = await apiClient.get("/messages/conversations");
+      if (Array.isArray(res.data)) {
+        setConversations(res.data);
       }
-
-      const convArray = Array.from(clientMap.values());
-
-      // Fetch last message preview and unread count
-      const hydrated = await Promise.all(
-        convArray.map(async (conv) => {
-          try {
-            const msgRes = await apiClient.get(
-              `/messages/${conv.jobId}?receiverId=${conv.clientId}`,
-            );
-            if (Array.isArray(msgRes.data) && msgRes.data.length > 0) {
-              const latest = msgRes.data[msgRes.data.length - 1];
-              const unread = msgRes.data.filter(
-                (m: any) =>
-                  !m.read &&
-                  (m.sender?._id === conv.clientId ||
-                    m.sender === conv.clientId),
-              ).length;
-              return {
-                ...conv,
-                lastMessage: latest.text,
-                lastMessageTime: latest.createdAt,
-                unreadCount: unread,
-              };
-            }
-          } catch {
-            // Keep default placeholder
-          }
-          return conv;
-        }),
-      );
-
-      setConversations(hydrated);
     } catch (err: any) {
       console.error(
         "Error fetching provider conversations:",
@@ -201,6 +150,14 @@ export default function ProviderMessageScreen() {
       setLoadingList(false);
     }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!jobId && !receiverId) {
+        fetchConversations();
+      }
+    }, [jobId, receiverId, fetchConversations])
+  );
 
   useEffect(() => {
     if (!jobId && !receiverId) {
@@ -373,11 +330,11 @@ export default function ProviderMessageScreen() {
                   router.push({
                     pathname: "/(provider-tabs)/message",
                     params: {
-                      jobId: item.jobId,
-                      recipientName: item.client.fullName,
-                      receiverId: item.client._id,
-                      recipientPhone: item.client.phone,
-                      recipientAvatar: item.client.avatarUrl,
+                      jobId: item.jobId || "",
+                      recipientName: item.client?.fullName,
+                      receiverId: item.client?._id || item.clientId,
+                      recipientPhone: item.client?.phone || "",
+                      recipientAvatar: item.client?.avatarUrl || "",
                     },
                   })
                 }
