@@ -188,7 +188,7 @@ export default function ProviderProfileScreen() {
   const handleLogout = () => {
     AppAlert.confirm(
       "Sign Out",
-      "Are you sure you want to log out of your FixLink technician account?",
+      "Are you sure you want to log out of your Bete technician account?",
       async () => {
         await SecureStore.deleteItemAsync("user_token");
         await SecureStore.deleteItemAsync("user_role");
@@ -294,7 +294,7 @@ export default function ProviderProfileScreen() {
                 size={moderateScale(13)}
                 color="#16A34A"
               />
-              <Text style={styles.verificationText}>Verified FixLink Pro</Text>
+              <Text style={styles.verificationText}>Verified Bete Pro</Text>
             </View>
           ) : (
             <View style={styles.pendingBadge}>

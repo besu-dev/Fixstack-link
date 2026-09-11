@@ -8,6 +8,7 @@ import {
   StatusBar,
   ActivityIndicator,
   Modal,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -128,7 +129,7 @@ export default function UploadDocumentsScreen() {
       return;
     }
     if (!agreed) {
-      Alert.alert("Agreement Required", "Please accept the FixLink Pro Terms.");
+      Alert.alert("Agreement Required", "Please accept the Bete Pro Terms.");
       return;
     }
 
@@ -205,7 +206,7 @@ export default function UploadDocumentsScreen() {
 
       Alert.alert(
         "Application Submitted",
-        "Welcome to FixLink Pro! Your documents are submitted for verification.",
+        "Welcome to Bete Pro! Your documents are submitted for verification.",
         [
           {
             text: "Go to Job Feed",
@@ -214,7 +215,7 @@ export default function UploadDocumentsScreen() {
         ],
       );
     } catch (err: any) {
-      console.error("[FixLink upload-documents error]:", err.message, err.response?.data);
+      console.error("[Bete upload-documents error]:", err.message, err.response?.data);
       if (err.response?.data?.message) {
         Alert.alert("Registration Failed", err.response.data.message);
       } else if (err.code === "ECONNABORTED" || err.message?.includes("timeout")) {
@@ -249,7 +250,12 @@ export default function UploadDocumentsScreen() {
         </TouchableOpacity>
 
         <View style={styles.brandHeader}>
-          <Text style={styles.brandName}>FixLink</Text>
+          <Image
+            source={require("../../../assets/images/logos/bete_logo_mark.png")}
+            style={styles.brandLogo}
+            resizeMode="contain"
+          />
+          <Text style={styles.brandName}>Bete</Text>
           <Text style={styles.pageTitle}>Verification Documents</Text>
           <Text style={styles.subtitleText}>
             Upload credentials to earn the Verified Technician badge
@@ -439,10 +445,15 @@ const styles = StyleSheet.create({
   backButton: { paddingVertical: scale(6), marginBottom: scale(8) },
   backText: { fontSize: scaledFont(15), fontWeight: "700", color: "#2563EB" },
   brandHeader: { alignItems: "center", marginBottom: scale(24) },
+  brandLogo: {
+    width: moderateScale(48),
+    height: moderateScale(48),
+    marginBottom: scale(4),
+  },
   brandName: {
-    fontSize: scaledFont(22),
+    fontSize: scaledFont(20),
     fontWeight: "800",
-    color: "#002B49",
+    color: "#0F172A",
   },
   pageTitle: {
     fontSize: scaledFont(18),

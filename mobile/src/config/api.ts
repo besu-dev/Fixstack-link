@@ -57,13 +57,13 @@ export const API_BASE_URL = (() => {
   // In Expo Go / Dev mode, if hostUri points to a dynamic LAN IP, auto-sync to prevent stale .env IP issues
   if (__DEV__ && DEV_HOST && DEV_HOST !== "localhost" && DEV_HOST !== "10.0.2.2") {
     if (process.env.EXPO_PUBLIC_API_URL && !process.env.EXPO_PUBLIC_API_URL.includes(DEV_HOST)) {
-      console.log(`[FixLink API] Dynamically adapting API_BASE_URL to active host: http://${DEV_HOST}:${PORT}/api`);
+      console.log(`[Bete API] Dynamically adapting API_BASE_URL to active host: http://${DEV_HOST}:${PORT}/api`);
       return `http://${DEV_HOST}:${PORT}/api`;
     }
   }
   return (
     process.env.EXPO_PUBLIC_API_URL ||
-    (__DEV__ ? `http://${DEV_HOST}:${PORT}/api` : "https://api.fixlink.et/api")
+    (__DEV__ ? `http://${DEV_HOST}:${PORT}/api` : "https://api.bete.et/api")
   );
 })();
 
@@ -71,20 +71,20 @@ export const API_BASE_URL = (() => {
 export const SOCKET_URL = (() => {
   if (__DEV__ && DEV_HOST && DEV_HOST !== "localhost" && DEV_HOST !== "10.0.2.2") {
     if (process.env.EXPO_PUBLIC_SOCKET_URL && !process.env.EXPO_PUBLIC_SOCKET_URL.includes(DEV_HOST)) {
-      console.log(`[FixLink API] Dynamically adapting SOCKET_URL to active host: http://${DEV_HOST}:${PORT}`);
+      console.log(`[Bete API] Dynamically adapting SOCKET_URL to active host: http://${DEV_HOST}:${PORT}`);
       return `http://${DEV_HOST}:${PORT}`;
     }
   }
   return (
     process.env.EXPO_PUBLIC_SOCKET_URL ||
-    (__DEV__ ? `http://${DEV_HOST}:${PORT}` : "https://api.fixlink.et")
+    (__DEV__ ? `http://${DEV_HOST}:${PORT}` : "https://api.bete.et")
   );
 })();
 
 export const SERVER_BASE_URL = SOCKET_URL;
 
 if (__DEV__) {
-  console.log(`[FixLink API] Resolved Host: ${DEV_HOST}`);
-  console.log(`[FixLink API] Base URL: ${API_BASE_URL}`);
-  console.log(`[FixLink API] Socket URL: ${SOCKET_URL}`);
+  console.log(`[Bete API] Resolved Host: ${DEV_HOST}`);
+  console.log(`[Bete API] Base URL: ${API_BASE_URL}`);
+  console.log(`[Bete API] Socket URL: ${SOCKET_URL}`);
 }

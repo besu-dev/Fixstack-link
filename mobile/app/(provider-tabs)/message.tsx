@@ -448,7 +448,7 @@ export default function ProviderMessageScreen() {
           </Text>
           <View style={styles.statusWrap}>
             <View style={styles.activeDot} />
-            <Text style={styles.onlineBadge}>Live Session</Text>
+            <Text style={styles.onlineBadge}>Online</Text>
           </View>
         </View>
 

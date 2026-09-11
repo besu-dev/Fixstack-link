@@ -9,9 +9,10 @@ import {
   StatusBar,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { Feather, FontAwesome5 } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { Alert } from "../../../src/context/AlertContext";
@@ -111,16 +112,12 @@ export default function ProviderSignupStep1() {
           </TouchableOpacity>
 
           <View style={styles.brandHeader}>
-            <View style={styles.logoMark}>
-              <View style={styles.orangeArc} />
-              <FontAwesome5
-                name="wrench"
-                size={moderateScale(24)}
-                color="#0052CC"
-                style={{ transform: [{ rotate: "-30deg" }] }}
-              />
-            </View>
-            <Text style={styles.brandName}>FixLink</Text>
+            <Image
+              source={require("../../../assets/images/logos/bete_logo_mark.png")}
+              style={styles.brandLogo}
+              resizeMode="contain"
+            />
+            <Text style={styles.brandName}>Bete</Text>
             <Text style={styles.pageTitle}>Provider Account (Step 1/3)</Text>
           </View>
 
@@ -283,24 +280,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: scale(20),
   },
-  logoMark: {
-    width: moderateScale(54),
-    height: moderateScale(54),
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  orangeArc: {
-    position: "absolute",
-    width: moderateScale(42),
-    height: moderateScale(42),
-    borderRadius: moderateScale(21),
-    borderWidth: 3.5,
-    borderColor: "#F97316",
+  brandLogo: {
+    width: moderateScale(56),
+    height: moderateScale(56),
+    marginBottom: scale(4),
   },
   brandName: {
-    fontSize: scaledFont(17),
+    fontSize: scaledFont(19),
     fontWeight: "800",
-    color: "#002B49",
+    color: "#0F172A",
     marginTop: scale(2),
   },
   pageTitle: {

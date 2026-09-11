@@ -11,8 +11,9 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  Image,
 } from "react-native";
-import { Feather, FontAwesome5 } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
@@ -153,16 +154,12 @@ export default function CustomerSignupScreen() {
           </TouchableOpacity>
 
           <View style={styles.header}>
-            <View style={styles.logoBox}>
-              <View style={styles.orangeCircle} />
-              <FontAwesome5
-                name="wrench"
-                size={26}
-                color="#0052CC"
-                style={{ transform: [{ rotate: "-30deg" }] }}
-              />
-            </View>
-            <Text style={styles.brandTitle}>FixLink</Text>
+            <Image
+              source={require("../../../assets/images/logos/bete_logo_mark.png")}
+              style={styles.brandLogo}
+              resizeMode="contain"
+            />
+            <Text style={styles.brandTitle}>Bete</Text>
             <Text style={styles.screenTitle}>Create new account</Text>
           </View>
 
@@ -335,25 +332,16 @@ const styles = StyleSheet.create({
   },
   backText: { fontSize: 16, fontWeight: "700", color: "#0F172A" },
   header: { alignItems: "center", marginBottom: 24 },
-  logoBox: {
-    width: 58,
-    height: 58,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  orangeCircle: {
-    position: "absolute",
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    borderWidth: 4,
-    borderColor: "#F97316",
+  brandLogo: {
+    width: 56,
+    height: 56,
+    marginBottom: 4,
   },
   brandTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: "800",
-    color: "#002B49",
-    marginTop: 4,
+    color: "#0F172A",
+    marginTop: 2,
   },
   screenTitle: {
     fontSize: 22,

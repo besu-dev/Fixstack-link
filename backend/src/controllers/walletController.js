@@ -37,12 +37,12 @@ export const initializeChapaPayment = async (req, res) => {
     const user = await User.findById(req.user._id);
 
     // Fallbacks for names and email to satisfy Chapa requirements
-    const nameParts = (user.fullName || "FixLink User").trim().split(" ");
-    const firstName = nameParts[0] || "FixLink";
+    const nameParts = (user.fullName || "Bete User").trim().split(" ");
+    const firstName = nameParts[0] || "Bete";
     const lastName = nameParts.slice(1).join(" ") || "User";
     const cleanPhone = (user.phone || "0911000000").replace("+251", "0");
     const userEmail =
-      user.email || `${cleanPhone.replace(/[\s\-()]/g, "")}@fixlink.et`;
+      user.email || `${cleanPhone.replace(/[\s\-()]/g, "")}@bete.et`;
 
     const payload = {
       amount: bundle.priceETB.toString(),
@@ -54,7 +54,7 @@ export const initializeChapaPayment = async (req, res) => {
       tx_ref,
       return_url: "fixlink://payment-success",
       customization: {
-        title: "FixLink Connects Top-Up",
+        title: "Bete Connects Top-Up",
         description: `Purchase ${bundle.connects} Connects Bundle`,
       },
     };

@@ -49,13 +49,13 @@ export default function HelpSupportSection({
 
   const handleEmail = () => {
     const subject = encodeURIComponent(
-      `FixLink Support Request [${role === "provider" ? "Service Provider" : "Service Seeker"}]`,
+      `Bete Support Request [${role === "provider" ? "Service Provider" : "Service Seeker"}]`,
     );
-    Linking.openURL(`mailto:support@fixlink.com?subject=${subject}`).catch(
+    Linking.openURL(`mailto:support@bete.et?subject=${subject}`).catch(
       () => {
         AppAlert.alert(
           "Email Support",
-          "Could not launch mail client. Please contact: support@fixlink.com",
+          "Could not launch mail client. Please contact: support@bete.et",
         );
       },
     );

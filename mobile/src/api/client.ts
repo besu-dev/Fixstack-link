@@ -40,7 +40,7 @@ apiClient.interceptors.response.use(
     if (__DEV__) {
       if (!error.response) {
         console.warn(
-          `[FixLink Network Error] Cannot reach server at: ${error.config?.baseURL || API_BASE_URL}${error.config?.url || ""}. Check that your backend is running and phone is on the same Wi-Fi.`,
+          `[Bete Network Error] Cannot reach server at: ${error.config?.baseURL || API_BASE_URL}${error.config?.url || ""}. Check that your backend is running and phone is on the same Wi-Fi.`,
           error.message
         );
       }

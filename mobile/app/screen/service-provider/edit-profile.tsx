@@ -27,13 +27,14 @@ import {
 import UserAvatar from "../../../components/common/UserAvatar";
 
 const PROFESSIONS = [
-  "Plumbing",
-  "Electrical",
+  "Plumbing  and water system",
+  "Electrical  and power",
   "Solar Technician",
   "Air Conditioning",
-  "Appliances & Mitad",
-  "Gate & Metalwork",
-  "General Maintenance",
+  "Appliances & electronics",
+  "carpentry & Metalwork",
+  "Finshing and Cleaning",
+
 ];
 
 const EXPERIENCE_LEVELS = ["< 1 year", "1-3 yrs", "3-5 yrs", "5+ yrs"];
@@ -268,7 +269,7 @@ export default function ProviderEditProfileScreen() {
               placeholderTextColor="#94A3B8"
             />
 
-            <Text style={styles.label}>Email Address (Read-Only)</Text>
+            <Text style={styles.label}>Email Address</Text>
             <TextInput
               style={[styles.input, styles.readOnlyInput]}
               value={email}
@@ -278,7 +279,7 @@ export default function ProviderEditProfileScreen() {
             />
 
             {/* Primary Profession Selection */}
-            <Text style={styles.label}>Primary Trade / Specialty</Text>
+            <Text style={styles.label}>Primary Skills</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}

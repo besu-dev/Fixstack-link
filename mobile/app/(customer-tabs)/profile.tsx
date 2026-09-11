@@ -153,7 +153,7 @@ export default function CustomerProfileScreen() {
   const handleLogout = () => {
     AppAlert.confirm(
       "Sign Out",
-      "Are you sure you want to log out of your FixLink account?",
+      "Are you sure you want to log out of your Bete account?",
       async () => {
         await SecureStore.deleteItemAsync("user_token");
         await SecureStore.deleteItemAsync("user_role");
