@@ -10,7 +10,6 @@ import {
   StatusBar,
   ActivityIndicator,
   RefreshControl,
-  Modal,
   LayoutAnimation,
   Platform,
   UIManager,
@@ -48,16 +47,6 @@ interface Provider {
   role: string;
 }
 
-const CATEGORIES = [
-  "All",
-  "Plumbing",
-  "Electrical",
-  "Carpentry",
-  "Painting",
-  "Appliance Repair",
-  "Solar Installation",
-  "HVAC & Air Condition",
-];
 
 const TECHNICIAN_FILTERS = [
   { id: "All", label: "All" },
@@ -202,9 +191,6 @@ export default function HomeScreen() {
   const [providers, setProviders] = useState<Provider[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-
-  const [filterModalVisible, setFilterModalVisible] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedTechFilter, setSelectedTechFilter] = useState("All");
 
   const [userId, setUserId] = useState<string | null>(null);
@@ -287,15 +273,9 @@ export default function HomeScreen() {
         return matchesQuery && matchesService(p.profession, selectedTechFilter);
       }
 
-      const matchesCategory =
-        selectedCategory === "All" ||
-        matchesService(p.profession, selectedCategory);
-
-      return matchesQuery && matchesCategory;
+      return matchesQuery;
     });
-  }, [providers, searchQuery, selectedCategory, selectedTechFilter]);
-
-  const hasActiveFilters = selectedCategory !== "All";
+  }, [providers, searchQuery, selectedTechFilter]);
 
   if (loading) {
     return (
@@ -364,36 +344,7 @@ export default function HomeScreen() {
                 <Feather name="x" size={moderateScale(16)} color="#94A3B8" />
               </TouchableOpacity>
             )}
-            <TouchableOpacity
-              activeOpacity={0.75}
-              style={[
-                styles.filterButton,
-                hasActiveFilters && styles.filterButtonActive,
-              ]}
-              onPress={() => setFilterModalVisible(true)}
-            >
-              <Feather
-                name="sliders"
-                size={moderateScale(16)}
-                color={hasActiveFilters ? "#FFFFFF" : "#475569"}
-              />
-            </TouchableOpacity>
           </View>
-
-          {/* Active Category Filter Tag if active */}
-          {hasActiveFilters && (
-            <View style={styles.activeFilterRow}>
-              <View style={styles.activeFilterChip}>
-                <Text style={styles.activeFilterText}>Filtered: {selectedCategory}</Text>
-                <TouchableOpacity onPress={() => setSelectedCategory("All")}>
-                  <Feather name="x" size={13} color="#0052CC" />
-                </TouchableOpacity>
-              </View>
-              <TouchableOpacity onPress={() => setSelectedCategory("All")}>
-                <Text style={styles.resetFilterText}>Clear</Text>
-              </TouchableOpacity>
-            </View>
-          )}
         </View>
 
         {/* Hero Promotional Banner with Verified Technician */}
@@ -648,7 +599,6 @@ export default function HomeScreen() {
                 style={styles.emptyResetBtn}
                 onPress={() => {
                   handleTechFilterPress("All");
-                  setSelectedCategory("All");
                   setSearchQuery("");
                 }}
               >
@@ -659,68 +609,6 @@ export default function HomeScreen() {
         </ScrollView>
       </ScrollView>
 
-      {/* Category-Only Filter Modal */}
-      <Modal
-        visible={filterModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setFilterModalVisible(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setFilterModalVisible(false)}
-        >
-          <View
-            style={styles.modalSheet}
-            onStartShouldSetResponder={() => true}
-          >
-            <View style={styles.modalHandle} />
-            <Text style={styles.modalTitle}>Filter by Job Category</Text>
-
-            <View style={styles.filterOptionsGrid}>
-              {CATEGORIES.map((cat) => (
-                <TouchableOpacity
-                  key={cat}
-                  style={[
-                    styles.filterChip,
-                    selectedCategory === cat && styles.filterChipSelected,
-                  ]}
-                  onPress={() => setSelectedCategory(cat)}
-                >
-                  <Text
-                    style={[
-                      styles.filterChipText,
-                      selectedCategory === cat && styles.filterChipTextSelected,
-                    ]}
-                  >
-                    {cat}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <View style={styles.modalActionRow}>
-              <TouchableOpacity
-                style={styles.resetBtn}
-                onPress={() => {
-                  setSelectedCategory("All");
-                  setFilterModalVisible(false);
-                }}
-              >
-                <Text style={styles.resetBtnText}>Reset</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.applyBtn}
-                onPress={() => setFilterModalVisible(false)}
-              >
-                <Text style={styles.applyBtnText}>Apply Filter</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </TouchableOpacity>
-      </Modal>
 
     </SafeAreaView>
   );
@@ -804,44 +692,6 @@ const styles = StyleSheet.create({
   clearSearchBtn: {
     padding: scale(4),
     marginRight: scale(4),
-  },
-  filterButton: {
-    width: moderateScale(34),
-    height: moderateScale(34),
-    borderRadius: moderateScale(10),
-    backgroundColor: "#F1F5F9",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  filterButtonActive: {
-    backgroundColor: "#0052CC",
-  },
-  activeFilterRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: scale(8),
-    marginTop: scale(8),
-  },
-  activeFilterChip: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: scale(5),
-    backgroundColor: "#EFF6FF",
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
-    borderRadius: moderateScale(12),
-    paddingHorizontal: scale(10),
-    paddingVertical: scale(4),
-  },
-  activeFilterText: {
-    fontSize: scaledFont(11.5),
-    fontWeight: "700",
-    color: "#0052CC",
-  },
-  resetFilterText: {
-    fontSize: scaledFont(11.5),
-    fontWeight: "600",
-    color: "#EF4444",
   },
 
   /* Filter Chips for Top Technicians */
@@ -1179,87 +1029,4 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
 
-  /* Filter Modal */
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.5)",
-    justifyContent: "flex-end",
-  },
-  modalSheet: {
-    backgroundColor: "#FFFFFF",
-    borderTopLeftRadius: moderateScale(24),
-    borderTopRightRadius: moderateScale(24),
-    padding: scale(20),
-    paddingBottom: scale(36),
-  },
-  modalHandle: {
-    width: scale(40),
-    height: scale(4),
-    backgroundColor: "#CBD5E1",
-    borderRadius: 2,
-    alignSelf: "center",
-    marginBottom: scale(16),
-  },
-  modalTitle: {
-    fontSize: scaledFont(17),
-    fontWeight: "700",
-    color: "#0F172A",
-    marginBottom: scale(16),
-  },
-  filterOptionsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: scale(8),
-    marginBottom: scale(24),
-  },
-  filterChip: {
-    paddingHorizontal: scale(14),
-    paddingVertical: scale(8),
-    borderRadius: moderateScale(20),
-    backgroundColor: "#F1F5F9",
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-  },
-  filterChipSelected: {
-    backgroundColor: "#0052CC",
-    borderColor: "#0052CC",
-  },
-  filterChipText: {
-    fontSize: scaledFont(12.5),
-    fontWeight: "600",
-    color: "#475569",
-  },
-  filterChipTextSelected: {
-    color: "#FFFFFF",
-    fontWeight: "700",
-  },
-  modalActionRow: {
-    flexDirection: "row",
-    gap: scale(12),
-  },
-  resetBtn: {
-    flex: 1,
-    paddingVertical: scale(12),
-    borderRadius: moderateScale(14),
-    borderWidth: 1,
-    borderColor: "#E2E8F0",
-    alignItems: "center",
-  },
-  resetBtnText: {
-    fontSize: scaledFont(13.5),
-    fontWeight: "600",
-    color: "#64748B",
-  },
-  applyBtn: {
-    flex: 2,
-    backgroundColor: "#0052CC",
-    paddingVertical: scale(12),
-    borderRadius: moderateScale(14),
-    alignItems: "center",
-  },
-  applyBtnText: {
-    fontSize: scaledFont(13.5),
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
 });
