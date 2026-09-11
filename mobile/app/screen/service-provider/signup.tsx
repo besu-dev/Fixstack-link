@@ -58,6 +58,14 @@ export default function ProviderSignupStep1() {
   };
 
   const handleContinue = () => {
+    if (!avatarUri) {
+      Alert.alert(
+        "Profile Picture Required",
+        "Please upload a clear profile photo. Service providers must have an identifiable photo for client trust and verification.",
+      );
+      return;
+    }
+
     if (
       !firstName.trim() ||
       !lastName.trim() ||
@@ -145,7 +153,8 @@ export default function ProviderSignupStep1() {
               </View>
               <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
                 <Text style={styles.avatarActionText}>
-                  {avatarUri ? "Change Profile Picture" : "Add Profile Picture (Optional)"}
+                  {avatarUri ? "Change Profile Picture" : "Add Profile Picture (Required)"}
+                  {!avatarUri && <Text style={styles.requiredStar}> </Text>}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -327,6 +336,10 @@ const styles = StyleSheet.create({
     fontSize: scaledFont(12),
     fontWeight: "600",
     color: "#2563EB",
+  },
+  requiredStar: {
+    color: "#EF4444",
+    fontWeight: "700",
   },
   form: {
     width: "100%",
