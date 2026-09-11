@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
 } from "react-native";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
+import * as SecureStore from "expo-secure-store";
 import apiClient from "../src/api/client";
 import { Alert } from "../src/context/AlertContext";
 
@@ -26,7 +27,6 @@ const PACKAGES = [
     label: "Value Pack",
     connects: 25,
     priceETB: 100,
-    popular: true,
   },
   { id: "premium", label: "Pro Pack", connects: 60, priceETB: 200 },
 ];
@@ -42,6 +42,36 @@ export default function BuyConnectsModal({
     "chapa",
   );
   const [loading, setLoading] = useState<boolean>(false);
+  const [syncedBalance, setSyncedBalance] = useState<number>(currentBalance);
+
+  useEffect(() => {
+    setSyncedBalance(currentBalance);
+  }, [currentBalance]);
+
+  useEffect(() => {
+    if (!visible) return;
+
+    // Background sync real balance whenever modal opens
+    const syncRealBalance = async () => {
+      try {
+        const res = await apiClient.get("/auth/me");
+        const user = res.data?.user || res.data;
+        if (typeof user?.connectsBalance === "number") {
+          setSyncedBalance(user.connectsBalance);
+        }
+      } catch {
+        const cached = await SecureStore.getItemAsync("user_data");
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (typeof parsed.connectsBalance === "number") {
+            setSyncedBalance(parsed.connectsBalance);
+          }
+        }
+      }
+    };
+
+    syncRealBalance();
+  }, [visible]);
 
   const handlePurchase = async () => {
     setLoading(true);
@@ -64,9 +94,12 @@ export default function BuyConnectsModal({
           "Payment Successful",
           verifyRes.data.message || "Connects added to your wallet!",
         );
-        onSuccess(
-          verifyRes.data.newBalance ?? verifyRes.data.user?.connectsBalance,
-        );
+        const newBal =
+          verifyRes.data.newBalance ?? verifyRes.data.user?.connectsBalance;
+        if (typeof newBal === "number") {
+          setSyncedBalance(newBal);
+        }
+        onSuccess(newBal);
         onClose();
       } else {
         // Direct simulation / local fallback
@@ -77,6 +110,9 @@ export default function BuyConnectsModal({
         });
 
         Alert.alert("Payment Successful", response.data.message);
+        if (typeof response.data.connectsBalance === "number") {
+          setSyncedBalance(response.data.connectsBalance);
+        }
         onSuccess(response.data.connectsBalance);
         onClose();
       }
@@ -107,7 +143,7 @@ export default function BuyConnectsModal({
               <Text style={styles.balanceSubtitle}>
                 Current Balance:{" "}
                 <Text style={styles.balanceHighlight}>
-                  {currentBalance} Connects
+                  {syncedBalance} Connects
                 </Text>
               </Text>
             </View>
@@ -131,11 +167,6 @@ export default function BuyConnectsModal({
                   onPress={() => setSelectedPkg(pkg.id)}
                   activeOpacity={0.8}
                 >
-                  {pkg.popular && (
-                    <View style={styles.popularBadge}>
-                      <Text style={styles.popularBadgeText}>POPULAR</Text>
-                    </View>
-                  )}
                   <Text
                     style={[
                       styles.packageConnects,
@@ -298,19 +329,6 @@ const styles = StyleSheet.create({
   packageCardSelected: {
     borderColor: "#0052CC",
     backgroundColor: "#EFF6FF",
-  },
-  popularBadge: {
-    position: "absolute",
-    top: -10,
-    backgroundColor: "#0052CC",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
-  },
-  popularBadgeText: {
-    color: "#FFFFFF",
-    fontSize: 8,
-    fontWeight: "800",
   },
   packageConnects: {
     fontSize: 14,

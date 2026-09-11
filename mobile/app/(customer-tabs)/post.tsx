@@ -22,14 +22,12 @@ import { Alert } from "../../src/context/AlertContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 const CATEGORIES = [
-  "Plumbing",
-  "Electrical",
-  "Solar Technician",
-  "Air Conditioning",
-  "Appliances & Mitad",
-  "Gate & Metalwork",
-  "General Maintenance",
-];
+  "Plumbing  and water system",
+  "Electrical  and power",
+  "Appliances & electronics",
+  "carpentry & Metalwork",
+  "Finshing and Cleaning",
+]
 
 export default function PostJobScreen() {
   const router = useRouter();
@@ -202,7 +200,7 @@ export default function PostJobScreen() {
         Alert.alert(
           "Failed to Post",
           err.response?.data?.message ||
-            "Could not publish your job request. Try again.",
+          "Could not publish your job request. Try again.",
         );
       }
     } finally {

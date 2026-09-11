@@ -29,8 +29,6 @@ import UserAvatar from "../../../components/common/UserAvatar";
 const PROFESSIONS = [
   "Plumbing  and water system",
   "Electrical  and power",
-  "Solar Technician",
-  "Air Conditioning",
   "Appliances & electronics",
   "carpentry & Metalwork",
   "Finshing and Cleaning",

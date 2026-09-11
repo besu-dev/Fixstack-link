@@ -380,6 +380,7 @@ export default function CustomerProfileScreen() {
         visible={buyModalVisible}
         onClose={() => setBuyModalVisible(false)}
         onSuccess={handleConnectsUpdated}
+        currentBalance={profile?.connectsBalance ?? 0}
       />
 
       {/* Customer Notifications Modal */}
