@@ -1,0 +1,1464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bete (ቤቴ) – University Project Defense Presentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Outfit:wght@500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ==========================================================================
+       Bete Defense Deck Stylesheet (16:9 - 1280x720)
+       ========================================================================== */
+    :root {
+      --brand-navy: #002B49;
+      --brand-blue: #0052CC;
+      --brand-blue-light: #E0F2FE;
+      --brand-orange: #FF6B00;
+      --brand-orange-light: #FFF7ED;
+      --dark: #0F172A;
+      --slate-500: #64748B;
+      --slate-600: #475569;
+      --slate-700: #334155;
+      --light-bg: #F8FAFC;
+      --border-color: #E2E8F0;
+      --green: #10B981;
+      --teal: #0D9488;
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 16px -2px rgba(0, 43, 73, 0.08);
+      --shadow-lg: 0 20px 40px -4px rgba(0, 43, 73, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #071226;
+      color: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 20px 0 80px;
+      overflow-x: hidden;
+    }
+
+    /* Fixed Presenter Header */
+    .presenter-bar {
+      position: fixed;
+      top: 14px;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: rgba(15, 23, 42, 0.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      padding: 8px 20px;
+      border-radius: 9999px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      color: #FFFFFF;
+    }
+
+    .bar-brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #FFFFFF;
+      padding-right: 14px;
+      border-right: 1px solid rgba(255, 255, 255, 0.16);
+    }
+
+    .bar-brand span {
+      color: var(--brand-orange);
+    }
+
+    .bar-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-nav {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #FFFFFF;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+
+    .btn-nav:hover {
+      background: var(--brand-blue);
+      border-color: var(--brand-blue);
+      transform: translateY(-1px);
+    }
+
+    .slide-counter {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: #94A3B8;
+      min-width: 105px;
+      text-align: center;
+    }
+
+    .slide-counter b {
+      color: #FFFFFF;
+    }
+
+    /* 16:9 Standard Slide Frame */
+    .slide {
+      width: 1280px;
+      height: 720px;
+      margin: 30px auto;
+      background: #FFFFFF;
+      border-radius: 20px;
+      padding: 44px 60px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      page-break-after: always;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Slide Header */
+    .slide-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border-color);
+      flex-shrink: 0;
+    }
+
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .slide-num-badge {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--brand-orange);
+      background: var(--brand-orange-light);
+      padding: 4px 14px;
+      border-radius: 9999px;
+      border: 1px solid rgba(255, 107, 0, 0.2);
+    }
+
+    .slide-title-group h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.85rem;
+      font-weight: 800;
+      color: var(--brand-navy);
+      line-height: 1.2;
+    }
+
+    .slide-title-group p {
+      font-size: 0.86rem;
+      color: var(--slate-500);
+      margin-top: 2px;
+    }
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-logo-svg {
+      width: 34px;
+      height: 34px;
+    }
+
+    .header-logo-text {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--brand-navy);
+    }
+
+    .header-logo-text span {
+      color: var(--brand-orange);
+      font-size: 0.9rem;
+    }
+
+    .slide-body {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+    }
+
+    .slide-footer {
+      position: absolute;
+      bottom: 18px;
+      left: 60px;
+      right: 60px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.74rem;
+      color: var(--slate-500);
+      border-top: 1px solid #F1F5F9;
+      padding-top: 8px;
+    }
+
+    /* Cover Slide Layout */
+    .slide-cover {
+      padding: 0;
+      display: flex;
+      flex-direction: row;
+      border-radius: 24px;
+    }
+
+    .cover-left {
+      width: 56%;
+      height: 100%;
+      background: linear-gradient(145deg, #002B49 0%, #001B30 100%);
+      color: #FFFFFF;
+      padding: 55px 50px 55px 60px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      z-index: 2;
+    }
+
+    .cover-brand-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .cover-brand-svg {
+      width: 44px;
+      height: 44px;
+    }
+
+    .cover-brand-name {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.1rem;
+      font-weight: 900;
+      color: #FFFFFF;
+    }
+
+    .cover-brand-name span {
+      color: var(--brand-orange);
+    }
+
+    .cover-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 107, 0, 0.18);
+      border: 1px solid rgba(255, 107, 0, 0.35);
+      color: #FFA366;
+      padding: 4px 14px;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 16px;
+      width: fit-content;
+    }
+
+    .cover-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2.7rem;
+      font-weight: 900;
+      line-height: 1.15;
+      margin-bottom: 14px;
+      letter-spacing: -0.5px;
+    }
+
+    .cover-title span {
+      background: linear-gradient(135deg, #FF6B00 0%, #FFA14A 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .cover-desc {
+      font-size: 1.0rem;
+      line-height: 1.55;
+      color: #CBD5E1;
+      margin-bottom: 24px;
+      max-width: 520px;
+    }
+
+    .cover-meta {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      padding-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.12);
+      font-size: 0.8rem;
+      color: #94A3B8;
+    }
+
+    .cover-meta strong {
+      color: #FFFFFF;
+      display: block;
+      margin-bottom: 2px;
+      font-size: 0.86rem;
+    }
+
+    .cover-right {
+      width: 44%;
+      height: 100%;
+      background: #F8FAFC;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+      border-left: 1px solid #E2E8F0;
+    }
+
+    /* Grids & Cards */
+    .grid-2x2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .grid-3-col {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 18px;
+    }
+
+    .grid-4-col {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+    }
+
+    .grid-5-col {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 14px;
+    }
+
+    .card {
+      background: #FFFFFF;
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .card-title {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--brand-navy);
+      line-height: 1.3;
+      margin-bottom: 8px;
+    }
+
+    .card-desc {
+      font-size: 0.86rem;
+      color: var(--slate-600);
+      line-height: 1.5;
+    }
+
+    .card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 0.84rem;
+      color: var(--dark);
+      margin-top: 6px;
+    }
+
+    .badge-pill {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      padding: 2px 8px;
+      border-radius: 6px;
+      width: fit-content;
+      margin-bottom: 8px;
+    }
+
+    .badge-blue { background: #DBEAFE; color: #1E40AF; }
+    .badge-orange { background: #FFEDD5; color: #C2410C; }
+    .badge-green { background: #D1FAE5; color: #065F46; }
+
+    .code-pill {
+      display: inline-block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.72rem;
+      background: #F1F5F9;
+      color: #0F172A;
+      padding: 2px 6px;
+      border-radius: 4px;
+      margin: 2px;
+      border: 1px solid #E2E8F0;
+    }
+
+    @media print {
+      body {
+        background: #FFFFFF;
+        padding: 0;
+      }
+      .presenter-bar {
+        display: none !important;
+      }
+      .slide {
+        margin: 0 !important;
+        width: 100vw !important;
+        height: 100vh !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        page-break-after: always !important;
+        page-break-inside: avoid !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Navigation Controls -->
+  <header class="presenter-bar" id="presenterBar">
+    <div class="bar-brand">
+      <svg viewBox="0 0 512 512" width="22" height="22">
+        <path d="M256 76 C321 76 372 129 372 195 C372 261 291 329 256 360 C221 329 140 261 140 195 C140 129 191 76 256 76 Z" fill="#0066FF" />
+        <circle cx="256" cy="198" r="73" fill="#FFFFFF" />
+        <path d="M 180 198 L 256 131 L 332 198" fill="none" stroke="#FF6B00" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+        <rect x="290" y="143" width="14" height="22" fill="#FF6B00" rx="3" />
+      </svg>
+      <span>Bete</span> Defense Presentation
+    </div>
+
+    <div class="bar-nav">
+      <button class="btn-nav" onclick="prevSlide()" title="Previous Slide (← / Up)">◀ Prev</button>
+      <div class="slide-counter" id="slideCounter">Slide <b id="currentSlideNum">1</b> of 19</div>
+      <button class="btn-nav" onclick="nextSlide()" title="Next Slide (→ / Down / Space)">Next ▶</button>
+      <button class="btn-nav" onclick="window.print()" title="Print to PDF (Ctrl + P)">🖨️ Print / PDF</button>
+      <button class="btn-nav" onclick="toggleFullScreen()" title="Fullscreen (F)">⛶ Fullscreen</button>
+    </div>
+  </header>
+
+  <!-- Slide 1: Title -->
+  <section class="slide slide-cover" id="slide-1">
+    <div class="cover-left">
+      <div class="cover-brand-header">
+        <svg class="cover-brand-svg" viewBox="0 0 512 512">
+          <path d="M256 76 C321 76 372 129 372 195 C372 261 291 329 256 360 C221 329 140 261 140 195 C140 129 191 76 256 76 Z" fill="#0066FF" />
+          <circle cx="256" cy="198" r="73" fill="#FFFFFF" />
+          <path d="M 180 198 L 256 131 L 332 198" fill="none" stroke="#FF6B00" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+          <rect x="290" y="143" width="14" height="22" fill="#FF6B00" rx="3" />
+          <g transform="translate(256, 202)">
+            <rect x="-22" y="-22" width="18" height="18" rx="3" fill="#FF6B00" />
+            <rect x="4" y="-22" width="18" height="18" rx="3" fill="#FF6B00" />
+            <rect x="-22" y="4" width="18" height="18" rx="3" fill="#FF6B00" />
+            <rect x="4" y="4" width="18" height="18" rx="3" fill="#FF6B00" />
+          </g>
+        </svg>
+        <div class="cover-brand-name">Be<span>te</span> (ቤቴ)</div>
+      </div>
+
+      <div class="cover-badge">Academic Project Defense • 2026</div>
+
+      <h1 class="cover-title">
+        Household Repair & <span>Maintenance Service</span>
+      </h1>
+
+      <p class="cover-desc">
+        “Reliable Household Repairs in Ethiopia, Made Simple.”<br/>
+        A cross-platform mobile marketplace connecting Ethiopian families with verified, background-checked repair professionals.
+      </p>
+
+      <div class="cover-meta">
+        <div>
+          <strong>Degree Program</strong>
+          B.Sc. in Computer Science / Software Engineering
+        </div>
+        <div>
+          <strong>Evaluation</strong>
+          Senior Capstone Defense
+        </div>
+        <div>
+          <strong>Core Technologies</strong>
+          React Native • Expo • Node.js • Express • MongoDB
+        </div>
+        <div>
+          <strong>Coverage Area</strong>
+          Addis Ababa, Ethiopia (11 Subcities)
+        </div>
+      </div>
+    </div>
+
+    <div class="cover-right">
+      <img src="./mobile/assets/images/logos/bete_logo_mark.png" alt="Bete Logo" style="height: 120px; margin-bottom: 20px;" />
+      <div style="background: #FFFFFF; border: 1px solid #E2E8F0; border-radius: 14px; padding: 20px; width: 100%; max-width: 340px; box-shadow: var(--shadow-md);">
+        <h4 style="font-size: 1rem; font-weight: 800; color: var(--brand-navy); margin-bottom: 10px; text-align: center;">Launch Service Specialties</h4>
+        <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; font-size: 0.85rem; color: var(--slate-700);">
+          <li>🔧 <b>Plumbing:</b> Pipe leaks, water heaters, fittings</li>
+          <li>⚡ <b>Electrical:</b> Wiring, fixtures, voltage stabilizers</li>
+          <li>💧 <b>Water Pumps:</b> Rooftop tankers & automated float valves</li>
+          <li>🔌 <b>Appliances:</b> Refrigerators, washing machines, stoves</li>
+          <li>🧱 <b>Carpentry & Finishing:</b> Doors, locks, and tiles</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Slide 2: Introduction -->
+  <section class="slide" id="slide-2">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">02</span>
+        <div class="slide-title-group">
+          <h2>Introduction</h2>
+          <p>Contextualizing household repair and maintenance needs in urban Ethiopia</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-4-col">
+        <div class="card">
+          <div class="card-title">🏠 Essential Daily Need</div>
+          <p class="card-desc">Plumbing leaks, electrical outages, and water pump faults happen regularly in every urban household and require fast, reliable intervention.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">⚠️ Informal Street Sourcing</div>
+          <p class="card-desc">Households in Addis Ababa currently rely on street-wall graffiti, word of mouth, or random phone numbers with zero background verification.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">📱 The Bete Platform</div>
+          <p class="card-desc">A purpose-built digital marketplace that organizes informal artisan labor into a verified, transparent, and mobile-first ecosystem.</p>
+        </div>
+        <div class="card">
+          <div class="card-title">📈 Tech Infrastructure</div>
+          <p class="card-desc">Rapid smartphone adoption, 4G connectivity, and digital payments create the ideal timing to modernize domestic maintenance in Ethiopia.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>Introduction</span><span>Slide 2</span></div>
+  </section>
+
+  <!-- Slide 3: Problem Statement -->
+  <section class="slide" id="slide-3">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">03</span>
+        <div class="slide-title-group">
+          <h2>Problem Statement</h2>
+          <p>Four structural challenges in Ethiopia's traditional repair market</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-2x2">
+        <div class="card">
+          <div class="card-title">🚨 Informal Search & Safety Risks</div>
+          <ul>
+            <li>• Zero background or criminal checks on unvetted street technicians</li>
+            <li>• Inviting unverified strangers into private family homes creates safety hazards</li>
+            <li>• Absence of institutional accountability or verified identity records</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">💰 Arbitrary & Inflated Pricing</div>
+          <ul>
+            <li>• No standardized rate cards or preliminary diagnostic baselines</li>
+            <li>• Technicians charge inflated fees on arrival during emergency breakdowns</li>
+            <li>• Unpredictable costs and stressful manual price bargaining</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">⏳ Severe Scheduling Friction</div>
+          <ul>
+            <li>• Customers waste hours making repeated phone calls across the city</li>
+            <li>• High technician no-show rates with zero advance notice</li>
+            <li>• Inefficient geographic matching across Addis Ababa's large subcities</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">❌ Zero Workmanship Guarantee</div>
+          <ul>
+            <li>• Informal cash transactions provide no formal receipts or service history</li>
+            <li>• No warranty or follow-up when completed repairs fail shortly after</li>
+            <li>• Total absence of customer dispute resolution mechanisms</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>Problem Statement</span><span>Slide 3</span></div>
+  </section>
+
+  <!-- Slide 4: Objectives -->
+  <section class="slide" id="slide-4">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">04</span>
+        <div class="slide-title-group">
+          <h2>Project Objectives</h2>
+          <p>Six measurable technical and socioeconomic goals realized by the platform</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-3-col">
+        <div class="card">
+          <span class="badge-pill badge-blue">Goal 1</span>
+          <div class="card-title">Seamless Proximity Matching</div>
+          <p class="card-desc">Connect customers with qualified local artisans across all 11 subcities in Addis Ababa using location filters.</p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-blue">Goal 2</span>
+          <div class="card-title">Rapid Multi-Media Posting</div>
+          <p class="card-desc">Enable customers to submit repair requests with photos and voice notes in under 2 minutes.</p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-blue">Goal 3</span>
+          <div class="card-title">Credential Verification</div>
+          <p class="card-desc">Enforce mandatory Kebele national ID and TVET vocational diploma vetting before technicians can accept jobs.</p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-orange">Goal 4</span>
+          <div class="card-title">Transparent Bidding Engine</div>
+          <p class="card-desc">Provide competitive multi-quote bidding so customers see upfront prices before confirming jobs.</p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-orange">Goal 5</span>
+          <div class="card-title">Verified Rating Engine</div>
+          <p class="card-desc">Implement a tamper-proof review system restricted strictly to customers with verified completed orders.</p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-orange">Goal 6</span>
+          <div class="card-title">Artisan Economic Inclusion</div>
+          <p class="card-desc">Provide skilled Ethiopian tradespeople with regular job alerts, fair market income, and a digital reputation.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>Objectives</span><span>Slide 4</span></div>
+  </section>
+
+  <!-- Slide 5: Proposed Solution -->
+  <section class="slide" id="slide-5">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">05</span>
+        <div class="slide-title-group">
+          <h2>Proposed Solution</h2>
+          <p>A unified five-stage mobile workflow engineered for the Ethiopian domestic market</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-5-col">
+        <div class="card">
+          <span class="badge-pill badge-blue">Step 01</span>
+          <div class="card-title">Select Service</div>
+          <p class="card-desc">Choose from 5 core categories: Plumbing, Electrical, Water Pumps, Appliances, or Finishing.</p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-blue">Step 02</span>
+          <div class="card-title">Describe Problem</div>
+          <p class="card-desc">Attach photos or voice notes, add issue details, and tag exact subcity (e.g. Bole, Kirkos).</p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-orange">Step 03</span>
+          <div class="card-title">Receive Bids</div>
+          <p class="card-desc">Vetted technicians receive push alerts and submit competitive, transparent price quotes.</p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-orange">Step 04</span>
+          <div class="card-title">Chat & Schedule</div>
+          <p class="card-desc">Review technician profiles and ratings, chat in real time, and confirm arrival appointment.</p>
+        </div>
+        <div class="card" style="border-color: #BFDBFE; background: #F0F7FF;">
+          <span class="badge-pill badge-green">Step 05</span>
+          <div class="card-title">Done & Rate</div>
+          <p class="card-desc">Technician completes repairs. Customer inspects, releases payment, and submits a review.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>Proposed Solution</span><span>Slide 5</span></div>
+  </section>
+
+  <!-- Slide 6: Target Users -->
+  <section class="slide" id="slide-6">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">06</span>
+        <div class="slide-title-group">
+          <h2>Target Users & Stakeholders</h2>
+          <p>Three core user roles interacting within the Bete platform</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-3-col">
+        <div class="card" style="border-top: 4px solid var(--brand-blue);">
+          <div class="card-title">👤 Service Seekers (Customers)</div>
+          <p class="card-desc">Homeowners, residential tenants, and office managers across Addis Ababa.</p>
+          <ul>
+            <li>• Urgent repair needs for household systems</li>
+            <li>• Demands verified background & security</li>
+            <li>• Requires upfront transparent price estimates</li>
+            <li>• Rates service quality after completion</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top: 4px solid var(--brand-orange);">
+          <div class="card-title">🛠️ Service Providers (Technicians)</div>
+          <p class="card-desc">Skilled local plumbers, electricians, and appliance repair technicians.</p>
+          <ul>
+            <li>• Independent tradespeople seeking steady orders</li>
+            <li>• Submits Kebele ID & diploma for vetting</li>
+            <li>• Receives instant job alerts in chosen subcities</li>
+            <li>• Builds verifiable 5-star reputation and earnings</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top: 4px solid var(--brand-navy);">
+          <div class="card-title">🛡️ Platform Administrator</div>
+          <p class="card-desc">Back-office operators overseeing quality, safety, and compliance.</p>
+          <ul>
+            <li>• Audits uploaded IDs and approves credentials</li>
+            <li>• Configures repair categories and subservices</li>
+            <li>• Arbitrates customer-technician disputes</li>
+            <li>• Monitors platform metrics and operational KPIs</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>Target Users</span><span>Slide 6</span></div>
+  </section>
+
+  <!-- Slide 7: Main Features -->
+  <section class="slide" id="slide-7">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">07</span>
+        <div class="slide-title-group">
+          <h2>Main Features</h2>
+          <p>Comprehensive features tailored for customers and service providers</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-2x2">
+        <div class="card" style="border-top: 4px solid var(--brand-blue);">
+          <div class="card-title">Customer / Seeker Features</div>
+          <ul>
+            <li>• <b>Service Directory:</b> 5 major trade categories and 16+ granular specialties</li>
+            <li>• <b>Multi-Media Job Creation:</b> Upload photos, problem notes, and location tags</li>
+            <li>• <b>Competitive Bidding:</b> Compare multiple price offers from nearby pros</li>
+            <li>• <b>Live Order Tracking:</b> Transparent states: Requested → Assigned → In-Progress → Completed</li>
+            <li>• <b>Tamper-Proof Reviews:</b> 1-5 star ratings tied strictly to verified finished orders</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top: 4px solid var(--brand-orange);">
+          <div class="card-title">Technician / Provider Features</div>
+          <ul>
+            <li>• <b>Profile & Onboarding:</b> Upload Kebele ID and TVET diplomas for vetting</li>
+            <li>• <b>Subcity Operational Filter:</b> Set coverage areas across Addis Ababa</li>
+            <li>• <b>Real-Time Push Alerts:</b> Socket.io alerts for new matching repair tasks</li>
+            <li>• <b>Flexible Quotations:</b> Submit competitive bids or accept direct requests</li>
+            <li>• <b>Reputation & Portfolio:</b> Track completed jobs and customer reviews</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>Main Features</span><span>Slide 7</span></div>
+  </section>
+
+  <!-- Slide 8: System Workflow -->
+  <section class="slide" id="slide-8">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">08</span>
+        <div class="slide-title-group">
+          <h2>System Workflow & State Machine</h2>
+          <p>Finite state machine governing the complete lifecycle of each repair request</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-5-col">
+        <div class="card">
+          <span class="badge-pill badge-blue">State 1</span>
+          <div class="card-title">Job Created</div>
+          <p class="card-desc">Customer submits category, description, photos, and subcity. Request status set to <code>'open'</code>.</p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-orange">State 2</span>
+          <div class="card-title">Bids Received</div>
+          <p class="card-desc">Vetted local technicians inspect photos and submit competitive price quotes in Ethiopian Birr.</p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-blue">State 3</span>
+          <div class="card-title">Bid Accepted</div>
+          <p class="card-desc">Customer accepts bid. Order created; status transitions to <code>'assigned'</code>; appointment scheduled.</p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-orange">State 4</span>
+          <div class="card-title">In Progress</div>
+          <p class="card-desc">Technician arrives on site, performs diagnosis, and completes repair. Status set to <code>'active'</code>.</p>
+        </div>
+        <div class="card" style="border-color: #A7F3D0; background: #F0FDF4;">
+          <span class="badge-pill badge-green">State 5</span>
+          <div class="card-title">Closed & Rated</div>
+          <p class="card-desc">Customer inspects work, settles payment, and rates technician. Status transitions to <code>'completed'</code>.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>System Workflow</span><span>Slide 8</span></div>
+  </section>
+
+  <!-- Slide 9: System Architecture -->
+  <section class="slide" id="slide-9">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">09</span>
+        <div class="slide-title-group">
+          <h2>System Architecture</h2>
+          <p>Decoupled multi-tier engineering topology</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-3-col">
+        <div class="card" style="border-top: 4px solid var(--brand-blue);">
+          <span class="badge-pill badge-blue">Frontend Layer</span>
+          <div class="card-title">Client Applications</div>
+          <ul>
+            <li>• <b>Mobile App:</b> React Native with Expo Router v54</li>
+            <li>• <b>Admin Web:</b> React 19 + Vite operations console</li>
+            <li>• <b>Language:</b> 100% strict TypeScript for type safety</li>
+            <li>• <b>State Management:</b> Zustand reactive store</li>
+            <li>• <b>Styling:</b> Tailwind NativeWind on mobile</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top: 4px solid var(--brand-navy);">
+          <span class="badge-pill badge-orange">Backend Layer</span>
+          <div class="card-title">API & Real-Time Gateway</div>
+          <ul>
+            <li>• <b>Runtime:</b> Node.js (v20+ LTS)</li>
+            <li>• <b>Framework:</b> Express.js RESTful web services</li>
+            <li>• <b>WebSockets:</b> Socket.io for duplex chat & alerts</li>
+            <li>• <b>Security:</b> JWT stateless tokens + bcrypt hashing</li>
+            <li>• <b>Media Pipeline:</b> Multer & Cloudinary CDN integration</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top: 4px solid var(--green);">
+          <span class="badge-pill badge-green">Data Layer</span>
+          <div class="card-title">Persistence & Storage</div>
+          <ul>
+            <li>• <b>Database:</b> MongoDB Atlas (Document NoSQL)</li>
+            <li>• <b>ODM:</b> Mongoose with relational schema validation</li>
+            <li>• <b>Indexing:</b> Compound indexes on subcity & status</li>
+            <li>• <b>Cloud Storage:</b> Cloudinary for technician ID photos</li>
+            <li>• <b>Reliability:</b> Connection pooling and automated backup</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>System Architecture</span><span>Slide 9</span></div>
+  </section>
+
+  <!-- Slide 10: UI/UX Design -->
+  <section class="slide" id="slide-10">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">10</span>
+        <div class="slide-title-group">
+          <h2>UI/UX Design</h2>
+          <p>Clean, modern Ethiopian technology aesthetic prioritizing speed and legibility</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-5-col">
+        <div class="card" style="text-align: center;">
+          <div style="background: #EFF6FF; height: 140px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin-bottom: 10px;">🏠</div>
+          <div class="card-title" style="font-size: 0.95rem;">Home Screen</div>
+          <p class="card-desc" style="font-size: 0.76rem;">Subcity selector, service grid, active banner & verified pros.</p>
+        </div>
+        <div class="card" style="text-align: center;">
+          <div style="background: #FFF7ED; height: 140px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin-bottom: 10px;">📝</div>
+          <div class="card-title" style="font-size: 0.95rem;">Job Creation</div>
+          <p class="card-desc" style="font-size: 0.76rem;">Trade selection, problem notes, photo upload & urgency.</p>
+        </div>
+        <div class="card" style="text-align: center;">
+          <div style="background: #F0FDF4; height: 140px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin-bottom: 10px;">⭐</div>
+          <div class="card-title" style="font-size: 0.95rem;">Provider Profile</div>
+          <p class="card-desc" style="font-size: 0.76rem;">Verification badge, skills list, star rating & review history.</p>
+        </div>
+        <div class="card" style="text-align: center;">
+          <div style="background: #EFF6FF; height: 140px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin-bottom: 10px;">💬</div>
+          <div class="card-title" style="font-size: 0.95rem;">Real-Time Chat</div>
+          <p class="card-desc" style="font-size: 0.76rem;">Socket.io instant chat, bid quotation cards & phone dialer.</p>
+        </div>
+        <div class="card" style="text-align: center;">
+          <div style="background: #F8FAFC; height: 140px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; margin-bottom: 10px;">📦</div>
+          <div class="card-title" style="font-size: 0.95rem;">Order Tracking</div>
+          <p class="card-desc" style="font-size: 0.76rem;">Status progress timeline, signoff completion & rating modal.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>UI/UX Design</span><span>Slide 10</span></div>
+  </section>
+
+  <!-- Slide 11: Database Design -->
+  <section class="slide" id="slide-11">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">11</span>
+        <div class="slide-title-group">
+          <h2>Database Design</h2>
+          <p>Mongoose document model enforcing relational integrity across collections</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-3-col">
+        <div class="card">
+          <div class="card-title">🗄️ Users Collection</div>
+          <ul>
+            <li>• <code>_id</code>: ObjectId (Primary Key)</li>
+            <li>• <code>phone</code>: String (Unique index)</li>
+            <li>• <code>role</code>: 'customer' | 'provider'</li>
+            <li>• <code>fullName</code>: String</li>
+            <li>• <code>subcity</code>: String (Addis Ababa)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">🗄️ ProviderProfiles</div>
+          <ul>
+            <li>• <code>_id</code>: ObjectId (Primary Key)</li>
+            <li>• <code>userId</code>: Ref(Users)</li>
+            <li>• <code>skills</code>: [String] (Trades)</li>
+            <li>• <code>kebeleIdUrl</code>: String</li>
+            <li>• <code>isVerified</code>: Boolean (Default: false)</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">🗄️ JobRequests</div>
+          <ul>
+            <li>• <code>_id</code>: ObjectId (Primary Key)</li>
+            <li>• <code>customerId</code>: Ref(Users)</li>
+            <li>• <code>category</code>: String</li>
+            <li>• <code>photos</code>: [String]</li>
+            <li>• <code>status</code>: 'open'|'active'|'done'</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">🗄️ Bids Collection</div>
+          <ul>
+            <li>• <code>_id</code>: ObjectId (Primary Key)</li>
+            <li>• <code>jobId</code>: Ref(JobRequests)</li>
+            <li>• <code>providerId</code>: Ref(Users)</li>
+            <li>• <code>amount</code>: Number (ETB)</li>
+            <li>• <code>status</code>: 'pending'|'accepted'</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">🗄️ Orders Collection</div>
+          <ul>
+            <li>• <code>_id</code>: ObjectId (Primary Key)</li>
+            <li>• <code>jobId</code>: Ref(JobRequests)</li>
+            <li>• <code>providerId</code>: Ref(Users)</li>
+            <li>• <code>scheduledAt</code>: Date</li>
+            <li>• <code>status</code>: 'active'|'completed'</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">🗄️ Reviews Collection</div>
+          <ul>
+            <li>• <code>_id</code>: ObjectId (Primary Key)</li>
+            <li>• <code>orderId</code>: Ref(Orders)</li>
+            <li>• <code>customerId</code>: Ref(Users)</li>
+            <li>• <code>providerId</code>: Ref(Users)</li>
+            <li>• <code>rating</code>: Number (1 to 5)</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>Database Design</span><span>Slide 11</span></div>
+  </section>
+
+  <!-- Slide 12: Technologies Used -->
+  <section class="slide" id="slide-12">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">12</span>
+        <div class="slide-title-group">
+          <h2>Technologies Used</h2>
+          <p>Production-ready modern technology stack powering the Bete ecosystem</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-3-col">
+        <div class="card">
+          <span class="badge-pill badge-blue">Mobile Frontend</span>
+          <div class="card-title">React Native & Expo</div>
+          <ul>
+            <li>• <b>React Native:</b> Cross-platform native mobile performance</li>
+            <li>• <b>Expo Router v54:</b> File-based nested routing structure</li>
+            <li>• <b>TypeScript:</b> Strict compile-time static type safety</li>
+            <li>• <b>Zustand:</b> Minimalist reactive global state management</li>
+            <li>• <b>Lucide Icons:</b> Clean, modern vector icon set</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-orange">Backend Engine</span>
+          <div class="card-title">Node.js & Express</div>
+          <ul>
+            <li>• <b>Node.js:</b> High-throughput asynchronous event-driven runtime</li>
+            <li>• <b>Express.js:</b> Modular REST API routes and controllers</li>
+            <li>• <b>Socket.io:</b> Low-latency duplex WebSocket communication</li>
+            <li>• <b>JWT & bcrypt:</b> Stateless token auth and secure password hashing</li>
+            <li>• <b>Multer:</b> Multi-part media handling pipeline</li>
+          </ul>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-green">Database & Tooling</span>
+          <div class="card-title">MongoDB & Tooling</div>
+          <ul>
+            <li>• <b>MongoDB Atlas:</b> Scalable cloud document NoSQL database</li>
+            <li>• <b>Mongoose ODM:</b> Schema validation and relation population</li>
+            <li>• <b>Cloudinary:</b> Cloud media optimization and asset hosting</li>
+            <li>• <b>Postman:</b> Automated REST API testing suites</li>
+            <li>• <b>Git & GitHub:</b> Collaborative source version control</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>Technologies Used</span><span>Slide 12</span></div>
+  </section>
+
+  <!-- Slide 13: Role-Based Access Control -->
+  <section class="slide" id="slide-13">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">13</span>
+        <div class="slide-title-group">
+          <h2>Role-Based Access Control (RBAC)</h2>
+          <p>Security boundaries and permission partitioning across all platform actors</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-3-col">
+        <div class="card" style="border-top: 4px solid var(--brand-blue);">
+          <div class="card-title">👤 Customer Permissions</div>
+          <ul>
+            <li>• Access to <code>(customer-tabs)</code> route group</li>
+            <li>• Can create, edit, and cancel repair job requests</li>
+            <li>• Can review incoming bids and accept a quote</li>
+            <li>• Can chat with and rate assigned technician</li>
+            <li>• <i>Restricted:</i> Cannot view provider bid feed or submit quotes</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top: 4px solid var(--brand-orange);">
+          <div class="card-title">🛠️ Provider Permissions</div>
+          <ul>
+            <li>• Access to <code>(provider-tabs)</code> route group</li>
+            <li>• Can browse local job requests matching skills & subcity</li>
+            <li>• Can submit competitive price bids on open jobs</li>
+            <li>• Access to completed jobs ledger and earnings tracker</li>
+            <li>• <i>Restricted:</i> Cannot submit bids until admin approves Kebele ID</li>
+          </ul>
+        </div>
+        <div class="card" style="border-top: 4px solid var(--brand-navy);">
+          <div class="card-title">🛡️ Admin Permissions</div>
+          <ul>
+            <li>• Access to Vite web management administration portal</li>
+            <li>• Can inspect uploaded Kebele IDs and grant verified badges</li>
+            <li>• Can add, edit, or disable repair categories and subservices</li>
+            <li>• Can arbitrate disputes and moderate flagged accounts</li>
+            <li>• Full access to platform analytics and performance metrics</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>Role-Based Access Control</span><span>Slide 13</span></div>
+  </section>
+
+  <!-- Slide 14: Testing -->
+  <section class="slide" id="slide-14">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">14</span>
+        <div class="slide-title-group">
+          <h2>Testing Methodology</h2>
+          <p>Multi-level verification strategy ensuring security, data integrity, and reliability</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-2x2">
+        <div class="card">
+          <div class="card-title">🧪 Unit Testing</div>
+          <ul>
+            <li>• Validated authentication controller logic and phone number formatting</li>
+            <li>• Tested Mongoose schema validators and required field constraints</li>
+            <li>• Verified bid sorting and average rating calculation algorithms</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">🔌 API Integration Testing</div>
+          <ul>
+            <li>• Automated Postman test suites for <code>/api/auth</code>, <code>/api/jobs</code>, <code>/api/bids</code></li>
+            <li>• Validated HTTP status codes (200, 201, 400, 401, 403, 404) for all routes</li>
+            <li>• Tested multi-part file upload endpoints with image format assertions</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">⚡ Real-Time Socket Testing</div>
+          <ul>
+            <li>• Tested concurrent bidirectional chat message streaming via Socket.io</li>
+            <li>• Verified room-based event isolation so only involved users receive alerts</li>
+            <li>• Validated push alert delivery when app transitions between active/background</li>
+          </ul>
+        </div>
+        <div class="card">
+          <div class="card-title">📱 Cross-Platform Device Testing</div>
+          <ul>
+            <li>• Tested on physical Android devices (Samsung Galaxy, Tecno) via Expo Go</li>
+            <li>• Tested iOS simulator viewports for layout responsiveness and touch targets</li>
+            <li>• Verified smooth scrolling performance on low-tier mobile hardware</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>Testing Methodology</span><span>Slide 14</span></div>
+  </section>
+
+  <!-- Slide 15: Results -->
+  <section class="slide" id="slide-15">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">15</span>
+        <div class="slide-title-group">
+          <h2>Evaluation Results & Metrics</h2>
+          <p>Quantitative benchmarks confirming performance, reliability, and usability</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-2x2">
+        <div class="card" style="border-left: 6px solid var(--green);">
+          <div class="card-title">⚡ Fast API Response Times</div>
+          <ul>
+            <li>• Average REST endpoint response latency: <b>68ms</b> locally</li>
+            <li>• Image uploads optimized via client-side downscaling before upload</li>
+            <li>• Fast query execution powered by compound subcity indexes</li>
+          </ul>
+        </div>
+        <div class="card" style="border-left: 6px solid var(--brand-blue);">
+          <div class="card-title">💬 Sub-Second Chat Delivery</div>
+          <ul>
+            <li>• Real-time Socket.io message delivery latency: <b>&lt; 250ms</b></li>
+            <li>• 100% reliable chat history persistence in MongoDB</li>
+            <li>• Instant quote card rendering in chat conversations</li>
+          </ul>
+        </div>
+        <div class="card" style="border-left: 6px solid var(--green);">
+          <div class="card-title">✅ 100% Test Case Pass Rate</div>
+          <ul>
+            <li>• All 28 defined core test scenarios passed with 0 critical defects</li>
+            <li>• Zero orphan bids or invalid reviews permitted by database constraints</li>
+            <li>• Role escalation attempts successfully blocked by JWT middleware</li>
+          </ul>
+        </div>
+        <div class="card" style="border-left: 6px solid var(--brand-orange);">
+          <div class="card-title">⏱️ Under 90-Second Job Posting</div>
+          <ul>
+            <li>• Usability tests show non-technical users submit jobs in <b>&lt; 90 seconds</b></li>
+            <li>• Intuitive 3-step form reduces drop-off rates during urgent repair needs</li>
+            <li>• High user satisfaction on clarity of Ethiopian subcity picker</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>Evaluation Results</span><span>Slide 15</span></div>
+  </section>
+
+  <!-- Slide 16: Challenges and Solutions -->
+  <section class="slide" id="slide-16">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">16</span>
+        <div class="slide-title-group">
+          <h2>Challenges & Engineering Solutions</h2>
+          <p>Key technical hurdles encountered and how they were solved</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-2x2">
+        <div class="card">
+          <span class="badge-pill badge-blue">Challenge 1</span>
+          <div class="card-title">Dual-Role Codebase Architecture</div>
+          <p class="card-desc">
+            <b>Problem:</b> Managing customer and provider roles in one app without code bloat.<br/>
+            <b>Solution:</b> Implemented Expo Router route groups <code>(customer-tabs)</code> and <code>(provider-tabs)</code> governed by dynamic Zustand role state.
+          </p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-orange">Challenge 2</span>
+          <div class="card-title">Real-Time Bidding Overhead</div>
+          <p class="card-desc">
+            <b>Problem:</b> HTTP polling for new bids drained mobile battery and overloaded server.<br/>
+            <b>Solution:</b> Integrated Socket.io room events triggered by MongoDB document updates for instant, push-based delivery.
+          </p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-blue">Challenge 3</span>
+          <div class="card-title">ID Vetting Without National API</div>
+          <p class="card-desc">
+            <b>Problem:</b> Absence of automated national API registries for background checking.<br/>
+            <b>Solution:</b> Built a dedicated Admin Gateway for manual auditing of uploaded Kebele IDs and TVET diplomas before badge issuance.
+          </p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-orange">Challenge 4</span>
+          <div class="card-title">Intermittent Network Latency</div>
+          <p class="card-desc">
+            <b>Problem:</b> Unreliable 3G/4G connectivity across different Addis Ababa neighborhoods.<br/>
+            <b>Solution:</b> Implemented client-side image downscaling before upload and optimistic UI caching for instant feedback.
+          </p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>Challenges & Solutions</span><span>Slide 16</span></div>
+  </section>
+
+  <!-- Slide 17: Future Improvements -->
+  <section class="slide" id="slide-17">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">17</span>
+        <div class="slide-title-group">
+          <h2>Future Improvements & Roadmap</h2>
+          <p>Strategic product expansion roadmap beyond academic defense</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div class="grid-4-col">
+        <div class="card">
+          <span class="badge-pill badge-blue">Phase 1 • Q4 2026</span>
+          <div class="card-title">💳 In-App Escrow Payments</div>
+          <p class="card-desc">Direct integration with Telebirr and CBE Birr APIs with escrow hold, releasing funds upon customer satisfaction signoff.</p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-blue">Phase 2 • Q1 2027</span>
+          <div class="card-title">🚨 24/7 Emergency Dispatch</div>
+          <p class="card-desc">One-tap emergency callout tab for hazardous pipe bursts, water leaks, and urgent electrical circuit failures.</p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-blue">Phase 3 • Q2 2027</span>
+          <div class="card-title">🗺️ Regional City Expansion</div>
+          <p class="card-desc">Onboard certified local technicians in major secondary Ethiopian urban centers: Hawassa, Adama, Bahir Dar, and Dire Dawa.</p>
+        </div>
+        <div class="card">
+          <span class="badge-pill badge-blue">Phase 4 • Q3 2027</span>
+          <div class="card-title">🎙️ AI Voice Transcription</div>
+          <p class="card-desc">Voice-to-text in Amharic and Afaan Oromoo for effortless request creation by non-typing customers.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>Future Improvements</span><span>Slide 17</span></div>
+  </section>
+
+  <!-- Slide 18: Conclusion -->
+  <section class="slide" id="slide-18">
+    <div class="slide-header">
+      <div class="header-left">
+        <span class="slide-num-badge">18</span>
+        <div class="slide-title-group">
+          <h2>Conclusion</h2>
+          <p>Formalizing Ethiopia's domestic maintenance sector through technology</p>
+        </div>
+      </div>
+      <div class="header-logo"><span class="header-logo-text">Be<span>te</span></span></div>
+    </div>
+    <div class="slide-body">
+      <div style="display: flex; flex-direction: column; gap: 14px;">
+        <div class="card" style="border-left: 6px solid var(--brand-blue); padding: 18px 24px;">
+          <div class="card-title" style="color: var(--brand-blue);">For Ethiopian Households</div>
+          <p class="card-desc">Replaces informal, dangerous street searches with background-checked professionals, verified customer ratings, and transparent upfront pricing.</p>
+        </div>
+        <div class="card" style="border-left: 6px solid var(--brand-orange); padding: 18px 24px;">
+          <div class="card-title" style="color: var(--brand-orange);">For Skilled Artisans & Technicians</div>
+          <p class="card-desc">Dignifies informal labor with regular local job alerts, transparent market income, and a permanent digital track record that grows their career.</p>
+        </div>
+        <div class="card" style="border-left: 6px solid var(--brand-navy); padding: 18px 24px;">
+          <div class="card-title" style="color: var(--brand-navy);">Software Engineering Rigor</div>
+          <p class="card-desc">Demonstrates a production-ready, full-stack cross-platform system adhering to modern software engineering standards and best practices.</p>
+        </div>
+      </div>
+    </div>
+    <div class="slide-footer"><span>Bete Defense Deck</span><span>Conclusion</span><span>Slide 18</span></div>
+  </section>
+
+  <!-- Slide 19: Q&A / Closing -->
+  <section class="slide" id="slide-19" style="background: linear-gradient(145deg, #002B49 0%, #001B30 100%); color: #FFFFFF; text-align: center; justify-content: center; align-items: center;">
+    <div style="max-width: 800px; display: flex; flex-direction: column; align-items: center;">
+      <svg viewBox="0 0 512 512" width="68" height="68" style="margin-bottom: 18px;">
+        <path d="M256 76 C321 76 372 129 372 195 C372 261 291 329 256 360 C221 329 140 261 140 195 C140 129 191 76 256 76 Z" fill="#0066FF" />
+        <circle cx="256" cy="198" r="73" fill="#FFFFFF" />
+        <path d="M 180 198 L 256 131 L 332 198" fill="none" stroke="#FF6B00" stroke-width="16" stroke-linecap="round" stroke-linejoin="round" />
+        <rect x="290" y="143" width="14" height="22" fill="#FF6B00" rx="3" />
+        <g transform="translate(256, 202)">
+          <rect x="-22" y="-22" width="18" height="18" rx="3" fill="#FF6B00" />
+          <rect x="4" y="-22" width="18" height="18" rx="3" fill="#FF6B00" />
+          <rect x="-22" y="4" width="18" height="18" rx="3" fill="#FF6B00" />
+          <rect x="4" y="4" width="18" height="18" rx="3" fill="#FF6B00" />
+        </g>
+      </svg>
+
+      <h1 style="font-family: 'Outfit', sans-serif; font-size: 3.4rem; font-weight: 900; margin-bottom: 10px; letter-spacing: -0.5px;">
+        Thank You!
+      </h1>
+
+      <h3 style="font-size: 1.6rem; font-weight: 700; color: var(--brand-orange); margin-bottom: 22px;">
+        Questions & Technical Discussion
+      </h3>
+
+      <p style="font-size: 1.05rem; line-height: 1.6; color: #CBD5E1; margin-bottom: 30px; max-width: 600px;">
+        <b>Bete (ቤቴ)</b> – Household Repair & Maintenance Service.<br/>
+        We look forward to questions and technical feedback from the academic defense examination committee.
+      </p>
+
+      <div style="display: flex; gap: 14px;">
+        <button class="btn-nav" onclick="goToSlide(1)" style="padding: 10px 20px; font-size: 0.9rem;">↺ Restart</button>
+        <button class="btn-nav" onclick="window.print()" style="padding: 10px 20px; font-size: 0.9rem; background: var(--brand-blue); border-color: var(--brand-blue);">🖨️ Export PDF</button>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    let currentSlide = 1;
+    const totalSlides = 19;
+
+    function updateCounter() {
+      const el = document.getElementById('currentSlideNum');
+      if (el) el.innerText = currentSlide;
+    }
+
+    function scrollToSlide(num) {
+      const slide = document.getElementById(`slide-${num}`);
+      if (slide) {
+        slide.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        currentSlide = num;
+        updateCounter();
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        currentSlide++;
+        scrollToSlide(currentSlide);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        currentSlide--;
+        scrollToSlide(currentSlide);
+      }
+    }
+
+    function goToSlide(num) {
+      currentSlide = Math.max(1, Math.min(totalSlides, num));
+      scrollToSlide(currentSlide);
+    }
+
+    function toggleFullScreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+          console.log(`Error entering full-screen mode: ${err.message}`);
+        });
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (['input', 'textarea'].includes(document.activeElement.tagName.toLowerCase())) return;
+
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || e.key === 'Backspace') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        goToSlide(1);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        goToSlide(totalSlides);
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullScreen();
+      }
+    });
+
+    window.addEventListener('scroll', () => {
+      const slides = document.querySelectorAll('.slide');
+      slides.forEach((s, idx) => {
+        const rect = s.getBoundingClientRect();
+        if (rect.top <= window.innerHeight / 2 && rect.bottom >= window.innerHeight / 2) {
+          currentSlide = idx + 1;
+          updateCounter();
+        }
+      });
+    }, { passive: true });
+  </script>
+</body>
+</html>

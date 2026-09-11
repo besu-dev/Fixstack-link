@@ -2,8 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { SERVICE_CATEGORIES } from '../api/services';
 import {
   Search,
-  Smartphone,
-  ArrowRight,
   Wrench
 } from 'lucide-react';
 import './ServicesPage.css';
@@ -31,9 +29,6 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
     });
   }, [selectedCategory, searchQuery]);
 
-  const handleBookingNotice = (subserviceName) => {
-    onShowToast(`To request "${subserviceName}", please use the Bete Mobile App. Website is informational only.`, 'info');
-  };
 
   return (
     <div className="services-page">
@@ -141,18 +136,6 @@ export default function ServicesPage({ onShowToast, onNavigate, setActivePage })
                             <h4 className="subservice-name">{sub.name}</h4>
                             <p className="subservice-desc">{sub.desc}</p>
 
-                            <div className="subservice-footer">
-                              <span className="informational-label">
-                                <Smartphone size={14} /> Book on Mobile App
-                              </span>
-                              <button
-                                className="subservice-action-link"
-                                onClick={() => handleBookingNotice(sub.name)}
-                              >
-                                <span>Details</span>
-                                <ArrowRight size={14} />
-                              </button>
-                            </div>
                           </div>
                         </div>
                       ))}

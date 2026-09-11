@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X, ChevronRight } from 'lucide-react';
 import './Navbar.css';
 
-export default function Navbar({ 
-  activeSection, 
-  activePage, 
-  onNavigate, 
+export default function Navbar({
+  activeSection,
+  activePage,
+  onNavigate,
   setActivePage
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -42,16 +42,16 @@ export default function Navbar({
     <header className={`navbar-header ${isScrolled ? 'scrolled' : ''}`}>
       <div className="container navbar-container">
         {/* Brand Logo */}
-        <button 
-          className="brand-logo" 
+        <button
+          className="brand-logo"
           onClick={() => handleNavClick('home')}
           aria-label="Bete Home"
           type="button"
         >
           <div className="brand-icon-wrapper">
-            <img 
-              src="/Bete_Logo_Mark.svg" 
-              alt="Bete Logo Mark" 
+            <img
+              src="/Bete_Logo_Mark.svg"
+              alt="Bete Logo Mark"
               className="brand-logo-svg"
             />
           </div>
@@ -83,18 +83,19 @@ export default function Navbar({
 
         {/* Right Action: Admin Login Button (Visually Separate) */}
         <div className="navbar-actions">
-          <button 
+          <button
             className="btn btn-admin btn-sm"
             title="Administrator Portal"
             id="admin-login-nav-btn"
             type="button"
+
           >
             <span>Admin Login</span>
           </button>
 
           {/* Mobile Hamburger Toggle */}
-          <button 
-            className="mobile-toggle-btn" 
+          <button
+            className="mobile-toggle-btn"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle Navigation Menu"
             aria-expanded={mobileMenuOpen}
@@ -130,13 +131,17 @@ export default function Navbar({
               <span className="notice-tag">Mobile App</span>
               <p>Customer booking & provider registration happen on the Bete mobile app.</p>
             </div>
-            
-            <button 
+
+            <button
               type="button"
               className="btn btn-primary w-full"
-              onClick={() => setMobileMenuOpen(false)}
+              onClick={() => {
+                const adminDashboardUrl = import.meta.env.VITE_ADMIN_DASHBOARD_URL || 'http://localhost:5173/admin';
+                window.open(adminDashboardUrl, '_blank', 'noopener,noreferrer');
+                setMobileMenuOpen(false);
+              }}
             >
-              <span>Admin Dashboard Login</span>
+              <span>Admin Login</span>
             </button>
           </div>
         </div>
