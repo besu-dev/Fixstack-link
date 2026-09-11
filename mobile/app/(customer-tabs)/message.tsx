@@ -87,6 +87,13 @@ export default function CustomerMessageScreen() {
 
   const [conversations, setConversations] = useState<ConversationItem[]>([]);
   const [loadingList, setLoadingList] = useState(false);
+  const [closedChatManually, setClosedChatManually] = useState(false);
+
+  useEffect(() => {
+    if (jobId || receiverId) {
+      setClosedChatManually(false);
+    }
+  }, [jobId, receiverId]);
 
   const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList>(null);
@@ -151,20 +158,20 @@ export default function CustomerMessageScreen() {
 
   useFocusEffect(
     useCallback(() => {
-      if (!jobId && !receiverId) {
+      if (!isDirectChatActive) {
         fetchConversations();
       }
-    }, [jobId, receiverId, fetchConversations])
+    }, [isDirectChatActive, fetchConversations])
   );
 
   useEffect(() => {
-    if (!jobId && !receiverId) {
+    if (!isDirectChatActive) {
       fetchConversations();
     }
-  }, [jobId, receiverId, fetchConversations]);
+  }, [isDirectChatActive, fetchConversations]);
 
   useEffect(() => {
-    if (!jobId && !receiverId) return;
+    if (!isDirectChatActive) return;
 
     let socket: Socket;
 
@@ -289,7 +296,13 @@ export default function CustomerMessageScreen() {
   // -------------------------------------------------------------
   // VIEW 1: INBOX CONVERSATIONS LIST
   // -------------------------------------------------------------
-  const isDirectChatActive = Boolean(jobId || receiverId);
+  const isDirectChatActive = Boolean((jobId || receiverId) && !closedChatManually);
+
+  const handleBackToInbox = () => {
+    setClosedChatManually(true);
+    router.replace("/(customer-tabs)/message");
+  };
+
   if (!isDirectChatActive) {
     return (
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
@@ -321,7 +334,8 @@ export default function CustomerMessageScreen() {
             renderItem={({ item }) => (
               <TouchableOpacity
                 style={styles.chatCard}
-                onPress={() =>
+                onPress={() => {
+                  setClosedChatManually(false);
                   router.push({
                     pathname: "/(customer-tabs)/message",
                     params: {
@@ -331,8 +345,8 @@ export default function CustomerMessageScreen() {
                       recipientPhone: item.provider?.phone || "",
                       recipientAvatar: item.provider?.avatarUrl || "",
                     },
-                  })
-                }
+                  });
+                }}
                 activeOpacity={0.7}
               >
                 <UserAvatar
@@ -407,13 +421,7 @@ export default function CustomerMessageScreen() {
       {/* Top Header */}
       <View style={styles.chatHeader}>
         <TouchableOpacity
-          onPress={() => {
-            if (router.canGoBack()) {
-              router.back();
-            } else {
-              router.replace("/(customer-tabs)/message");
-            }
-          }}
+          onPress={handleBackToInbox}
           style={styles.backBtn}
         >
           <Feather name="chevron-left" size={24} color="#0F172A" />
