@@ -11,11 +11,19 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://bete-backend.onrender.com/api",
+        "EXPO_PUBLIC_SOCKET_URL": "https://bete-backend.onrender.com"
       }
     },
     "production": {
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://bete-backend.onrender.com/api",
+        "EXPO_PUBLIC_SOCKET_URL": "https://bete-backend.onrender.com"
       }
     }
   },
