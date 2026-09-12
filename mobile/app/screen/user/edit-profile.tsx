@@ -49,7 +49,7 @@ export default function EditProfileScreen() {
           setFullName(user.fullName || "");
           setEmail(user.email || "");
           setPhoneNumber(user.phone || "");
-          setAddress(user.subcity || "");
+          setAddress(user.subcity || user.location || user.address || "");
           if (user.avatarUrl) setAvatarUri(user.avatarUrl);
         }
       } catch {
@@ -59,7 +59,7 @@ export default function EditProfileScreen() {
           setFullName(user.fullName || "");
           setEmail(user.email || "");
           setPhoneNumber(user.phone || "");
-          setAddress(user.subcity || "");
+          setAddress(user.subcity || user.location || user.address || "");
           if (user.avatarUrl) setAvatarUri(user.avatarUrl);
         }
       } finally {
@@ -113,6 +113,7 @@ export default function EditProfileScreen() {
       formData.append("fullName", fullName.trim());
       formData.append("phone", phoneNumber.trim());
       formData.append("subcity", address.trim());
+      formData.append("location", address.trim());
 
       if (removeAvatar) {
         formData.append("removeAvatar", "true");
@@ -253,12 +254,12 @@ export default function EditProfileScreen() {
               placeholderTextColor="#94A3B8"
             />
 
-            <Text style={styles.label}>Home Address / Subcity</Text>
+            <Text style={styles.label}>Location / Subcity</Text>
             <TextInput
               style={styles.input}
               value={address}
               onChangeText={setAddress}
-              placeholder="e.g. Bole Sub-city, Addis Ababa"
+              placeholder="e.g., Bole, Addis Ababa"
               placeholderTextColor="#94A3B8"
             />
 

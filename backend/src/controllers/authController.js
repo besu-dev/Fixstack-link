@@ -296,13 +296,14 @@ export const getMe = async (req, res) => {
 // @access  Private
 export const updateProfile = async (req, res) => {
   try {
-    const { fullName, phone, subcity, profession, experience, skills, removeAvatar } =
+    const { fullName, phone, subcity, location, profession, experience, skills, removeAvatar } =
       req.body;
     const updateFields = {};
 
     if (fullName && fullName.trim()) updateFields.fullName = fullName.trim();
     if (phone && phone.trim()) updateFields.phone = formatPhone(phone.trim());
-    if (subcity && subcity.trim()) updateFields.subcity = subcity.trim();
+    const loc = subcity || location;
+    if (loc && loc.trim()) updateFields.subcity = loc.trim();
     if (profession && profession.trim())
       updateFields.profession = profession.trim();
     if (experience && experience.trim())

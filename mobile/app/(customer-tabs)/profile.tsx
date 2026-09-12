@@ -33,6 +33,8 @@ interface CustomerData {
   phone?: string;
   avatarUrl?: string;
   connectsBalance?: number;
+  subcity?: string;
+  location?: string;
 }
 
 interface JobStats {
@@ -242,6 +244,14 @@ export default function CustomerProfileScreen() {
           <Text style={styles.userEmail}>
             {profile?.email || profile?.phone || "No contact info set"}
           </Text>
+          {(profile?.subcity || (profile as any)?.location) ? (
+            <View style={styles.locationBadge}>
+              <Feather name="map-pin" size={moderateScale(12)} color="#0052CC" />
+              <Text style={styles.locationText}>
+                {profile?.subcity || (profile as any)?.location}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         {/* Live Metrics */}
@@ -505,6 +515,21 @@ const styles = StyleSheet.create({
     fontSize: scaledFont(13),
     color: "#64748B",
     marginTop: scale(2),
+  },
+  locationBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#EFF6FF",
+    paddingHorizontal: scale(10),
+    paddingVertical: scale(4),
+    borderRadius: moderateScale(12),
+    gap: scale(5),
+    marginTop: scale(6),
+  },
+  locationText: {
+    fontSize: scaledFont(12),
+    fontWeight: "600",
+    color: "#0052CC",
   },
   statsRow: {
     flexDirection: "row",

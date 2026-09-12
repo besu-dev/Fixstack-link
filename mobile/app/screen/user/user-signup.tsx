@@ -29,6 +29,7 @@ export default function CustomerSignupScreen() {
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [location, setLocation] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -90,6 +91,8 @@ export default function CustomerSignupScreen() {
       formData.append("phone", phone.trim().replace(/[\s\-()]/g, ""));
       formData.append("password", password);
       formData.append("role", "customer");
+      formData.append("subcity", location.trim() || "Bole");
+      formData.append("location", location.trim() || "Bole");
 
       // Only attach email if user actually entered one
       if (cleanEmail) {
@@ -231,6 +234,15 @@ export default function CustomerSignupScreen() {
               autoCapitalize="none"
               value={email}
               onChangeText={setEmail}
+            />
+
+            <Text style={styles.label}>Location / Subcity</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="e.g., Bole, Addis Ababa"
+              placeholderTextColor="#94A3B8"
+              value={location}
+              onChangeText={setLocation}
             />
 
             <Text style={styles.label}>Password</Text>
