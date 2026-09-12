@@ -25,6 +25,7 @@ const userSchema = new mongoose.Schema(
     isVerified: { type: Boolean, default: false },
     isAvailable: { type: Boolean, default: true },
     notificationsEnabled: { type: Boolean, default: true },
+    pushToken: { type: String, default: "" },
     rating: { type: Number, default: 5.0 },
 
     connectsBalance: {

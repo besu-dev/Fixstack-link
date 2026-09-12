@@ -17,6 +17,10 @@ import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../src/api/client";
 import { Alert } from "../../src/context/AlertContext";
+import {
+  registerForPushNotificationsAsync,
+  syncPushTokenWithBackend,
+} from "../../src/utils/pushNotifications";
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -57,6 +61,13 @@ export default function LoginScreen() {
       await SecureStore.setItemAsync("user_token", token);
       await SecureStore.setItemAsync("user_role", user.role);
       await SecureStore.setItemAsync("user_data", JSON.stringify(user));
+
+      // Register and sync push token on login
+      registerForPushNotificationsAsync()
+        .then((pt) => {
+          if (pt) syncPushTokenWithBackend(pt);
+        })
+        .catch(() => {});
 
       // Role-based routing
       if (user.role === "provider") {

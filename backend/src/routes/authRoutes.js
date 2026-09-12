@@ -59,6 +59,23 @@ router.put("/availability", protect, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+// Register or update device push token
+router.put("/push-token", protect, async (req, res) => {
+  try {
+    const { pushToken } = req.body;
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: { pushToken: pushToken || "" } },
+      { new: true },
+    ).select("-password");
+
+    res.status(200).json({
+      message: "Push token registered successfully",
+      pushToken: user.pushToken,
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 export default router;

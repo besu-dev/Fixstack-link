@@ -1,8 +1,75 @@
-import { Stack } from "expo-router";
+import React, { useEffect, useRef } from "react";
+import { Stack, useRouter } from "expo-router";
+import * as Notifications from "expo-notifications";
+import * as SecureStore from "expo-secure-store";
 import { AlertProvider } from "../src/context/AlertContext";
 import { UnreadMessagesProvider } from "../src/context/UnreadMessagesContext";
+import {
+  registerForPushNotificationsAsync,
+  syncPushTokenWithBackend,
+} from "../src/utils/pushNotifications";
 
 export default function RootLayout() {
+  const router = useRouter();
+  const notificationListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
+
+  useEffect(() => {
+    // 1. Register device for push notifications and sync with backend
+    registerForPushNotificationsAsync().then((token) => {
+      if (token) {
+        syncPushTokenWithBackend(token);
+      }
+    });
+
+    // 2. Handle notifications received while app is running in foreground
+    notificationListener.current =
+      Notifications.addNotificationReceivedListener((notification) => {
+        console.log(
+          "[Push Notifications] Received in foreground:",
+          notification.request.content.title,
+        );
+      });
+
+    // 3. Handle user tapping on a notification banner to navigate
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener(async (response) => {
+        const data = response.notification.request.content.data;
+        if (!data) return;
+
+        const role = await SecureStore.getItemAsync("user_role");
+
+        if (data.type === "new_job") {
+          router.push("/(provider-tabs)/jobs" as any);
+        } else if (data.type === "new_bid") {
+          router.push("/(customer-tabs)/orders" as any);
+        } else if (data.type === "bid_accepted") {
+          router.push("/(provider-tabs)/tasks" as any);
+        } else if (data.type === "chat_message") {
+          const targetTab =
+            role === "provider"
+              ? "/(provider-tabs)/message"
+              : "/(customer-tabs)/message";
+          router.push({
+            pathname: targetTab,
+            params: {
+              receiverId: data.senderId,
+              jobId: data.jobId || "",
+            },
+          } as any);
+        }
+      });
+
+    return () => {
+      if (notificationListener.current) {
+        notificationListener.current.remove();
+      }
+      if (responseListener.current) {
+        responseListener.current.remove();
+      }
+    };
+  }, []);
+
   return (
     <AlertProvider>
       <UnreadMessagesProvider>

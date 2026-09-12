@@ -1,5 +1,7 @@
 import mongoose from "mongoose";
 import Message from "../models/Message.js";
+import User from "../models/User.js";
+import { sendExpoPushNotification } from "../utils/pushNotification.js";
 
 // Helper to construct a single deterministic room ID for any pair of users
 const getDirectRoomId = (userA, userB) => {
@@ -78,6 +80,26 @@ export const initChatSocket = (io) => {
             "new_message_notification",
             populatedMessage
           );
+
+          // Send Push Notification to recipient
+          try {
+            const receiverUser = await User.findById(receiverId).select("pushToken notificationsEnabled");
+            if (receiverUser?.pushToken && receiverUser.notificationsEnabled !== false) {
+              sendExpoPushNotification({
+                to: receiverUser.pushToken,
+                title: populatedMessage.sender?.fullName || "New Message 💬",
+                body: populatedMessage.text,
+                data: {
+                  type: "chat_message",
+                  senderId: String(senderId),
+                  receiverId: String(receiverId),
+                  jobId: validJobId ? String(validJobId) : "",
+                },
+              }).catch((pushErr) => console.error("Chat push error:", pushErr));
+            }
+          } catch (pushLookupErr) {
+            console.error("Chat push user lookup error:", pushLookupErr);
+          }
         }
 
         // Also emit to the jobId room if provided

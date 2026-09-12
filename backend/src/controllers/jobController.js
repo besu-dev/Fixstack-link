@@ -3,6 +3,7 @@ import User from "../models/User.js";
 import Review from "../models/Review.js";
 import WalletTransaction from "../models/WalletTransaction.js";
 import Notification from "../models/Notification.js";
+import { sendBulkExpoPushNotifications } from "../utils/pushNotification.js";
 
 /**
  * Helper to match providers offering the relevant service or skills for a job
@@ -166,6 +167,25 @@ export const createJob = async (req, res) => {
           createdNotifications.forEach((notif) => {
             io.to(`user_${notif.recipient}`).emit("new_job_notification", notif);
           });
+        }
+
+        // Send Push Notifications to matching providers with push tokens
+        const pushItems = matchingProviders
+          .filter((p) => p.pushToken && p.notificationsEnabled !== false)
+          .map((p) => ({
+            to: p.pushToken,
+            title: `New Job in ${newJob.subcity || "Your Area"} 🔔`,
+            body: `${newJob.title} - ${newJob.budget ? `${newJob.budget} ETB` : "Budget Negotiable"}`,
+            data: {
+              type: "new_job",
+              jobId: newJob._id.toString(),
+            },
+          }));
+
+        if (pushItems.length > 0) {
+          sendBulkExpoPushNotifications(pushItems).catch((err) =>
+            console.error("Bulk job push error:", err)
+          );
         }
       }
     } catch (notifErr) {

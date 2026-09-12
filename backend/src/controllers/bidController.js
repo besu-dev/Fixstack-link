@@ -3,6 +3,7 @@ import Job from "../models/Job.js";
 import User from "../models/User.js";
 import WalletTransaction from "../models/WalletTransaction.js";
 import Notification from "../models/Notification.js";
+import { sendExpoPushNotification } from "../utils/pushNotification.js";
 
 // @desc    Submit a quote/bid for a job using Connects only (Zero transaction fees)
 // @route   POST /api/bids
@@ -137,6 +138,21 @@ export const placeBid = async (req, res) => {
           populatedNotification,
         );
       }
+
+      // Send Push Notification to Job Customer
+      const customerUser = await User.findById(job.customer).select("pushToken notificationsEnabled");
+      if (customerUser?.pushToken && customerUser.notificationsEnabled !== false) {
+        sendExpoPushNotification({
+          to: customerUser.pushToken,
+          title: "New Bid on Your Job 💼",
+          body: `${providerUser?.fullName || "A technician"} submitted a proposal of ${quoteAmount} ETB for "${job.title}"`,
+          data: {
+            type: "new_bid",
+            jobId: job._id.toString(),
+            bidId: bid._id.toString(),
+          },
+        }).catch((err) => console.error("Push bid error:", err));
+      }
     } catch (notifErr) {
       console.error("Error creating proposal notification for seeker:", notifErr);
     }
@@ -191,6 +207,24 @@ export const acceptBid = async (req, res) => {
       { job: bid.job._id, _id: { $ne: bid._id } },
       { status: "rejected" },
     );
+
+    // Send Push Notification to Accepted Provider
+    try {
+      const providerUser = await User.findById(bid.provider).select("pushToken notificationsEnabled");
+      if (providerUser?.pushToken && providerUser.notificationsEnabled !== false) {
+        sendExpoPushNotification({
+          to: providerUser.pushToken,
+          title: "Proposal Accepted! 🎉",
+          body: `Your bid of ${bid.price} ETB for "${bid.job.title}" was accepted. Tap to open chat!`,
+          data: {
+            type: "bid_accepted",
+            jobId: bid.job._id.toString(),
+          },
+        }).catch((err) => console.error("Push accept error:", err));
+      }
+    } catch (pushErr) {
+      console.error("Error sending accept push notification:", pushErr);
+    }
 
     res.status(200).json({ message: "Bid accepted successfully", bid });
   } catch (error) {

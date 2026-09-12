@@ -40,7 +40,14 @@
         }
       ],
       "expo-secure-store",
-      "expo-asset"
+      "expo-asset",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/icon.png",
+          "color": "#0052CC"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,
