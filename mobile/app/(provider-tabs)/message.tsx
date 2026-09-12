@@ -389,12 +389,6 @@ export default function ProviderMessageScreen() {
                       </View>
                     )}
                   </View>
-
-                  <View style={styles.metaRow}>
-                    <Text style={styles.badgeText}>{item.jobTitle}</Text>
-                    <Text style={styles.dot}>•</Text>
-                    <Text style={styles.locationText}>{item.subcity}</Text>
-                  </View>
                 </View>
 
                 <Feather
@@ -710,8 +704,7 @@ const styles = StyleSheet.create({
   lastMsgText: {
     fontSize: scaledFont(12),
     color: "#475569",
-    marginTop: scale(2),
-    marginBottom: scale(4),
+    marginTop: scale(4),
   },
   metaRow: { flexDirection: "row", alignItems: "center", gap: scale(6) },
   badgeText: { fontSize: scaledFont(11), fontWeight: "700", color: "#0052CC" },

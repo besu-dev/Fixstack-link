@@ -384,12 +384,6 @@ export default function CustomerMessageScreen() {
                       </View>
                     )}
                   </View>
-
-                  <View style={styles.metaRow}>
-                    <Text style={styles.badgeText}>{item.jobTitle}</Text>
-                    <Text style={styles.dot}>•</Text>
-                    <Text style={styles.locationText}>{item.subcity}</Text>
-                  </View>
                 </View>
 
                 <Feather name="chevron-right" size={18} color="#CBD5E1" />
@@ -696,8 +690,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    marginTop: scale(2),
-    marginBottom: scale(4),
+    marginTop: scale(4),
   },
   lastMsgText: {
     fontSize: scaledFont(13),
