@@ -43,9 +43,6 @@ export default function AdminLogin({ onExitToSite }) {
           </div>
           <h1>Bete Admin Portal</h1>
           <p>Household Repairs & Technician Management System</p>
-          <div className="admin-login-badge">
-            <span>Official Platform Console</span>
-          </div>
         </div>
 
         {/* Error Alert */}
