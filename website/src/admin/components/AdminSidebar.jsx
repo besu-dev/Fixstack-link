@@ -3,10 +3,6 @@ import {
   LayoutDashboard,
   ShieldCheck,
   Users,
-  Wrench,
-  Tag,
-  CreditCard,
-  Settings,
   LogOut,
   X,
 } from 'lucide-react';
@@ -33,20 +29,6 @@ export default function AdminSidebar({
           badge: pendingCount > 0 ? pendingCount : null,
         },
         { id: 'users', label: 'User Management', icon: Users },
-      ],
-    },
-    {
-      category: 'Marketplace',
-      items: [
-        { id: 'jobs', label: 'Jobs & Requests', icon: Wrench },
-        { id: 'bids', label: 'Bids & Proposals', icon: Tag },
-        { id: 'transactions', label: 'Financials & Wallet', icon: CreditCard },
-      ],
-    },
-    {
-      category: 'System',
-      items: [
-        { id: 'settings', label: 'Platform Settings', icon: Settings },
       ],
     },
   ];

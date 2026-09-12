@@ -6,7 +6,7 @@ import {
   X,
   ZoomIn,
 } from 'lucide-react';
-import { adminApi } from '../../api/adminApi';
+import { adminApi, resolveMediaUrl } from '../../api/adminApi';
 
 export default function JobsView({ onDataChanged }) {
   const [jobs, setJobs] = useState([]);
@@ -23,8 +23,8 @@ export default function JobsView({ onDataChanged }) {
     setLoading(true);
     try {
       const data = await adminApi.getJobs({
-        status: statusFilter !== 'all' ? statusFilter : undefined,
-        search: searchQuery.trim() || undefined,
+        status: statusFilter,
+        search: searchQuery || undefined,
       });
       setJobs(data.jobs || []);
     } catch (err) {
@@ -316,9 +316,9 @@ export default function JobsView({ onDataChanged }) {
                       <div
                         key={i}
                         style={{ width: '100px', height: '100px', borderRadius: '8px', overflow: 'hidden', cursor: 'pointer', border: '1px solid #e2e8f0', position: 'relative' }}
-                        onClick={() => setLightboxImage(photo)}
+                        onClick={() => setLightboxImage(resolveMediaUrl(photo))}
                       >
-                        <img src={photo} alt="Damage site" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        <img src={resolveMediaUrl(photo)} alt="Damage site" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         <div className="admin-doc-zoom-hint" style={{ bottom: 4, right: 4 }}>
                           <ZoomIn size={10} />
                         </div>

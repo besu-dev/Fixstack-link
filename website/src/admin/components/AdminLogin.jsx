@@ -129,7 +129,7 @@ export default function AdminLogin({ onExitToSite }) {
             className="admin-quick-fill-btn"
             onClick={handleQuickFill}
           >
-            Fill Admin Credentials (admin@bete.et / Admin@123456)
+            Use Demo Admin (admin@bete.et / Admin@123456)
           </button>
         </div>
 

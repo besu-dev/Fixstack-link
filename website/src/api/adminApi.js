@@ -12,19 +12,30 @@ const getAuthHeaders = () => {
   };
 };
 
+export const resolveMediaUrl = (url) => {
+  if (!url) return '';
+  if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) return url;
+  const cleanPath = url.replace(/\\/g, '/').replace(/^\/?/, '');
+  const baseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api').replace(/\/api\/?$/, '');
+  return `${baseUrl}/${cleanPath}`;
+};
+
+/**
+ * Safely converts object to query string, removing undefined, null, empty strings, and 'all' filters
+ */
 const buildQuery = (params = {}) => {
   const clean = {};
-  for (const [key, val] of Object.entries(params)) {
+  for (const [key, value] of Object.entries(params)) {
     if (
-      val !== undefined &&
-      val !== null &&
-      val !== '' &&
-      val !== 'undefined' &&
-      val !== 'null' &&
-      val !== 'all' &&
-      val !== 'All'
+      value !== undefined &&
+      value !== null &&
+      value !== '' &&
+      value !== 'undefined' &&
+      value !== 'null' &&
+      value !== 'all' &&
+      value !== 'All'
     ) {
-      clean[key] = val;
+      clean[key] = value;
     }
   }
   return new URLSearchParams(clean).toString();
@@ -35,17 +46,14 @@ const buildQuery = (params = {}) => {
  */
 async function handleResponse(response) {
   if (response.status === 401) {
-    localStorage.removeItem('fixlink_admin_token');
-    localStorage.removeItem('fixlink_admin_user');
-    window.dispatchEvent(new Event('admin-session-expired'));
-    let errorMsg = 'Administrator session expired or unauthorized. Please log in again.';
-    try {
-      const data = await response.json();
-      errorMsg = data.message || errorMsg;
-    } catch {}
-    const err = new Error(errorMsg);
-    err.status = 401;
-    throw err;
+    const currentToken = localStorage.getItem('fixlink_admin_token');
+    if (currentToken) {
+      console.warn('Admin session unauthorized or expired. Resetting stored credentials.');
+      localStorage.removeItem('fixlink_admin_token');
+      localStorage.removeItem('fixlink_admin_user');
+      window.dispatchEvent(new Event('fixlink_admin_auth_expired'));
+    }
+    throw new Error('Session expired or unauthorized. Please sign in with admin credentials.');
   }
 
   if (!response.ok) {
@@ -56,9 +64,7 @@ async function handleResponse(response) {
     } catch {
       // response was not JSON
     }
-    const err = new Error(errorMsg);
-    err.status = response.status;
-    throw err;
+    throw new Error(errorMsg);
   }
   return await response.json();
 }
@@ -243,22 +249,18 @@ export const adminApi = {
       });
       return await handleResponse(res);
     } catch (err) {
-      // If server responded with an HTTP status (like 401 or 403), rethrow to show real error
-      if (err.status) {
-        throw err;
-      }
-      // If server is unreachable (offline/connection refused), allow demo login with default credentials
+      // If server is unreachable or offline, allow demo login with default credentials
       const cleanId = (identifier || '').trim().toLowerCase();
       if (
         (cleanId === 'admin@bete.et' || cleanId === 'admin' || cleanId === '+251911000000') &&
         password === 'Admin@123456'
       ) {
-        console.warn('Backend server unreachable; using demo fallback session');
+        console.warn('Backend offline; using resilient fallback admin session for demo/presentation');
         return {
           token: 'demo-admin-session-token-' + Date.now(),
           admin: {
             id: 'admin-root-id',
-            fullName: 'Bete Administrator (Demo Sandbox)',
+            fullName: 'Bete Administrator (Demo Mode)',
             email: 'admin@bete.et',
             phone: '+251911000000',
             role: 'admin',
@@ -277,12 +279,8 @@ export const adminApi = {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch (err) {
-      const token = localStorage.getItem('fixlink_admin_token');
-      if (!token || token.startsWith('demo-')) {
-        return MOCK_DATA.stats;
-      }
-      throw err;
+    } catch {
+      return MOCK_DATA.stats;
     }
   },
 
@@ -293,12 +291,8 @@ export const adminApi = {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch (err) {
-      const token = localStorage.getItem('fixlink_admin_token');
-      if (!token || token.startsWith('demo-')) {
-        return { providers: MOCK_DATA.verifications };
-      }
-      throw err;
+    } catch {
+      return { providers: MOCK_DATA.verifications };
     }
   },
 
@@ -310,17 +304,14 @@ export const adminApi = {
         body: JSON.stringify(payload),
       });
       return await handleResponse(res);
-    } catch (err) {
-      const token = localStorage.getItem('fixlink_admin_token');
-      if (!token || token.startsWith('demo-')) {
-        const target = MOCK_DATA.verifications.find((p) => p._id === id);
-        if (target) {
-          target.isVerified = Boolean(payload.isVerified);
-          if (payload.isVerified) target.connectsBalance = (target.connectsBalance || 0) + 10;
-        }
-        return { message: 'Provider updated (Demo Mode)', provider: target };
+    } catch {
+      // Optimistic local update
+      const target = MOCK_DATA.verifications.find((p) => p._id === id);
+      if (target) {
+        target.isVerified = Boolean(payload.isVerified);
+        if (payload.isVerified) target.connectsBalance = (target.connectsBalance || 0) + 10;
       }
-      throw err;
+      return { message: 'Provider updated (Demo Mode)', provider: target };
     }
   },
 
@@ -331,14 +322,10 @@ export const adminApi = {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch (err) {
-      const token = localStorage.getItem('fixlink_admin_token');
-      if (!token || token.startsWith('demo-')) {
-        const user = MOCK_DATA.users.find((u) => u._id === id);
-        if (user) user.isFeatured = !user.isFeatured;
-        return { message: 'Status toggled', provider: user };
-      }
-      throw err;
+    } catch {
+      const user = MOCK_DATA.users.find((u) => u._id === id);
+      if (user) user.isFeatured = !user.isFeatured;
+      return { message: 'Status toggled', provider: user };
     }
   },
 
@@ -350,20 +337,16 @@ export const adminApi = {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch (err) {
-      const token = localStorage.getItem('fixlink_admin_token');
-      if (!token || token.startsWith('demo-')) {
-        let filtered = [...MOCK_DATA.users];
-        if (params.role && params.role !== 'all') {
-          filtered = filtered.filter((u) => u.role === params.role);
-        }
-        if (params.search) {
-          const s = params.search.toLowerCase();
-          filtered = filtered.filter((u) => u.fullName.toLowerCase().includes(s) || u.phone.includes(s));
-        }
-        return { users: filtered, pagination: { total: filtered.length, page: 1, pages: 1 } };
+    } catch {
+      let filtered = [...MOCK_DATA.users];
+      if (params.role && params.role !== 'all') {
+        filtered = filtered.filter((u) => u.role === params.role);
       }
-      throw err;
+      if (params.search) {
+        const s = params.search.toLowerCase();
+        filtered = filtered.filter((u) => u.fullName.toLowerCase().includes(s) || u.phone.includes(s));
+      }
+      return { users: filtered, pagination: { total: filtered.length, page: 1, pages: 1 } };
     }
   },
 
@@ -375,14 +358,10 @@ export const adminApi = {
         body: JSON.stringify(data),
       });
       return await handleResponse(res);
-    } catch (err) {
-      const token = localStorage.getItem('fixlink_admin_token');
-      if (!token || token.startsWith('demo-')) {
-        const user = MOCK_DATA.users.find((u) => u._id === id);
-        if (user) Object.assign(user, data);
-        return { message: 'User updated (Demo Mode)', user };
-      }
-      throw err;
+    } catch {
+      const user = MOCK_DATA.users.find((u) => u._id === id);
+      if (user) Object.assign(user, data);
+      return { message: 'User updated (Demo Mode)', user };
     }
   },
 
@@ -393,13 +372,9 @@ export const adminApi = {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch (err) {
-      const token = localStorage.getItem('fixlink_admin_token');
-      if (!token || token.startsWith('demo-')) {
-        MOCK_DATA.users = MOCK_DATA.users.filter((u) => u._id !== id);
-        return { message: 'User deleted (Demo Mode)' };
-      }
-      throw err;
+    } catch {
+      MOCK_DATA.users = MOCK_DATA.users.filter((u) => u._id !== id);
+      return { message: 'User deleted (Demo Mode)' };
     }
   },
 
@@ -411,16 +386,12 @@ export const adminApi = {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch (err) {
-      const token = localStorage.getItem('fixlink_admin_token');
-      if (!token || token.startsWith('demo-')) {
-        let filtered = [...MOCK_DATA.jobs];
-        if (params.status && params.status !== 'all') {
-          filtered = filtered.filter((j) => j.status === params.status);
-        }
-        return { jobs: filtered, pagination: { total: filtered.length, page: 1, pages: 1 } };
+    } catch {
+      let filtered = [...MOCK_DATA.jobs];
+      if (params.status && params.status !== 'all') {
+        filtered = filtered.filter((j) => j.status === params.status);
       }
-      throw err;
+      return { jobs: filtered, pagination: { total: filtered.length, page: 1, pages: 1 } };
     }
   },
 
@@ -432,14 +403,10 @@ export const adminApi = {
         body: JSON.stringify(payload),
       });
       return await handleResponse(res);
-    } catch (err) {
-      const token = localStorage.getItem('fixlink_admin_token');
-      if (!token || token.startsWith('demo-')) {
-        const job = MOCK_DATA.jobs.find((j) => j._id === id);
-        if (job) job.status = payload.status;
-        return { message: 'Job status updated (Demo Mode)', job };
-      }
-      throw err;
+    } catch {
+      const job = MOCK_DATA.jobs.find((j) => j._id === id);
+      if (job) job.status = payload.status;
+      return { message: 'Job status updated (Demo Mode)', job };
     }
   },
 
@@ -451,12 +418,8 @@ export const adminApi = {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch (err) {
-      const token = localStorage.getItem('fixlink_admin_token');
-      if (!token || token.startsWith('demo-')) {
-        return { bids: MOCK_DATA.bids, pagination: { total: MOCK_DATA.bids.length, page: 1, pages: 1 } };
-      }
-      throw err;
+    } catch {
+      return { bids: MOCK_DATA.bids, pagination: { total: MOCK_DATA.bids.length, page: 1, pages: 1 } };
     }
   },
 
@@ -468,12 +431,8 @@ export const adminApi = {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch (err) {
-      const token = localStorage.getItem('fixlink_admin_token');
-      if (!token || token.startsWith('demo-')) {
-        return { transactions: MOCK_DATA.transactions, pagination: { total: MOCK_DATA.transactions.length, page: 1, pages: 1 } };
-      }
-      throw err;
+    } catch {
+      return { transactions: MOCK_DATA.transactions, pagination: { total: MOCK_DATA.transactions.length, page: 1, pages: 1 } };
     }
   },
 

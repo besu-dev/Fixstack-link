@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, RefreshCw, Globe } from 'lucide-react';
+import { Menu } from 'lucide-react';
 
 const VIEW_TITLES = {
   overview: {
@@ -8,7 +8,7 @@ const VIEW_TITLES = {
   },
   verifications: {
     title: 'Technician Verification Queue',
-    subtitle: 'Review Kebele IDs and Trade Certificates for professional accreditation',
+    subtitle: 'Review National IDs and Trade Certificates for professional accreditation',
   },
   users: {
     title: 'User Management',
@@ -35,10 +35,6 @@ const VIEW_TITLES = {
 export default function AdminHeader({
   currentView,
   onOpenSidebar,
-  onRefresh,
-  isRefreshing = false,
-  isDemoMode = false,
-  onExitToSite,
 }) {
   const currentMeta = VIEW_TITLES[currentView] || {
     title: 'Admin Console',
@@ -61,42 +57,6 @@ export default function AdminHeader({
           <h2>{currentMeta.title}</h2>
           <div className="admin-header-subtitle">{currentMeta.subtitle}</div>
         </div>
-      </div>
-
-      <div className="admin-header-right">
-        {/* System Status */}
-        <div className="admin-status-indicator" title="Current API connectivity status">
-          <span className={`admin-status-dot ${isDemoMode ? 'offline' : ''}`} />
-          <span>{isDemoMode ? 'Demo Sandbox' : 'API Online'}</span>
-        </div>
-
-        {/* Refresh Action */}
-        <button
-          type="button"
-          className="admin-header-btn"
-          onClick={onRefresh}
-          disabled={isRefreshing}
-          title="Refresh current data"
-        >
-          <RefreshCw
-            size={16}
-            style={{
-              animation: isRefreshing ? 'spin 1s linear infinite' : 'none',
-            }}
-          />
-          <span>{isRefreshing ? 'Syncing...' : 'Refresh'}</span>
-        </button>
-
-        {/* Return to Public Website */}
-        <button
-          type="button"
-          className="admin-header-btn admin-btn-back-website"
-          onClick={onExitToSite}
-          title="Return to public customer website"
-        >
-          <Globe size={16} />
-          <span>View Public Site</span>
-        </button>
       </div>
     </header>
   );
