@@ -95,6 +95,13 @@ export default function ProviderMessageScreen() {
     }
   }, [jobId, receiverId]);
 
+  const isDirectChatActive = Boolean((jobId || receiverId) && !closedChatManually);
+
+  const handleBackToInbox = () => {
+    setClosedChatManually(true);
+    router.replace("/(provider-tabs)/message");
+  };
+
   const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList>(null);
 
@@ -301,13 +308,6 @@ export default function ProviderMessageScreen() {
   // -------------------------------------------------------------
   // VIEW 1: DEDUPLICATED INBOX (CLIENT LIST)
   // -------------------------------------------------------------
-  const isDirectChatActive = Boolean((jobId || receiverId) && !closedChatManually);
-
-  const handleBackToInbox = () => {
-    setClosedChatManually(true);
-    router.replace("/(provider-tabs)/message");
-  };
-
   if (!isDirectChatActive) {
     return (
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
