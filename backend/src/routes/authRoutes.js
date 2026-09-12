@@ -59,6 +59,8 @@ router.put("/availability", protect, async (req, res) => {
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
+});
+
 // Register or update device push token
 router.put("/push-token", protect, async (req, res) => {
   try {
