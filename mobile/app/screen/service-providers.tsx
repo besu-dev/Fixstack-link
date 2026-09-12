@@ -19,6 +19,7 @@ import { usersApi } from "../../src/api";
 import { SERVER_BASE_URL } from "../../src/config/api";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 import UserAvatar from "../../components/common/UserAvatar";
+import { useTheme } from "../../src/context/ThemeContext";
 
 interface Provider {
   _id: string;
@@ -37,6 +38,7 @@ interface Provider {
 
 export default function ServiceProvidersScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const { category } = useLocalSearchParams<{ category?: string }>();
 
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -89,41 +91,41 @@ export default function ServiceProvidersScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.canvas }]} edges={["top"]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.surface} />
 
       {/* Navigation Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.cardBorder }]}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backBtn}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
         >
-          <Feather name="arrow-left" size={moderateScale(22)} color="#0F172A" />
+          <Feather name="arrow-left" size={moderateScale(22)} color={colors.text} />
         </TouchableOpacity>
         <View style={styles.headerTitles}>
-          <Text style={styles.headerTitle} numberOfLines={1}>
+          <Text style={[styles.headerTitle, { color: colors.text }]} numberOfLines={1}>
             {category || "Service Specialists"}
           </Text>
-          <Text style={styles.headerSubtitle}>
+          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
             Verified technicians available for hire
           </Text>
         </View>
       </View>
 
       {/* Search within this specialty */}
-      <View style={styles.searchWrapper}>
-        <View style={styles.searchBar}>
+      <View style={[styles.searchWrapper, { backgroundColor: colors.surface }]}>
+        <View style={[styles.searchBar, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder, borderWidth: 1 }]}>
           <Feather
             name="search"
             size={moderateScale(16)}
-            color="#94A3B8"
+            color={colors.textSecondary}
             style={styles.searchIcon}
           />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text }]}
             placeholder={`Filter ${category || "technicians"} by name or subcity...`}
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
           />
@@ -132,7 +134,7 @@ export default function ServiceProvidersScreen() {
               onPress={() => setSearchQuery("")}
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
             >
-              <Feather name="x" size={moderateScale(16)} color="#94A3B8" />
+              <Feather name="x" size={moderateScale(16)} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>
@@ -140,8 +142,8 @@ export default function ServiceProvidersScreen() {
 
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#0052CC" />
-          <Text style={styles.loadingText}>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
             Finding available {category || "specialists"}...
           </Text>
         </View>
@@ -155,7 +157,8 @@ export default function ServiceProvidersScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={["#0052CC"]}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
             />
           }
           renderItem={({ item }) => {
@@ -166,6 +169,7 @@ export default function ServiceProvidersScreen() {
               <View
                 style={[
                   styles.card,
+                  { backgroundColor: colors.card, borderColor: colors.cardBorder },
                   item.isFeatured && styles.cardFeatured,
                 ]}
               >
@@ -230,7 +234,7 @@ export default function ServiceProvidersScreen() {
                   {/* Info Column */}
                   <View style={styles.infoCol}>
                     <View style={styles.nameRow}>
-                      <Text style={styles.proName} numberOfLines={1}>
+                      <Text style={[styles.proName, { color: colors.text }]} numberOfLines={1}>
                         {item.fullName}
                       </Text>
                       {item.isVerified && (
@@ -243,7 +247,7 @@ export default function ServiceProvidersScreen() {
                     </View>
 
                     {/* Service/Profession */}
-                    <Text style={styles.professionText} numberOfLines={1}>
+                    <Text style={[styles.professionText, { color: colors.textSecondary }]} numberOfLines={1}>
                       {item.profession || category || "Technician"}
                     </Text>
 
@@ -255,29 +259,29 @@ export default function ServiceProvidersScreen() {
                           size={moderateScale(12)}
                           color="#F59E0B"
                         />
-                        <Text style={styles.metaText}>
+                        <Text style={[styles.metaText, { color: colors.textSecondary }]}>
                           {item.rating ? Number(item.rating).toFixed(1) : "5.0"}
                         </Text>
                       </View>
-                      <Text style={styles.dot}>•</Text>
+                      <Text style={[styles.dot, { color: colors.textMuted }]}>•</Text>
                       <View style={styles.metaItem}>
                         <Feather
                           name="briefcase"
                           size={moderateScale(11)}
-                          color="#64748B"
+                          color={colors.textSecondary}
                         />
-                        <Text style={styles.metaText}>
+                        <Text style={[styles.metaText, { color: colors.textSecondary }]}>
                           {item.experience || "1-3 yrs"}
                         </Text>
                       </View>
-                      <Text style={styles.dot}>•</Text>
+                      <Text style={[styles.dot, { color: colors.textMuted }]}>•</Text>
                       <View style={styles.metaItem}>
                         <Feather
                           name="map-pin"
                           size={moderateScale(11)}
-                          color="#64748B"
+                          color={colors.textSecondary}
                         />
-                        <Text style={styles.metaText} numberOfLines={1}>
+                        <Text style={[styles.metaText, { color: colors.textSecondary }]} numberOfLines={1}>
                           {item.subcity || "Addis Ababa"}
                         </Text>
                       </View>
@@ -289,8 +293,8 @@ export default function ServiceProvidersScreen() {
                 {item.skills && item.skills.length > 0 && (
                   <View style={styles.skillsRow}>
                     {item.skills.slice(0, 3).map((skill, idx) => (
-                      <View key={idx} style={styles.skillPill}>
-                        <Text style={styles.skillPillText}>{skill}</Text>
+                      <View key={idx} style={[styles.skillPill, { backgroundColor: colors.surfaceSecondary, borderColor: colors.cardBorder }]}>
+                        <Text style={[styles.skillPillText, { color: colors.textSecondary }]}>{skill}</Text>
                       </View>
                     ))}
                   </View>
@@ -301,21 +305,27 @@ export default function ServiceProvidersScreen() {
                   {/* Quick Call Button */}
                   {item.phone ? (
                     <TouchableOpacity
-                      style={styles.callBtn}
+                      style={[
+                        styles.callBtn,
+                        { backgroundColor: isDark ? "rgba(37, 99, 235, 0.2)" : "#EFF6FF" },
+                      ]}
                       onPress={() => Linking.openURL(`tel:${item.phone}`)}
                       hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
                     >
                       <Feather
                         name="phone"
                         size={moderateScale(15)}
-                        color="#0052CC"
+                        color={colors.primary}
                       />
                     </TouchableOpacity>
                   ) : null}
 
                   {/* View Profile Button */}
                   <TouchableOpacity
-                    style={styles.profileBtn}
+                    style={[
+                      styles.profileBtn,
+                      { backgroundColor: colors.surfaceSecondary, borderColor: colors.cardBorder },
+                    ]}
                     onPress={() =>
                       router.push(
                         `/screen/user/provider-detail/${item._id}` as any
@@ -326,9 +336,9 @@ export default function ServiceProvidersScreen() {
                     <Feather
                       name="user"
                       size={moderateScale(13)}
-                      color="#0052CC"
+                      color={colors.primary}
                     />
-                    <Text style={styles.profileBtnText}>View Profile</Text>
+                    <Text style={[styles.profileBtnText, { color: colors.primary }]}>View Profile</Text>
                   </TouchableOpacity>
 
                   {/* Request Service Button */}
@@ -363,12 +373,12 @@ export default function ServiceProvidersScreen() {
               <Feather
                 name="user-x"
                 size={moderateScale(42)}
-                color="#CBD5E1"
+                color={colors.textMuted}
               />
-              <Text style={styles.emptyTitle}>
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>
                 No {category || "specialists"} found
               </Text>
-              <Text style={styles.emptySubtitle}>
+              <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
                 {searchQuery
                   ? "Try searching for a different subcity or name."
                   : `No certified technicians are currently registered under "${category}". You can still post a job request!`}

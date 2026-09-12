@@ -21,6 +21,7 @@ import notificationsApi from "../../src/api/notifications";
 import { JobNotification, JobUrgency } from "../../src/types";
 import BuyConnectsModal from "../BuyConnectsModal";
 import { Alert } from "../../src/context/AlertContext";
+import { useTheme } from "../../src/context/ThemeContext";
 import {
   scale,
   moderateScale,
@@ -82,6 +83,7 @@ export default function JobNotificationsModal({
   onUnreadCountChange,
   initialUnreadCount = 0,
 }: JobNotificationsModalProps) {
+  const { colors, isDark } = useTheme();
   const [notifications, setNotifications] = useState<JobNotification[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -306,7 +308,13 @@ export default function JobNotificationsModal({
       <TouchableOpacity
         style={[
           styles.notificationCard,
-          !item.read && styles.unreadNotificationCard,
+          { backgroundColor: colors.card, borderColor: colors.cardBorder },
+          !item.read && {
+            borderColor: isDark ? colors.primary : "#93C5FD",
+            backgroundColor: isDark ? "rgba(37, 99, 235, 0.12)" : "#F8FAFC",
+            borderLeftWidth: scale(4),
+            borderLeftColor: colors.primary,
+          },
         ]}
         activeOpacity={0.85}
         onPress={() => handleOpenJobDetails(item)}
@@ -316,7 +324,7 @@ export default function JobNotificationsModal({
           <View
             style={[
               styles.categoryBadge,
-              { backgroundColor: categoryMeta.bg },
+              { backgroundColor: isDark ? "rgba(255,255,255,0.08)" : categoryMeta.bg },
             ]}
           >
             <Feather
@@ -362,7 +370,7 @@ export default function JobNotificationsModal({
         </View>
 
         {/* Job Title */}
-        <Text style={styles.jobTitle} numberOfLines={2}>
+        <Text style={[styles.jobTitle, { color: colors.text }]} numberOfLines={2}>
           {title}
         </Text>
 
@@ -372,10 +380,10 @@ export default function JobNotificationsModal({
             <Feather
               name="map-pin"
               size={moderateScale(12)}
-              color="#64748B"
+              color={colors.textSecondary}
               style={{ marginRight: scale(4) }}
             />
-            <Text style={styles.locationText} numberOfLines={1}>
+            <Text style={[styles.locationText, { color: colors.textSecondary }]} numberOfLines={1}>
               {location}
             </Text>
           </View>
@@ -384,17 +392,17 @@ export default function JobNotificationsModal({
             <Feather
               name="clock"
               size={moderateScale(11)}
-              color="#94A3B8"
+              color={colors.textMuted}
               style={{ marginRight: scale(4) }}
             />
-            <Text style={styles.timeText}>{timeDisplay}</Text>
+            <Text style={[styles.timeText, { color: colors.textMuted }]}>{timeDisplay}</Text>
           </View>
         </View>
 
         {/* Budget and Action Button */}
-        <View style={styles.cardFooter}>
+        <View style={[styles.cardFooter, { borderTopColor: colors.cardBorder }]}>
           <View style={styles.budgetBox}>
-            <Text style={styles.budgetLabel}>Budget / Price</Text>
+            <Text style={[styles.budgetLabel, { color: colors.textMuted }]}>Budget / Price</Text>
             <Text style={styles.budgetAmount}>
               {budget > 0 ? `${budget.toLocaleString()} ETB` : "Negotiable"}
             </Text>
@@ -424,15 +432,15 @@ export default function JobNotificationsModal({
       transparent={false}
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+      <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.canvas }]} edges={["top", "bottom"]}>
         {/* Screen Header */}
-        <View style={styles.modalHeader}>
+        <View style={[styles.modalHeader, { backgroundColor: colors.surface, borderBottomColor: colors.cardBorder }]}>
           <View style={styles.modalHeaderLeft}>
             <View style={styles.bellIconWrapper}>
               <Feather
                 name="bell"
                 size={moderateScale(20)}
-                color="#0052CC"
+                color={colors.primary}
               />
               {unreadCount > 0 && (
                 <View style={styles.bellBadge}>
@@ -443,8 +451,8 @@ export default function JobNotificationsModal({
               )}
             </View>
             <View>
-              <Text style={styles.modalTitle}>Job Alerts</Text>
-              <Text style={styles.modalSubtitle}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>Job Alerts</Text>
+              <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
                 {unreadCount === 0
                   ? "All caught up"
                   : `${unreadCount} new matching job${unreadCount > 1 ? "s" : ""}`}
@@ -455,45 +463,50 @@ export default function JobNotificationsModal({
           <View style={styles.modalHeaderActions}>
             {unreadCount > 0 && (
               <TouchableOpacity
-                style={styles.markAllBtn}
+                style={[
+                  styles.markAllBtn,
+                  { backgroundColor: isDark ? "rgba(37, 99, 235, 0.2)" : "#EFF6FF" },
+                ]}
                 onPress={handleMarkAllAsRead}
                 activeOpacity={0.7}
               >
                 <Feather
                   name="check-circle"
                   size={moderateScale(14)}
-                  color="#0052CC"
+                  color={colors.primary}
                 />
-                <Text style={styles.markAllText}>Read All</Text>
+                <Text style={[styles.markAllText, { color: colors.primary }]}>Read All</Text>
               </TouchableOpacity>
             )}
 
             <TouchableOpacity
-              style={styles.closeBtn}
+              style={[styles.closeBtn, { backgroundColor: colors.surfaceSecondary }]}
               onPress={onClose}
               activeOpacity={0.7}
             >
               <Feather
                 name="x"
                 size={moderateScale(20)}
-                color="#64748B"
+                color={colors.textSecondary}
               />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* Filter Pills */}
-        <View style={styles.filterRow}>
+        <View style={[styles.filterRow, { backgroundColor: colors.surface, borderBottomColor: colors.cardBorder }]}>
           <TouchableOpacity
             style={[
               styles.filterPill,
-              filter === "all" && styles.filterPillActive,
+              { backgroundColor: colors.surfaceSecondary },
+              filter === "all" && { backgroundColor: colors.primary },
             ]}
             onPress={() => setFilter("all")}
           >
             <Text
               style={[
                 styles.filterPillText,
+                { color: colors.textSecondary },
                 filter === "all" && styles.filterPillTextActive,
               ]}
             >
@@ -504,13 +517,15 @@ export default function JobNotificationsModal({
           <TouchableOpacity
             style={[
               styles.filterPill,
-              filter === "unread" && styles.filterPillActive,
+              { backgroundColor: colors.surfaceSecondary },
+              filter === "unread" && { backgroundColor: colors.primary },
             ]}
             onPress={() => setFilter("unread")}
           >
             <Text
               style={[
                 styles.filterPillText,
+                { color: colors.textSecondary },
                 filter === "unread" && styles.filterPillTextActive,
               ]}
             >
@@ -522,8 +537,8 @@ export default function JobNotificationsModal({
         {/* Notifications List */}
         {loading ? (
           <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color="#0052CC" />
-            <Text style={styles.loadingText}>Loading job notifications...</Text>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading job notifications...</Text>
           </View>
         ) : (
           <FlatList
@@ -536,24 +551,25 @@ export default function JobNotificationsModal({
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                colors={["#0052CC"]}
+                colors={[colors.primary]}
+                tintColor={colors.primary}
               />
             }
             ListEmptyComponent={
               <View style={styles.emptyContainer}>
-                <View style={styles.emptyIconCircle}>
+                <View style={[styles.emptyIconCircle, { backgroundColor: colors.surfaceSecondary }]}>
                   <Feather
                     name="bell-off"
                     size={moderateScale(36)}
-                    color="#94A3B8"
+                    color={colors.textMuted}
                   />
                 </View>
-                <Text style={styles.emptyTitle}>
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>
                   {filter === "unread"
                     ? "No Unread Job Alerts"
                     : "No Job Alerts Yet"}
                 </Text>
-                <Text style={styles.emptySubtitle}>
+                <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
                   {filter === "unread"
                     ? "You've reviewed all of your job notifications. New alerts will show up here."
                     : "When customers request services matching your trade or skills, you'll receive instant job notifications here."}
@@ -575,26 +591,26 @@ export default function JobNotificationsModal({
               behavior={Platform.OS === "ios" ? "padding" : undefined}
               style={styles.detailModalOverlay}
             >
-              <View style={styles.detailModalContent}>
+              <View style={[styles.detailModalContent, { backgroundColor: colors.surface }]}>
                 {/* Detail Header */}
-                <View style={styles.detailModalHeader}>
+                <View style={[styles.detailModalHeader, { borderBottomColor: colors.cardBorder }]}>
                   <View style={{ flex: 1 }}>
-                    <Text style={styles.detailModalTitle} numberOfLines={1}>
+                    <Text style={[styles.detailModalTitle, { color: colors.text }]} numberOfLines={1}>
                       Job Details & Quote
                     </Text>
-                    <Text style={styles.detailModalSubtitle}>
+                    <Text style={[styles.detailModalSubtitle, { color: colors.textSecondary }]}>
                       {selectedNotification.serviceName} •{" "}
                       {selectedNotification.urgency}
                     </Text>
                   </View>
                   <TouchableOpacity
-                    style={styles.detailCloseBtn}
+                    style={[styles.detailCloseBtn, { backgroundColor: colors.surfaceSecondary }]}
                     onPress={() => setJobDetailModalVisible(false)}
                   >
                     <Feather
                       name="x"
                       size={moderateScale(18)}
-                      color="#64748B"
+                      color={colors.textSecondary}
                     />
                   </TouchableOpacity>
                 </View>
@@ -604,8 +620,8 @@ export default function JobNotificationsModal({
                   contentContainerStyle={styles.detailScrollContent}
                 >
                   {/* Job Overview Card */}
-                  <View style={styles.jobOverviewCard}>
-                    <Text style={styles.detailJobTitle}>
+                  <View style={[styles.jobOverviewCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
+                    <Text style={[styles.detailJobTitle, { color: colors.text }]}>
                       {selectedNotification.jobTitle}
                     </Text>
 
@@ -644,9 +660,9 @@ export default function JobNotificationsModal({
                         <Feather
                           name="map-pin"
                           size={moderateScale(14)}
-                          color="#0052CC"
+                          color={colors.primary}
                         />
-                        <Text style={styles.detailMetaText}>
+                        <Text style={[styles.detailMetaText, { color: colors.textSecondary }]}>
                           {selectedNotification.location}
                         </Text>
                       </View>
@@ -655,9 +671,9 @@ export default function JobNotificationsModal({
                         <Feather
                           name="clock"
                           size={moderateScale(14)}
-                          color="#64748B"
+                          color={colors.textSecondary}
                         />
-                        <Text style={styles.detailMetaText}>
+                        <Text style={[styles.detailMetaText, { color: colors.textSecondary }]}>
                           Posted{" "}
                           {formatTimeAgo(
                             selectedNotification.createdAt,
@@ -670,13 +686,13 @@ export default function JobNotificationsModal({
                     {/* Customer Info (if available) */}
                     {typeof selectedNotification.job === "object" &&
                       selectedNotification.job?.customer && (
-                        <View style={styles.customerBox}>
+                        <View style={[styles.customerBox, { backgroundColor: colors.surfaceSecondary, borderColor: colors.cardBorder }]}>
                           <Feather
                             name="user"
                             size={moderateScale(13)}
-                            color="#475569"
+                            color={colors.textSecondary}
                           />
-                          <Text style={styles.customerText}>
+                          <Text style={[styles.customerText, { color: colors.text }]}>
                             Client:{" "}
                             {selectedNotification.job.customer.fullName ||
                               "Verified Homeowner"}
@@ -687,11 +703,11 @@ export default function JobNotificationsModal({
                     {/* Description */}
                     {typeof selectedNotification.job === "object" &&
                       selectedNotification.job?.description && (
-                        <View style={styles.descriptionBox}>
-                          <Text style={styles.descriptionLabel}>
+                        <View style={[styles.descriptionBox, { borderTopColor: colors.cardBorder }]}>
+                          <Text style={[styles.descriptionLabel, { color: colors.textSecondary }]}>
                             Task Description:
                           </Text>
-                          <Text style={styles.descriptionText}>
+                          <Text style={[styles.descriptionText, { color: colors.text }]}>
                             {selectedNotification.job.description}
                           </Text>
                         </View>
@@ -702,7 +718,7 @@ export default function JobNotificationsModal({
                       selectedNotification.job?.photos &&
                       selectedNotification.job.photos.length > 0 && (
                         <View style={styles.photosSection}>
-                          <Text style={styles.descriptionLabel}>
+                          <Text style={[styles.descriptionLabel, { color: colors.textSecondary }]}>
                             Photos Attached:
                           </Text>
                           <ScrollView
@@ -730,25 +746,26 @@ export default function JobNotificationsModal({
 
                   {/* Submit Quote Section */}
                   <View style={styles.bidFormSection}>
-                    <Text style={styles.bidFormTitle}>Submit Your Quote</Text>
+                    <Text style={[styles.bidFormTitle, { color: colors.text }]}>Submit Your Quote</Text>
 
                     {/* Price Input */}
-                    <Text style={styles.inputLabel}>
+                    <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
                       Your Proposed Price (ETB) *
                     </Text>
-                    <View style={styles.priceInputWrapper}>
-                      <Text style={styles.currencyPrefix}>ETB</Text>
+                    <View style={[styles.priceInputWrapper, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder }]}>
+                      <Text style={[styles.currencyPrefix, { color: colors.primary }]}>ETB</Text>
                       <TextInput
-                        style={styles.priceInput}
+                        style={[styles.priceInput, { color: colors.text }]}
                         keyboardType="numeric"
                         placeholder="e.g. 1500"
+                        placeholderTextColor={colors.textMuted}
                         value={bidPrice}
                         onChangeText={setBidPrice}
                       />
                     </View>
 
                     {/* Duration Selection */}
-                    <Text style={styles.inputLabel}>
+                    <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
                       Estimated Completion Time
                     </Text>
                     <View style={styles.durationRow}>
@@ -757,15 +774,19 @@ export default function JobNotificationsModal({
                           key={dur}
                           style={[
                             styles.durationPill,
-                            bidDuration === dur && styles.durationPillActive,
+                            { backgroundColor: colors.surfaceSecondary, borderColor: colors.cardBorder },
+                            bidDuration === dur && {
+                              backgroundColor: colors.primary,
+                              borderColor: colors.primary,
+                            },
                           ]}
                           onPress={() => setBidDuration(dur)}
                         >
                           <Text
                             style={[
                               styles.durationPillText,
-                              bidDuration === dur &&
-                                styles.durationPillTextActive,
+                              { color: colors.textSecondary },
+                              bidDuration === dur && styles.durationPillTextActive,
                             ]}
                           >
                             {dur}
@@ -775,12 +796,20 @@ export default function JobNotificationsModal({
                     </View>
 
                     {/* Note to Customer */}
-                    <Text style={styles.inputLabel}>
+                    <Text style={[styles.inputLabel, { color: colors.textSecondary }]}>
                       Message to Customer (Optional)
                     </Text>
                     <TextInput
-                      style={styles.noteInput}
+                      style={[
+                        styles.noteInput,
+                        {
+                          backgroundColor: colors.inputBackground,
+                          borderColor: colors.inputBorder,
+                          color: colors.text,
+                        },
+                      ]}
                       placeholder="Specify your tools, warranty, or start time..."
+                      placeholderTextColor={colors.textMuted}
                       multiline
                       numberOfLines={3}
                       value={bidNote}
@@ -792,6 +821,14 @@ export default function JobNotificationsModal({
                       style={[
                         styles.boostBox,
                         isBoosted && styles.boostBoxActive,
+                        {
+                          backgroundColor: isDark
+                            ? "rgba(245, 158, 11, 0.12)"
+                            : (isBoosted ? "#FEF3C7" : "#FFFBEB"),
+                          borderColor: isDark
+                            ? (isBoosted ? "#F59E0B" : "#B45309")
+                            : (isBoosted ? "#F59E0B" : "#FDE68A"),
+                        },
                       ]}
                       onPress={() => setIsBoosted(!isBoosted)}
                       activeOpacity={0.8}
@@ -800,13 +837,13 @@ export default function JobNotificationsModal({
                         <MaterialCommunityIcons
                           name="rocket-launch-outline"
                           size={moderateScale(20)}
-                          color={isBoosted ? "#D97706" : "#64748B"}
+                          color={isBoosted ? "#D97706" : colors.textSecondary}
                         />
                         <View style={{ marginLeft: scale(10) }}>
                           <Text style={styles.boostTitle}>
                             Boost to Top Rank (+5 Connects)
                           </Text>
-                          <Text style={styles.boostSubtitle}>
+                          <Text style={[styles.boostSubtitle, { color: isDark ? "#FCD34D" : "#92400E" }]}>
                             Highlights your quote at the very top of client bids
                           </Text>
                         </View>
@@ -814,29 +851,30 @@ export default function JobNotificationsModal({
                       <Feather
                         name={isBoosted ? "check-circle" : "circle"}
                         size={moderateScale(18)}
-                        color={isBoosted ? "#D97706" : "#94A3B8"}
+                        color={isBoosted ? "#D97706" : colors.textMuted}
                       />
                     </TouchableOpacity>
 
                     {/* Connects Cost Summary */}
-                    <View style={styles.connectsSummaryBox}>
+                    <View style={[styles.connectsSummaryBox, { backgroundColor: colors.surfaceSecondary, borderColor: colors.cardBorder }]}>
                       <View style={styles.connectsRow}>
-                        <Text style={styles.connectsLabel}>
+                        <Text style={[styles.connectsLabel, { color: colors.textSecondary }]}>
                           Connects Required:
                         </Text>
-                        <Text style={styles.connectsValue}>
+                        <Text style={[styles.connectsValue, { color: colors.text }]}>
                           {totalRequiredConnects} Connects (
                           {baseConnects} base
                           {isBoosted ? " + 5 boost" : ""})
                         </Text>
                       </View>
                       <View style={styles.connectsRow}>
-                        <Text style={styles.connectsLabel}>
+                        <Text style={[styles.connectsLabel, { color: colors.textSecondary }]}>
                           Your Available Balance:
                         </Text>
                         <Text
                           style={[
                             styles.connectsValue,
+                            { color: colors.text },
                             connectsBalance < totalRequiredConnects && {
                               color: "#DC2626",
                               fontWeight: "700",

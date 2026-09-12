@@ -17,6 +17,7 @@ import { Feather, FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import apiClient from "../../src/api/client";
 import { Alert } from "../../src/context/AlertContext";
+import { useTheme } from "../../src/context/ThemeContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 import { OrderCard } from "../../components/customer/OrderCard";
 import UserAvatar from "../../components/common/UserAvatar";
@@ -60,6 +61,7 @@ interface CustomerJob {
 
 export default function CustomerOrdersScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
 
   // Screen State
   const [jobs, setJobs] = useState<CustomerJob[]>([]);
@@ -255,27 +257,64 @@ export default function CustomerOrdersScreen() {
   });
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.canvas }]}
+      edges={["top"]}
+    >
+      <StatusBar
+        barStyle={colors.statusBarStyle}
+        backgroundColor={colors.surface}
+      />
 
       {/* Screen Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>My Orders</Text>
-        <Text style={styles.headerSubtitle}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.border,
+          },
+        ]}
+      >
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
+          My Orders
+        </Text>
+        <Text
+          style={[styles.headerSubtitle, { color: colors.textSecondary }]}
+        >
           Manage your maintenance requests, active jobs, and ratings
         </Text>
       </View>
 
       {/* Segmented Filter */}
-      <View style={styles.tabBar}>
+      <View
+        style={[
+          styles.tabBar,
+          {
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.border,
+          },
+        ]}
+      >
         <TouchableOpacity
-          style={[styles.tabBtn, activeTab === "active" && styles.tabBtnActive]}
+          style={[
+            styles.tabBtn,
+            {
+              backgroundColor:
+                activeTab === "active"
+                  ? colors.primary
+                  : colors.surfaceSecondary,
+            },
+          ]}
           onPress={() => setActiveTab("active")}
         >
           <Text
             style={[
               styles.tabText,
-              activeTab === "active" && styles.tabTextActive,
+              {
+                color:
+                  activeTab === "active" ? "#FFFFFF" : colors.textSecondary,
+              },
             ]}
           >
             Active Requests
@@ -284,14 +323,22 @@ export default function CustomerOrdersScreen() {
         <TouchableOpacity
           style={[
             styles.tabBtn,
-            activeTab === "history" && styles.tabBtnActive,
+            {
+              backgroundColor:
+                activeTab === "history"
+                  ? colors.primary
+                  : colors.surfaceSecondary,
+            },
           ]}
           onPress={() => setActiveTab("history")}
         >
           <Text
             style={[
               styles.tabText,
-              activeTab === "history" && styles.tabTextActive,
+              {
+                color:
+                  activeTab === "history" ? "#FFFFFF" : colors.textSecondary,
+              },
             ]}
           >
             History & Completed
@@ -301,8 +348,10 @@ export default function CustomerOrdersScreen() {
 
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#0052CC" />
-          <Text style={styles.loadingText}>Fetching orders...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>
+            Fetching orders...
+          </Text>
         </View>
       ) : (
         <FlatList
@@ -313,7 +362,7 @@ export default function CustomerOrdersScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={["#0052CC"]}
+              colors={[colors.primary]}
             />
           }
           renderItem={({ item }) => (
@@ -347,10 +396,14 @@ export default function CustomerOrdersScreen() {
               <Feather
                 name="clipboard"
                 size={moderateScale(44)}
-                color="#CBD5E1"
+                color={colors.border}
               />
-              <Text style={styles.emptyTitle}>No orders in this tab</Text>
-              <Text style={styles.emptySubtitle}>
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>
+                No orders in this tab
+              </Text>
+              <Text
+                style={[styles.emptySubtitle, { color: colors.textSecondary }]}
+              >
                 Published jobs and past repairs will show up here.
               </Text>
             </View>
@@ -366,36 +419,70 @@ export default function CustomerOrdersScreen() {
         onRequestClose={() => setBidsModalVisible(false)}
       >
         <View style={styles.modalBackdrop}>
-          <View style={styles.modalSheet}>
+          <View
+            style={[
+              styles.modalSheet,
+              { backgroundColor: colors.surface },
+            ]}
+          >
             <View style={styles.modalHeader}>
               <View>
-                <Text style={styles.modalTitle}>Technician Proposals</Text>
-                <Text style={styles.modalSubtitle} numberOfLines={1}>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>
+                  Technician Proposals
+                </Text>
+                <Text
+                  style={[
+                    styles.modalSubtitle,
+                    { color: colors.textSecondary },
+                  ]}
+                  numberOfLines={1}
+                >
                   {selectedJob?.title}
                 </Text>
               </View>
               <TouchableOpacity
                 onPress={() => setBidsModalVisible(false)}
-                style={styles.closeBtn}
+                style={[
+                  styles.closeBtn,
+                  { backgroundColor: colors.surfaceSecondary },
+                ]}
               >
-                <Feather name="x" size={moderateScale(20)} color="#64748B" />
+                <Feather
+                  name="x"
+                  size={moderateScale(20)}
+                  color={colors.textSecondary}
+                />
               </TouchableOpacity>
             </View>
 
             {loadingBids ? (
               <View style={styles.centerContainer}>
-                <ActivityIndicator size="large" color="#0052CC" />
-                <Text style={styles.loadingText}>Loading quotes...</Text>
+                <ActivityIndicator size="large" color={colors.primary} />
+                <Text
+                  style={[
+                    styles.loadingText,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  Loading quotes...
+                </Text>
               </View>
             ) : jobBids.length === 0 ? (
               <View style={styles.emptyModalBox}>
                 <Feather
                   name="users"
                   size={moderateScale(38)}
-                  color="#CBD5E1"
+                  color={colors.border}
                 />
-                <Text style={styles.emptyTitle}>No Quotes Yet</Text>
-                <Text style={styles.emptySubtitle}>
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>
+                  No Quotes Yet
+                </Text>
+                <Text
+                  style={[
+                    styles.emptySubtitle,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   Certified technicians are reviewing your job request.
                   Proposals will show here automatically.
                 </Text>
@@ -413,6 +500,10 @@ export default function CustomerOrdersScreen() {
                       key={bid._id}
                       style={[
                         styles.bidCard,
+                        {
+                          backgroundColor: colors.card,
+                          borderColor: colors.cardBorder,
+                        },
                         bid.isBoosted && styles.bidCardBoosted,
                       ]}
                     >
@@ -438,7 +529,12 @@ export default function CustomerOrdersScreen() {
                           />
                           <View>
                             <View style={styles.nameRow}>
-                              <Text style={styles.proName}>
+                              <Text
+                                style={[
+                                  styles.proName,
+                                  { color: colors.text },
+                                ]}
+                              >
                                 {bid.provider.fullName}
                               </Text>
                               {bid.provider.isVerified && (
@@ -449,7 +545,12 @@ export default function CustomerOrdersScreen() {
                                 />
                               )}
                             </View>
-                            <Text style={styles.proMeta}>
+                            <Text
+                              style={[
+                                styles.proMeta,
+                                { color: colors.textSecondary },
+                              ]}
+                            >
                               ⭐ {bid.provider.rating || 5.0} •{" "}
                               {bid.provider.profession || "Technician"}
                             </Text>
@@ -457,20 +558,48 @@ export default function CustomerOrdersScreen() {
                         </View>
 
                         <View style={styles.quoteBox}>
-                          <Text style={styles.quotePrice}>{bid.price} ETB</Text>
-                          <Text style={styles.quoteDuration}>
+                          <Text
+                            style={[
+                              styles.quotePrice,
+                              { color: colors.primary },
+                            ]}
+                          >
+                            {bid.price} ETB
+                          </Text>
+                          <Text
+                            style={[
+                              styles.quoteDuration,
+                              { color: colors.textSecondary },
+                            ]}
+                          >
                             {bid.estimatedDuration}
                           </Text>
                         </View>
                       </View>
 
                       {bid.note ? (
-                        <Text style={styles.bidNote}>"{bid.note}"</Text>
+                        <Text
+                          style={[
+                            styles.bidNote,
+                            {
+                              backgroundColor: colors.surfaceSecondary,
+                              color: colors.text,
+                            },
+                          ]}
+                        >
+                          "{bid.note}"
+                        </Text>
                       ) : null}
 
                       <View style={styles.bidActions}>
                         <TouchableOpacity
-                          style={styles.chatActionBtn}
+                          style={[
+                            styles.chatActionBtn,
+                            {
+                              backgroundColor: colors.primaryLight,
+                              borderColor: colors.border,
+                            },
+                          ]}
                           onPress={() => {
                             setBidsModalVisible(false);
                             router.push({
@@ -488,9 +617,16 @@ export default function CustomerOrdersScreen() {
                           <Feather
                             name="message-circle"
                             size={moderateScale(15)}
-                            color="#0052CC"
+                            color={colors.primary}
                           />
-                          <Text style={styles.chatActionText}>Chat</Text>
+                          <Text
+                            style={[
+                              styles.chatActionText,
+                              { color: colors.primary },
+                            ]}
+                          >
+                            Chat
+                          </Text>
                         </TouchableOpacity>
 
                         <TouchableOpacity
@@ -527,20 +663,40 @@ export default function CustomerOrdersScreen() {
         onRequestClose={() => setReviewModalVisible(false)}
       >
         <View style={styles.modalBackdrop}>
-          <View style={styles.modalSheet}>
+          <View
+            style={[
+              styles.modalSheet,
+              { backgroundColor: colors.surface },
+            ]}
+          >
             <View style={styles.modalHeader}>
               <View>
-                <Text style={styles.modalTitle}>Rate Your Experience</Text>
-                <Text style={styles.modalSubtitle} numberOfLines={1}>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>
+                  Rate Your Experience
+                </Text>
+                <Text
+                  style={[
+                    styles.modalSubtitle,
+                    { color: colors.textSecondary },
+                  ]}
+                  numberOfLines={1}
+                >
                   {ratingJob?.assignedProvider?.fullName || "Technician"} •{" "}
                   {ratingJob?.title}
                 </Text>
               </View>
               <TouchableOpacity
                 onPress={() => setReviewModalVisible(false)}
-                style={styles.closeBtn}
+                style={[
+                  styles.closeBtn,
+                  { backgroundColor: colors.surfaceSecondary },
+                ]}
               >
-                <Feather name="x" size={moderateScale(20)} color="#64748B" />
+                <Feather
+                  name="x"
+                  size={moderateScale(20)}
+                  color={colors.textSecondary}
+                />
               </TouchableOpacity>
             </View>
 
@@ -556,12 +712,17 @@ export default function CustomerOrdersScreen() {
                   <FontAwesome
                     name={star <= starCount ? "star" : "star-o"}
                     size={moderateScale(32)}
-                    color={star <= starCount ? "#F59E0B" : "#CBD5E1"}
+                    color={star <= starCount ? "#F59E0B" : colors.border}
                   />
                 </TouchableOpacity>
               ))}
             </View>
-            <Text style={styles.starRatingNotice}>
+            <Text
+              style={[
+                styles.starRatingNotice,
+                { color: colors.text },
+              ]}
+            >
               {starCount === 5
                 ? "Excellent service!"
                 : starCount === 4
@@ -572,11 +733,25 @@ export default function CustomerOrdersScreen() {
             </Text>
 
             {/* Feedback Input */}
-            <Text style={styles.reviewLabel}>Leave a Review (Optional)</Text>
+            <Text
+              style={[
+                styles.reviewLabel,
+                { color: colors.textSecondary },
+              ]}
+            >
+              Leave a Review (Optional)
+            </Text>
             <TextInput
-              style={styles.reviewInput}
+              style={[
+                styles.reviewInput,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                  color: colors.text,
+                },
+              ]}
               placeholder="Was the provider punctual, polite, and thorough?"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               multiline
               numberOfLines={3}
               value={reviewComment}

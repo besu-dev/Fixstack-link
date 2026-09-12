@@ -2,6 +2,7 @@ import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Feather, FontAwesome } from "@expo/vector-icons";
 import { Job } from "../../src/types";
+import { useTheme } from "../../src/context/ThemeContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 interface OrderCardProps {
@@ -38,14 +39,32 @@ export const OrderCard: React.FC<OrderCardProps> = ({
     null;
 
   const isReviewed = Boolean(reviewRating || reviewComment || job.isReviewed);
+  const { colors, isDark } = useTheme();
 
   return (
-    <View style={styles.orderCard}>
+    <View
+      style={[
+        styles.orderCard,
+        { backgroundColor: colors.card, borderColor: colors.cardBorder },
+      ]}
+    >
       {/* Header Info */}
       <View style={styles.orderCardHeader}>
         <View style={styles.pillRow}>
-          <View style={styles.categoryPill}>
-            <Text style={styles.categoryPillText}>{job.category}</Text>
+          <View
+            style={[
+              styles.categoryPill,
+              { backgroundColor: colors.primaryLight },
+            ]}
+          >
+            <Text
+              style={[
+                styles.categoryPillText,
+                { color: colors.primary },
+              ]}
+            >
+              {job.category}
+            </Text>
           </View>
 
           {/* Status Pill */}
@@ -104,34 +123,55 @@ export const OrderCard: React.FC<OrderCardProps> = ({
           )}
         </View>
 
-        <Text style={styles.budgetAmount}>{job.budget} ETB</Text>
+        <Text style={[styles.budgetAmount, { color: colors.text }]}>
+          {job.budget} ETB
+        </Text>
       </View>
 
-      <Text style={styles.jobTitle}>{job.title}</Text>
-      <Text style={styles.jobDescription} numberOfLines={2}>
+      <Text style={[styles.jobTitle, { color: colors.text }]}>{job.title}</Text>
+      <Text
+        style={[styles.jobDescription, { color: colors.textSecondary }]}
+        numberOfLines={2}
+      >
         {job.description}
       </Text>
 
       <View style={styles.locationRow}>
-        <Feather name="map-pin" size={moderateScale(12)} color="#64748B" />
-        <Text style={styles.locationText}>{job.subcity}</Text>
+        <Feather
+          name="map-pin"
+          size={moderateScale(12)}
+          color={colors.textSecondary}
+        />
+        <Text style={[styles.locationText, { color: colors.textSecondary }]}>
+          {job.subcity}
+        </Text>
       </View>
 
       {/* Card Footer Actions */}
-      <View style={styles.cardFooter}>
+      <View style={[styles.cardFooter, { borderTopColor: colors.border }]}>
         {/* ASSIGNED STATE: Provider assigned, in-progress */}
         {isAssigned && job.assignedProvider ? (
           <View style={styles.assignedContainer}>
             <View style={styles.providerInfo}>
-              <Feather name="tool" size={moderateScale(14)} color="#0052CC" />
-              <Text style={styles.assignedProName} numberOfLines={1}>
+              <Feather
+                name="tool"
+                size={moderateScale(14)}
+                color={colors.primary}
+              />
+              <Text
+                style={[styles.assignedProName, { color: colors.text }]}
+                numberOfLines={1}
+              >
                 {job.assignedProvider.fullName}
               </Text>
             </View>
 
             <View style={styles.assignedActionsRow}>
               <TouchableOpacity
-                style={styles.chatProBtn}
+                style={[
+                  styles.chatProBtn,
+                  { backgroundColor: colors.primary },
+                ]}
                 onPress={() => onChat(job)}
               >
                 <Feather
@@ -160,8 +200,15 @@ export const OrderCard: React.FC<OrderCardProps> = ({
           <View style={styles.completedContainer}>
             <View style={styles.completedHeaderRow}>
               <View style={styles.providerInfo}>
-                <Feather name="user-check" size={moderateScale(14)} color="#16A34A" />
-                <Text style={styles.completedNotice} numberOfLines={1}>
+                <Feather
+                  name="user-check"
+                  size={moderateScale(14)}
+                  color="#16A34A"
+                />
+                <Text
+                  style={[styles.completedNotice, { color: colors.text }]}
+                  numberOfLines={1}
+                >
                   Completed by {job.assignedProvider?.fullName || "Technician"}
                 </Text>
               </View>
@@ -169,22 +216,43 @@ export const OrderCard: React.FC<OrderCardProps> = ({
               {/* Chat action if provider exists */}
               {job.assignedProvider && (
                 <TouchableOpacity
-                  style={styles.chatHistoryBtn}
+                  style={[
+                    styles.chatHistoryBtn,
+                    {
+                      backgroundColor: colors.primaryLight,
+                      borderColor: colors.border,
+                    },
+                  ]}
                   onPress={() => onChat(job)}
                 >
                   <Feather
                     name="message-circle"
                     size={moderateScale(14)}
-                    color="#0052CC"
+                    color={colors.primary}
                   />
-                  <Text style={styles.chatHistoryText}>Chat</Text>
+                  <Text
+                    style={[
+                      styles.chatHistoryText,
+                      { color: colors.primary },
+                    ]}
+                  >
+                    Chat
+                  </Text>
                 </TouchableOpacity>
               )}
             </View>
 
             {isReviewed ? (
               /* ORDER HAS BEEN REVIEWED: Show Star Rating & Specific Feedback */
-              <View style={styles.reviewBox}>
+              <View
+                style={[
+                  styles.reviewBox,
+                  {
+                    backgroundColor: colors.surfaceSecondary,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
                 <View style={styles.reviewBoxHeader}>
                   <View style={styles.starsRow}>
                     {[1, 2, 3, 4, 5].map((s) => (
@@ -195,36 +263,77 @@ export const OrderCard: React.FC<OrderCardProps> = ({
                         color="#F59E0B"
                       />
                     ))}
-                    <Text style={styles.ratingScoreText}>
-                      {reviewRating ? `${Number(reviewRating).toFixed(1)} / 5.0` : "5.0 / 5.0"}
+                    <Text
+                      style={[
+                        styles.ratingScoreText,
+                        { color: colors.text },
+                      ]}
+                    >
+                      {reviewRating
+                        ? `${Number(reviewRating).toFixed(1)} / 5.0`
+                        : "5.0 / 5.0"}
                     </Text>
                   </View>
                   <View style={styles.verifiedReviewBadge}>
-                    <Feather name="check" size={moderateScale(10)} color="#15803D" />
+                    <Feather
+                      name="check"
+                      size={moderateScale(10)}
+                      color="#15803D"
+                    />
                     <Text style={styles.verifiedReviewText}>Order Verified</Text>
                   </View>
                 </View>
 
                 {reviewComment ? (
-                  <Text style={styles.reviewCommentText}>
+                  <Text
+                    style={[
+                      styles.reviewCommentText,
+                      { color: colors.text },
+                    ]}
+                  >
                     "{reviewComment}"
                   </Text>
                 ) : (
-                  <Text style={styles.noCommentText}>
+                  <Text
+                    style={[
+                      styles.noCommentText,
+                      { color: colors.textSecondary },
+                    ]}
+                  >
                     Service rated {reviewRating || 5}.0 stars
                   </Text>
                 )}
               </View>
             ) : (
               /* NOT REVIEWED YET: Prompt customer to rate this specific order */
-              <View style={styles.pendingReviewBox}>
+              <View
+                style={[
+                  styles.pendingReviewBox,
+                  {
+                    backgroundColor: isDark
+                      ? colors.surfaceSecondary
+                      : "#FFFBEB",
+                    borderColor: isDark ? colors.border : "#FDE68A",
+                  },
+                ]}
+              >
                 <View style={styles.pendingNoticeRow}>
-                  <Text style={styles.pendingReviewNotice}>
+                  <Text
+                    style={[
+                      styles.pendingReviewNotice,
+                      {
+                        color: isDark ? colors.text : "#92400E",
+                      },
+                    ]}
+                  >
                     How was the service provided for this order?
                   </Text>
                 </View>
                 <TouchableOpacity
-                  style={styles.rateNowBtn}
+                  style={[
+                    styles.rateNowBtn,
+                    { backgroundColor: colors.primary },
+                  ]}
                   onPress={() => onRate(job)}
                   activeOpacity={0.85}
                 >
@@ -241,20 +350,30 @@ export const OrderCard: React.FC<OrderCardProps> = ({
         ) : (
           /* OPEN STATE: View quotes from technicians */
           <TouchableOpacity
-            style={styles.viewQuotesBtn}
+            style={[
+              styles.viewQuotesBtn,
+              { backgroundColor: colors.primaryLight },
+            ]}
             onPress={() => onViewQuotes(job)}
             activeOpacity={0.85}
           >
             <Feather
               name="file-text"
               size={moderateScale(14)}
-              color="#0052CC"
+              color={colors.primary}
             />
-            <Text style={styles.viewQuotesBtnText}>View Quotes & Proposals</Text>
+            <Text
+              style={[
+                styles.viewQuotesBtnText,
+                { color: colors.primary },
+              ]}
+            >
+              View Quotes & Proposals
+            </Text>
             <Feather
               name="chevron-right"
               size={moderateScale(16)}
-              color="#0052CC"
+              color={colors.primary}
             />
           </TouchableOpacity>
         )}

@@ -12,6 +12,8 @@ import bidRoutes from "./src/routes/bidRoutes.js";
 import messageRoutes from "./src/routes/messageRoutes.js";
 import walletRoutes from "./src/routes/walletRoutes.js"; 
 import notificationRoutes from "./src/routes/notificationRoutes.js";
+import adminRoutes from "./src/routes/adminRoutes.js";
+import { seedAdmin } from "./src/controllers/adminController.js";
 import { initChatSocket } from "./src/sockets/chatSocket.js";
 
 dotenv.config();
@@ -20,7 +22,9 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-connectDB();
+connectDB().then(() => {
+  seedAdmin();
+});
 
 const app = express();
 const server = http.createServer(app);
@@ -52,6 +56,7 @@ app.use("/api/bids", bidRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/wallet", walletRoutes); // 2. Mount wallet endpoints
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/admin", adminRoutes);
 
 app.get("/api/health", (req, res) => {
   res.status(200).json({ status: "FixLink API running smoothly" });

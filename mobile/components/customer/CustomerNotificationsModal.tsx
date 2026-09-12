@@ -16,6 +16,7 @@ import { useRouter } from "expo-router";
 import notificationsApi from "../../src/api/notifications";
 import { JobNotification } from "../../src/types";
 import UserAvatar from "../common/UserAvatar";
+import { useTheme } from "../../src/context/ThemeContext";
 import {
   scale,
   moderateScale,
@@ -57,6 +58,7 @@ export default function CustomerNotificationsModal({
   initialUnreadCount = 0,
 }: CustomerNotificationsModalProps) {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const [notifications, setNotifications] = useState<JobNotification[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [refreshing, setRefreshing] = useState<boolean>(false);
@@ -162,7 +164,22 @@ export default function CustomerNotificationsModal({
 
     return (
       <TouchableOpacity
-        style={[styles.notifCard, !item.read && styles.notifCardUnread]}
+        style={[
+          styles.notifCard,
+          {
+            backgroundColor: colors.card,
+            borderColor: colors.cardBorder,
+          },
+          !item.read && [
+            styles.notifCardUnread,
+            {
+              backgroundColor: isDark
+                ? colors.surfaceSecondary
+                : "#EFF6FF",
+              borderColor: colors.primary,
+            },
+          ],
+        ]}
         activeOpacity={0.78}
         onPress={() => handleMarkAsRead(item)}
       >
@@ -175,8 +192,17 @@ export default function CustomerNotificationsModal({
               size={moderateScale(48)}
             />
           ) : (
-            <View style={styles.iconCircle}>
-              <Feather name="file-text" size={moderateScale(22)} color="#0052CC" />
+            <View
+              style={[
+                styles.iconCircle,
+                { backgroundColor: colors.surfaceSecondary },
+              ]}
+            >
+              <Feather
+                name="file-text"
+                size={moderateScale(22)}
+                color={colors.primary}
+              />
             </View>
           )}
           {item.provider?.isVerified && (
@@ -193,15 +219,29 @@ export default function CustomerNotificationsModal({
         {/* Center: Notification Details */}
         <View style={styles.contentCol}>
           <View style={styles.topRow}>
-            <Text style={styles.providerName} numberOfLines={1}>
+            <Text
+              style={[styles.providerName, { color: colors.text }]}
+              numberOfLines={1}
+            >
               {providerName}
             </Text>
-            <Text style={styles.timeText}>
+            <Text
+              style={[
+                styles.timeText,
+                { color: colors.textSecondary },
+              ]}
+            >
               {formatRelativeTime(item.createdAt, item.timePosted)}
             </Text>
           </View>
 
-          <Text style={styles.professionText} numberOfLines={1}>
+          <Text
+            style={[
+              styles.professionText,
+              { color: colors.primary },
+            ]}
+            numberOfLines={1}
+          >
             {providerProfession}
           </Text>
 
@@ -210,25 +250,53 @@ export default function CustomerNotificationsModal({
             <Feather
               name="clipboard"
               size={moderateScale(12)}
-              color="#64748B"
+              color={colors.textSecondary}
               style={{ marginTop: 2 }}
             />
-            <Text style={styles.jobTitle} numberOfLines={1}>
-              Request: <Text style={styles.jobTitleBold}>{item.jobTitle}</Text>
+            <Text
+              style={[
+                styles.jobTitle,
+                { color: colors.textSecondary },
+              ]}
+              numberOfLines={1}
+            >
+              Request:{" "}
+              <Text
+                style={[
+                  styles.jobTitleBold,
+                  { color: colors.text },
+                ]}
+              >
+                {item.jobTitle}
+              </Text>
             </Text>
           </View>
 
           {/* Proposal Price & Status Row */}
           <View style={styles.bottomMetaRow}>
-            <View style={[styles.statusBadge, { backgroundColor: badge.bg }]}>
-              <Text style={[styles.statusBadgeText, { color: badge.text }]}>
+            <View
+              style={[styles.statusBadge, { backgroundColor: badge.bg }]}
+            >
+              <Text
+                style={[styles.statusBadgeText, { color: badge.text }]}
+              >
                 {badge.label}
               </Text>
             </View>
 
             {item.proposalPrice !== undefined && item.proposalPrice !== null && (
-              <View style={styles.priceTag}>
-                <Text style={styles.priceTagText}>
+              <View
+                style={[
+                  styles.priceTag,
+                  { backgroundColor: colors.surfaceSecondary },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.priceTagText,
+                    { color: colors.text },
+                  ]}
+                >
                   Quote: {item.proposalPrice} ETB
                 </Text>
               </View>
@@ -237,11 +305,18 @@ export default function CustomerNotificationsModal({
             <View style={{ flex: 1 }} />
 
             <View style={styles.actionHint}>
-              <Text style={styles.actionHintText}>Review</Text>
+              <Text
+                style={[
+                  styles.actionHintText,
+                  { color: colors.primary },
+                ]}
+              >
+                Review
+              </Text>
               <Feather
                 name="chevron-right"
                 size={moderateScale(13)}
-                color="#0052CC"
+                color={colors.primary}
               />
             </View>
           </View>
@@ -260,25 +335,63 @@ export default function CustomerNotificationsModal({
       presentationStyle="pageSheet"
       onRequestClose={onClose}
     >
-      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: colors.canvas }]}
+        edges={["top", "bottom"]}
+      >
+        <StatusBar
+          barStyle={colors.statusBarStyle}
+          backgroundColor={colors.surface}
+        />
 
         {/* Modal Top Header */}
-        <View style={styles.header}>
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: colors.surface,
+              borderBottomColor: colors.border,
+            },
+          ]}
+        >
           <TouchableOpacity
-            style={styles.closeBtn}
+            style={[
+              styles.closeBtn,
+              { backgroundColor: colors.surfaceSecondary },
+            ]}
             onPress={onClose}
             hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             activeOpacity={0.7}
           >
-            <Feather name="arrow-left" size={moderateScale(20)} color="#1E293B" />
+            <Feather
+              name="arrow-left"
+              size={moderateScale(20)}
+              color={colors.text}
+            />
           </TouchableOpacity>
 
           <View style={styles.headerTitleGroup}>
-            <Text style={styles.headerTitle}>Notifications</Text>
+            <Text style={[styles.headerTitle, { color: colors.text }]}>
+              Notifications
+            </Text>
             {unreadTotal > 0 && (
-              <View style={styles.unreadPill}>
-                <Text style={styles.unreadPillText}>{unreadTotal} new</Text>
+              <View
+                style={[
+                  styles.unreadPill,
+                  {
+                    backgroundColor: colors.primaryLight,
+                    borderColor: colors.border,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.unreadPillText,
+                    { color: colors.primary },
+                  ]}
+                >
+                  {unreadTotal} new
+                </Text>
               </View>
             )}
           </View>
@@ -290,7 +403,14 @@ export default function CustomerNotificationsModal({
               activeOpacity={0.7}
               style={styles.markAllBtn}
             >
-              <Text style={styles.markAllText}>Mark all read</Text>
+              <Text
+                style={[
+                  styles.markAllText,
+                  { color: colors.primary },
+                ]}
+              >
+                Mark all read
+              </Text>
             </TouchableOpacity>
           ) : (
             <View style={{ width: scale(40) }} />
@@ -298,11 +418,24 @@ export default function CustomerNotificationsModal({
         </View>
 
         {/* Filter Bar: All vs Unread */}
-        <View style={styles.filterBar}>
+        <View
+          style={[
+            styles.filterBar,
+            {
+              backgroundColor: colors.surface,
+              borderBottomColor: colors.border,
+            },
+          ]}
+        >
           <TouchableOpacity
             style={[
               styles.filterTab,
-              filter === "all" && styles.filterTabActive,
+              {
+                backgroundColor:
+                  filter === "all"
+                    ? colors.primary
+                    : colors.surfaceSecondary,
+              },
             ]}
             onPress={() => setFilter("all")}
             activeOpacity={0.75}
@@ -310,7 +443,12 @@ export default function CustomerNotificationsModal({
             <Text
               style={[
                 styles.filterTabText,
-                filter === "all" && styles.filterTabTextActive,
+                {
+                  color:
+                    filter === "all"
+                      ? "#FFFFFF"
+                      : colors.textSecondary,
+                },
               ]}
             >
               All ({notifications.length})
@@ -320,7 +458,12 @@ export default function CustomerNotificationsModal({
           <TouchableOpacity
             style={[
               styles.filterTab,
-              filter === "unread" && styles.filterTabActive,
+              {
+                backgroundColor:
+                  filter === "unread"
+                    ? colors.primary
+                    : colors.surfaceSecondary,
+              },
             ]}
             onPress={() => setFilter("unread")}
             activeOpacity={0.75}
@@ -328,7 +471,12 @@ export default function CustomerNotificationsModal({
             <Text
               style={[
                 styles.filterTabText,
-                filter === "unread" && styles.filterTabTextActive,
+                {
+                  color:
+                    filter === "unread"
+                      ? "#FFFFFF"
+                      : colors.textSecondary,
+                },
               ]}
             >
               Unread ({unreadTotal})
@@ -339,18 +487,18 @@ export default function CustomerNotificationsModal({
         {/* Content Body */}
         {loading ? (
           <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color="#0052CC" />
-            <Text style={styles.loadingText}>Loading notifications...</Text>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Loading notifications...</Text>
           </View>
         ) : filteredNotifications.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <View style={styles.emptyIconCircle}>
-              <Feather name="bell" size={moderateScale(32)} color="#94A3B8" />
+            <View style={[styles.emptyIconCircle, { backgroundColor: colors.surfaceSecondary }]}>
+              <Feather name="bell" size={moderateScale(32)} color={colors.textMuted} />
             </View>
-            <Text style={styles.emptyTitle}>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>
               {filter === "unread" ? "No unread notifications" : "No notifications yet"}
             </Text>
-            <Text style={styles.emptySubtitle}>
+            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
               Whenever a service provider submits a quote or proposal for your requests,
               you will receive an instant notification here.
             </Text>
@@ -366,7 +514,8 @@ export default function CustomerNotificationsModal({
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onRefresh}
-                colors={["#0052CC"]}
+                colors={[colors.primary]}
+                tintColor={colors.primary}
               />
             }
           />

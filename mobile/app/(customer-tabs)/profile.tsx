@@ -368,16 +368,28 @@ export default function CustomerProfileScreen() {
             </Text>
           </View>
           <TouchableOpacity
-            style={styles.rechargeBtn}
+            style={[
+              styles.rechargeBtn,
+              {
+                backgroundColor: isDark ? colors.surfaceSecondary : "#FFFFFF",
+              },
+            ]}
             onPress={() => setBuyModalVisible(true)}
             activeOpacity={0.85}
           >
             <Ionicons
               name="wallet-outline"
               size={moderateScale(15)}
-              color="#0052CC"
+              color={isDark ? colors.text : "#0052CC"}
             />
-            <Text style={styles.rechargeBtnText}>Add Funds</Text>
+            <Text
+              style={[
+                styles.rechargeBtnText,
+                { color: isDark ? colors.text : "#0052CC" },
+              ]}
+            >
+              Add Funds
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -390,7 +402,7 @@ export default function CustomerProfileScreen() {
           <TouchableOpacity
             style={[
               styles.menuItem,
-              { borderBottomColor: colors.borderSubtle },
+              { borderBottomColor: isDark ? colors.cardBorder : colors.borderSubtle },
             ]}
             onPress={() => router.push("/screen/user/edit-profile" as any)}
           >
@@ -399,7 +411,7 @@ export default function CustomerProfileScreen() {
                 styles.menuIconBox,
                 {
                   backgroundColor: isDark
-                    ? colors.surfaceSecondary
+                    ? "rgba(59, 130, 246, 0.15)"
                     : "#EFF6FF",
                 },
               ]}
@@ -441,7 +453,7 @@ export default function CustomerProfileScreen() {
           <View
             style={[
               styles.menuItem,
-              { borderBottomColor: colors.borderSubtle },
+              { borderBottomColor: isDark ? colors.cardBorder : colors.borderSubtle },
             ]}
           >
             <View
@@ -449,7 +461,7 @@ export default function CustomerProfileScreen() {
                 styles.menuIconBox,
                 {
                   backgroundColor: isDark
-                    ? colors.surfaceSecondary
+                    ? "rgba(129, 140, 248, 0.15)"
                     : "#FEF3C7",
                 },
               ]}
@@ -484,7 +496,7 @@ export default function CustomerProfileScreen() {
           <View
             style={[
               styles.menuItem,
-              { borderBottomColor: colors.borderSubtle },
+              { borderBottomColor: isDark ? colors.cardBorder : colors.borderSubtle },
             ]}
           >
             <View
@@ -492,7 +504,7 @@ export default function CustomerProfileScreen() {
                 styles.menuIconBox,
                 {
                   backgroundColor: isDark
-                    ? colors.surfaceSecondary
+                    ? "rgba(167, 139, 250, 0.15)"
                     : "#F3E8FF",
                 },
               ]}
@@ -527,7 +539,7 @@ export default function CustomerProfileScreen() {
           <TouchableOpacity
             style={[
               styles.menuItem,
-              { borderBottomColor: colors.borderSubtle },
+              { borderBottomColor: isDark ? colors.cardBorder : colors.borderSubtle },
             ]}
             onPress={() =>
               router.push({
@@ -542,7 +554,7 @@ export default function CustomerProfileScreen() {
                 styles.menuIconBox,
                 {
                   backgroundColor: isDark
-                    ? colors.surfaceSecondary
+                    ? "rgba(74, 222, 128, 0.15)"
                     : "#DCFCE7",
                 },
               ]}

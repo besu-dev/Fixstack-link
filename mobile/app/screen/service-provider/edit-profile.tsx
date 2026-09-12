@@ -19,6 +19,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../../src/api/client";
 import { Alert } from "../../../src/context/AlertContext";
+import { useTheme } from "../../../src/context/ThemeContext";
 import {
   scale,
   moderateScale,
@@ -39,6 +40,7 @@ const EXPERIENCE_LEVELS = ["< 1 year", "1-3 yrs", "3-5 yrs", "5+ yrs"];
 
 export default function ProviderEditProfileScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
 
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [avatarPicked, setAvatarPicked] = useState(false);
@@ -177,26 +179,26 @@ export default function ProviderEditProfileScreen() {
 
   if (initialLoading) {
     return (
-      <SafeAreaView style={styles.centerContainer} edges={["top"]}>
-        <ActivityIndicator size="large" color="#0052CC" />
+      <SafeAreaView style={[styles.centerContainer, { backgroundColor: colors.canvas }]} edges={["top"]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.canvas }]} edges={["top"]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.surface} />
 
       {/* Screen Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.cardBorder }]}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backBtn}
           activeOpacity={0.7}
         >
-          <Feather name="arrow-left" size={moderateScale(22)} color="#0F172A" />
+          <Feather name="arrow-left" size={moderateScale(22)} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Provider Profile</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Edit Provider Profile</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -231,13 +233,13 @@ export default function ProviderEditProfileScreen() {
             </View>
             <View style={styles.photoActionsRow}>
               <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
-                <Text style={styles.changePhotoText}>
+                <Text style={[styles.changePhotoText, { color: colors.primary }]}>
                   {avatarUri ? "Change Profile Picture" : "Add Profile Picture"}
                 </Text>
               </TouchableOpacity>
               {avatarUri ? (
                 <>
-                  <Text style={styles.actionDot}>•</Text>
+                  <Text style={[styles.actionDot, { color: colors.textMuted }]}>•</Text>
                   <TouchableOpacity onPress={handleRemoveAvatar} activeOpacity={0.7}>
                     <Text style={styles.removePhotoText}>Remove</Text>
                   </TouchableOpacity>
@@ -248,36 +250,44 @@ export default function ProviderEditProfileScreen() {
 
           {/* Form Fields */}
           <View style={styles.form}>
-            <Text style={styles.label}>Full Name</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Full Name</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder, color: colors.text }]}
               value={fullName}
               onChangeText={setFullName}
               placeholder="e.g., Besufikad Getaye"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
             />
 
-            <Text style={styles.label}>Phone Number</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Phone Number</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder, color: colors.text }]}
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
               placeholder="+251 91 123 4567"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
             />
 
-            <Text style={styles.label}>Email Address</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Email Address</Text>
             <TextInput
-              style={[styles.input, styles.readOnlyInput]}
+              style={[
+                styles.input,
+                styles.readOnlyInput,
+                {
+                  backgroundColor: colors.surfaceSecondary,
+                  borderColor: colors.cardBorder,
+                  color: colors.textSecondary,
+                },
+              ]}
               value={email}
               editable={false}
               placeholder="Email Address"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
             />
 
             {/* Primary Profession Selection */}
-            <Text style={styles.label}>Primary Skills</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Primary Skills</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -288,13 +298,24 @@ export default function ProviderEditProfileScreen() {
                 return (
                   <TouchableOpacity
                     key={item}
-                    style={[styles.chip, isSelected && styles.chipSelected]}
+                    style={[
+                      styles.chip,
+                      {
+                        backgroundColor: colors.surfaceSecondary,
+                        borderColor: colors.cardBorder,
+                      },
+                      isSelected && {
+                        backgroundColor: colors.primary,
+                        borderColor: colors.primary,
+                      },
+                    ]}
                     onPress={() => setProfession(item)}
                     activeOpacity={0.8}
                   >
                     <Text
                       style={[
                         styles.chipText,
+                        { color: colors.textSecondary },
                         isSelected && styles.chipTextSelected,
                       ]}
                     >
@@ -306,17 +327,17 @@ export default function ProviderEditProfileScreen() {
             </ScrollView>
 
             {/* Location / Subcity Input Field */}
-            <Text style={styles.label}>Location / Subcity</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Location / Subcity</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder, color: colors.text }]}
               value={subcity}
               onChangeText={setSubcity}
               placeholder="e.g., Bole, Addis Ababa"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
             />
 
             {/* Years of Experience */}
-            <Text style={styles.label}>Years of Experience</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Years of Experience</Text>
             <View style={styles.experienceRow}>
               {EXPERIENCE_LEVELS.map((level) => {
                 const isSelected = experience === level;
@@ -325,7 +346,14 @@ export default function ProviderEditProfileScreen() {
                     key={level}
                     style={[
                       styles.expChip,
-                      isSelected && styles.expChipSelected,
+                      {
+                        backgroundColor: colors.surfaceSecondary,
+                        borderColor: colors.cardBorder,
+                      },
+                      isSelected && {
+                        backgroundColor: colors.primary,
+                        borderColor: colors.primary,
+                      },
                     ]}
                     onPress={() => setExperience(level)}
                     activeOpacity={0.8}
@@ -333,6 +361,7 @@ export default function ProviderEditProfileScreen() {
                     <Text
                       style={[
                         styles.expText,
+                        { color: colors.textSecondary },
                         isSelected && styles.expTextSelected,
                       ]}
                     >

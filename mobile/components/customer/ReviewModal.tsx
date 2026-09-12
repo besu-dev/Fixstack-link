@@ -12,6 +12,7 @@ import { Feather, FontAwesome } from "@expo/vector-icons";
 import { Job } from "../../src/types";
 import { jobsApi } from "../../src/api";
 import { Alert } from "../../src/context/AlertContext";
+import { useTheme } from "../../src/context/ThemeContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 interface ReviewModalProps {
@@ -27,6 +28,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
   job,
   onReviewSubmitted,
 }) => {
+  const { colors, isDark } = useTheme();
   const [starCount, setStarCount] = useState(5);
   const [reviewComment, setReviewComment] = useState("");
   const [submittingReview, setSubmittingReview] = useState(false);
@@ -84,16 +86,34 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.modalBackdrop}>
-        <View style={styles.modalSheet}>
+        <View style={[styles.modalSheet, { backgroundColor: colors.surface }]}>
           <View style={styles.modalHeader}>
             <View>
-              <Text style={styles.modalTitle}>Rate Your Experience</Text>
-              <Text style={styles.modalSubtitle} numberOfLines={1}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                Rate Your Experience
+              </Text>
+              <Text
+                style={[
+                  styles.modalSubtitle,
+                  { color: colors.textSecondary },
+                ]}
+                numberOfLines={1}
+              >
                 {job?.assignedProvider?.fullName || "Technician"} • {job?.title}
               </Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Feather name="x" size={moderateScale(20)} color="#64748B" />
+            <TouchableOpacity
+              onPress={onClose}
+              style={[
+                styles.closeBtn,
+                { backgroundColor: colors.surfaceSecondary },
+              ]}
+            >
+              <Feather
+                name="x"
+                size={moderateScale(20)}
+                color={colors.textSecondary}
+              />
             </TouchableOpacity>
           </View>
 
@@ -109,19 +129,40 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                 <FontAwesome
                   name={star <= starCount ? "star" : "star-o"}
                   size={moderateScale(32)}
-                  color={star <= starCount ? "#F59E0B" : "#CBD5E1"}
+                  color={star <= starCount ? "#F59E0B" : colors.border}
                 />
               </TouchableOpacity>
             ))}
           </View>
-          <Text style={styles.starRatingNotice}>{getStarLabel(starCount)}</Text>
+          <Text
+            style={[
+              styles.starRatingNotice,
+              { color: colors.text },
+            ]}
+          >
+            {getStarLabel(starCount)}
+          </Text>
 
           {/* Feedback Input */}
-          <Text style={styles.reviewLabel}>Leave a Review (Optional)</Text>
+          <Text
+            style={[
+              styles.reviewLabel,
+              { color: colors.textSecondary },
+            ]}
+          >
+            Leave a Review (Optional)
+          </Text>
           <TextInput
-            style={styles.reviewInput}
+            style={[
+              styles.reviewInput,
+              {
+                backgroundColor: colors.inputBackground,
+                borderColor: colors.inputBorder,
+                color: colors.text,
+              },
+            ]}
             placeholder="Was the provider punctual, polite, and thorough?"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.textMuted}
             multiline
             numberOfLines={3}
             value={reviewComment}
@@ -131,7 +172,10 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
           {/* Submit Button */}
           <TouchableOpacity
-            style={[styles.submitReviewBtn, submittingReview && styles.btnDisabled]}
+            style={[
+              styles.submitReviewBtn,
+              submittingReview && styles.btnDisabled,
+            ]}
             onPress={handleSubmit}
             disabled={submittingReview}
             activeOpacity={0.85}
@@ -139,7 +183,9 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
             {submittingReview ? (
               <ActivityIndicator color="#FFFFFF" />
             ) : (
-              <Text style={styles.submitReviewBtnText}>Submit Rating & Review</Text>
+              <Text style={styles.submitReviewBtnText}>
+                Submit Rating & Review
+              </Text>
             )}
           </TouchableOpacity>
         </View>

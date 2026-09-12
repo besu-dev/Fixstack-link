@@ -303,7 +303,15 @@ export default function ProviderProfileScreen() {
         }
       >
         {/* Profile Card */}
-        <View style={styles.profileCard}>
+        <View
+          style={[
+            styles.profileCard,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.cardBorder,
+            },
+          ]}
+        >
           <View style={styles.avatarWrapper}>
             <UserAvatar
               avatarUrl={profile?.avatarUrl}
@@ -338,7 +346,7 @@ export default function ProviderProfileScreen() {
           <View style={styles.metaBadgeRow}>
             <View style={styles.ratingBadge}>
               <Ionicons name="star" size={moderateScale(13)} color="#F59E0B" />
-              <Text style={styles.ratingText}>
+              <Text style={[styles.ratingText, { color: colors.text }]}>
                 {profile?.rating ? profile.rating.toFixed(1) : "5.0"}
               </Text>
             </View>
@@ -346,22 +354,58 @@ export default function ProviderProfileScreen() {
 
           {/* Verification Status Badge */}
           {profile?.isVerified ? (
-            <View style={styles.verificationBadge}>
+            <View
+              style={[
+                styles.verificationBadge,
+                {
+                  backgroundColor: isDark
+                    ? "rgba(22, 163, 74, 0.15)"
+                    : "#F0FDF4",
+                  borderColor: isDark
+                    ? "rgba(22, 163, 74, 0.3)"
+                    : "#DCFCE7",
+                },
+              ]}
+            >
               <Ionicons
                 name="shield-checkmark"
                 size={moderateScale(13)}
-                color="#16A34A"
+                color={isDark ? "#4ADE80" : "#16A34A"}
               />
-              <Text style={styles.verificationText}>Verified Bete Pro</Text>
+              <Text
+                style={[
+                  styles.verificationText,
+                  { color: isDark ? "#4ADE80" : "#16A34A" },
+                ]}
+              >
+                Verified Bete Pro
+              </Text>
             </View>
           ) : (
-            <View style={styles.pendingBadge}>
+            <View
+              style={[
+                styles.pendingBadge,
+                {
+                  backgroundColor: isDark
+                    ? "rgba(245, 158, 11, 0.15)"
+                    : "#FEF3C7",
+                  borderColor: isDark
+                    ? "rgba(245, 158, 11, 0.3)"
+                    : "#FDE68A",
+                },
+              ]}
+            >
               <Ionicons
                 name="time-outline"
                 size={moderateScale(13)}
-                color="#B45309"
+                color={isDark ? "#FBBF24" : "#B45309"}
               />
-              <Text style={styles.pendingText}>
+              <Text
+                style={[
+                  styles.pendingText,
+                  { color: isDark ? "#FBBF24" : "#B45309" },
+                ]}
+              >
                 Verification Pending Review
               </Text>
             </View>
@@ -438,21 +482,41 @@ export default function ProviderProfileScreen() {
             </Text>
           </View>
           <TouchableOpacity
-            style={styles.rechargeBtn}
+            style={[
+              styles.rechargeBtn,
+              {
+                backgroundColor: isDark ? colors.surfaceSecondary : "#FFFFFF",
+              },
+            ]}
             onPress={() => setBuyModalVisible(true)}
             activeOpacity={0.85}
           >
             <Ionicons
               name="wallet-outline"
               size={moderateScale(15)}
-              color="#0052CC"
+              color={isDark ? colors.text : "#0052CC"}
             />
-            <Text style={styles.rechargeBtnText}>Add Funds</Text>
+            <Text
+              style={[
+                styles.rechargeBtnText,
+                { color: isDark ? colors.text : "#0052CC" },
+              ]}
+            >
+              Add Funds
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* Professional Profile Settings */}
-        <View style={styles.section}>
+        <View
+          style={[
+            styles.section,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.cardBorder,
+            },
+          ]}
+        >
           <Text style={[styles.sectionHeader, { color: colors.textMuted }]}>
             Professional Setup
           </Text>
@@ -460,7 +524,7 @@ export default function ProviderProfileScreen() {
           <TouchableOpacity
             style={[
               styles.menuItem,
-              { borderBottomColor: colors.borderSubtle },
+              { borderBottomColor: isDark ? colors.cardBorder : colors.borderSubtle },
             ]}
             onPress={handleNavigateToEdit}
             activeOpacity={0.7}
@@ -470,7 +534,7 @@ export default function ProviderProfileScreen() {
                 styles.menuIconBox,
                 {
                   backgroundColor: isDark
-                    ? colors.surfaceSecondary
+                    ? "rgba(59, 130, 246, 0.15)"
                     : "#EFF6FF",
                 },
               ]}
@@ -503,7 +567,15 @@ export default function ProviderProfileScreen() {
         </View>
 
         {/* Preferences & Support */}
-        <View style={styles.section}>
+        <View
+          style={[
+            styles.section,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.cardBorder,
+            },
+          ]}
+        >
           <Text style={[styles.sectionHeader, { color: colors.textMuted }]}>
             Preferences & Support
           </Text>
@@ -512,7 +584,7 @@ export default function ProviderProfileScreen() {
           <View
             style={[
               styles.menuItem,
-              { borderBottomColor: colors.borderSubtle },
+              { borderBottomColor: isDark ? colors.cardBorder : colors.borderSubtle },
             ]}
           >
             <View
@@ -520,7 +592,7 @@ export default function ProviderProfileScreen() {
                 styles.menuIconBox,
                 {
                   backgroundColor: isDark
-                    ? colors.surfaceSecondary
+                    ? "rgba(129, 140, 248, 0.15)"
                     : "#FEF3C7",
                 },
               ]}
@@ -555,7 +627,7 @@ export default function ProviderProfileScreen() {
           <TouchableOpacity
             style={[
               styles.menuItem,
-              { borderBottomColor: colors.borderSubtle },
+              { borderBottomColor: isDark ? colors.cardBorder : colors.borderSubtle },
             ]}
             onPress={() => setNotificationsModalVisible(true)}
             activeOpacity={0.7}
@@ -565,7 +637,7 @@ export default function ProviderProfileScreen() {
                 styles.menuIconBox,
                 {
                   backgroundColor: isDark
-                    ? colors.surfaceSecondary
+                    ? "rgba(167, 139, 250, 0.15)"
                     : "#F3E8FF",
                 },
               ]}
@@ -605,7 +677,7 @@ export default function ProviderProfileScreen() {
           <TouchableOpacity
             style={[
               styles.menuItem,
-              { borderBottomColor: colors.borderSubtle },
+              { borderBottomColor: isDark ? colors.cardBorder : colors.borderSubtle },
             ]}
             onPress={() =>
               router.push({
@@ -620,7 +692,7 @@ export default function ProviderProfileScreen() {
                 styles.menuIconBox,
                 {
                   backgroundColor: isDark
-                    ? colors.surfaceSecondary
+                    ? "rgba(74, 222, 128, 0.15)"
                     : "#DCFCE7",
                 },
               ]}
@@ -641,7 +713,7 @@ export default function ProviderProfileScreen() {
                   { color: colors.textSecondary },
                 ]}
               >
-                Get help from Bet customer support team
+                Get help from Bete customer support team
               </Text>
             </View>
             <Feather

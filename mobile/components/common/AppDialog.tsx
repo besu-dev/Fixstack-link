@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
 } from "react-native";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
+import { useTheme } from "../../src/context/ThemeContext";
 
 export interface DialogButton {
   text: string;
@@ -30,6 +31,8 @@ export const AppDialog: React.FC<AppDialogProps> = ({
   buttons = [{ text: "OK" }],
   onDismiss,
 }) => {
+  const { colors, isDark } = useTheme();
+
   if (!visible) return null;
 
   return (
@@ -43,13 +46,27 @@ export const AppDialog: React.FC<AppDialogProps> = ({
       <TouchableWithoutFeedback onPress={onDismiss}>
         <View style={styles.backdrop}>
           <TouchableWithoutFeedback>
-            <View style={styles.dialogCard}>
+            <View
+              style={[
+                styles.dialogCard,
+                { backgroundColor: colors.surface },
+              ]}
+            >
               {/* Title */}
-              <Text style={styles.title}>{title}</Text>
+              <Text style={[styles.title, { color: colors.text }]}>
+                {title}
+              </Text>
 
               {/* Message */}
               {Boolean(message) && (
-                <Text style={styles.message}>{message}</Text>
+                <Text
+                  style={[
+                    styles.message,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  {message}
+                </Text>
               )}
 
               {/* Action Buttons Row */}
@@ -75,8 +92,15 @@ export const AppDialog: React.FC<AppDialogProps> = ({
                       <Text
                         style={[
                           styles.actionBtnText,
-                          isCancel && styles.cancelBtnText,
-                          isDestructive && styles.destructiveBtnText,
+                          { color: colors.primary },
+                          isCancel && [
+                            styles.cancelBtnText,
+                            { color: colors.textSecondary },
+                          ],
+                          isDestructive && [
+                            styles.destructiveBtnText,
+                            { color: colors.danger },
+                          ],
                         ]}
                       >
                         {btn.text}

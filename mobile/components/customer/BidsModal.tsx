@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { Job, BidItem } from "../../src/types";
+import { useTheme } from "../../src/context/ThemeContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 import UserAvatar from "../common/UserAvatar";
 
@@ -34,6 +35,8 @@ export const BidsModal: React.FC<BidsModalProps> = ({
   onAcceptBid,
   onChat,
 }) => {
+  const { colors, isDark } = useTheme();
+
   return (
     <Modal
       visible={visible}
@@ -42,29 +45,62 @@ export const BidsModal: React.FC<BidsModalProps> = ({
       onRequestClose={onClose}
     >
       <View style={styles.modalBackdrop}>
-        <View style={styles.modalSheet}>
+        <View style={[styles.modalSheet, { backgroundColor: colors.surface }]}>
           <View style={styles.modalHeader}>
             <View>
-              <Text style={styles.modalTitle}>Technician Proposals</Text>
-              <Text style={styles.modalSubtitle} numberOfLines={1}>
+              <Text style={[styles.modalTitle, { color: colors.text }]}>
+                Technician Proposals
+              </Text>
+              <Text
+                style={[
+                  styles.modalSubtitle,
+                  { color: colors.textSecondary },
+                ]}
+                numberOfLines={1}
+              >
                 {job?.title}
               </Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Feather name="x" size={moderateScale(20)} color="#64748B" />
+            <TouchableOpacity
+              onPress={onClose}
+              style={[
+                styles.closeBtn,
+                { backgroundColor: colors.surfaceSecondary },
+              ]}
+            >
+              <Feather
+                name="x"
+                size={moderateScale(20)}
+                color={colors.textSecondary}
+              />
             </TouchableOpacity>
           </View>
 
           {loading ? (
             <View style={styles.centerContainer}>
-              <ActivityIndicator size="large" color="#0052CC" />
-              <Text style={styles.loadingText}>Loading quotes...</Text>
+              <ActivityIndicator size="large" color={colors.primary} />
+              <Text
+                style={[styles.loadingText, { color: colors.textSecondary }]}
+              >
+                Loading quotes...
+              </Text>
             </View>
           ) : bids.length === 0 ? (
             <View style={styles.emptyModalBox}>
-              <Feather name="users" size={moderateScale(38)} color="#CBD5E1" />
-              <Text style={styles.emptyTitle}>No Quotes Yet</Text>
-              <Text style={styles.emptySubtitle}>
+              <Feather
+                name="users"
+                size={moderateScale(38)}
+                color={colors.border}
+              />
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>
+                No Quotes Yet
+              </Text>
+              <Text
+                style={[
+                  styles.emptySubtitle,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 Certified technicians are reviewing your job request. Proposals
                 will show here automatically.
               </Text>
@@ -80,7 +116,14 @@ export const BidsModal: React.FC<BidsModalProps> = ({
                 return (
                   <View
                     key={bid._id}
-                    style={[styles.bidCard, bid.isBoosted && styles.bidCardBoosted]}
+                    style={[
+                      styles.bidCard,
+                      {
+                        backgroundColor: colors.card,
+                        borderColor: colors.cardBorder,
+                      },
+                      bid.isBoosted && styles.bidCardBoosted,
+                    ]}
                   >
                     {bid.isBoosted && (
                       <View style={styles.boostedTag}>
@@ -104,7 +147,12 @@ export const BidsModal: React.FC<BidsModalProps> = ({
                         />
                         <View>
                           <View style={styles.nameRow}>
-                            <Text style={styles.proName}>
+                            <Text
+                              style={[
+                                styles.proName,
+                                { color: colors.text },
+                              ]}
+                            >
                               {bid.provider.fullName}
                             </Text>
                             {bid.provider.isVerified && (
@@ -115,7 +163,12 @@ export const BidsModal: React.FC<BidsModalProps> = ({
                               />
                             )}
                           </View>
-                          <Text style={styles.proMeta}>
+                          <Text
+                            style={[
+                              styles.proMeta,
+                              { color: colors.textSecondary },
+                            ]}
+                          >
                             ⭐ {bid.provider.rating || 5.0} •{" "}
                             {bid.provider.profession || "Technician"}
                           </Text>
@@ -123,28 +176,63 @@ export const BidsModal: React.FC<BidsModalProps> = ({
                       </View>
 
                       <View style={styles.quoteBox}>
-                        <Text style={styles.quotePrice}>{bid.price} ETB</Text>
-                        <Text style={styles.quoteDuration}>
+                        <Text
+                          style={[
+                            styles.quotePrice,
+                            { color: colors.primary },
+                          ]}
+                        >
+                          {bid.price} ETB
+                        </Text>
+                        <Text
+                          style={[
+                            styles.quoteDuration,
+                            { color: colors.textSecondary },
+                          ]}
+                        >
                           {bid.estimatedDuration}
                         </Text>
                       </View>
                     </View>
 
                     {bid.note ? (
-                      <Text style={styles.bidNote}>"{bid.note}"</Text>
+                      <Text
+                        style={[
+                          styles.bidNote,
+                          {
+                            backgroundColor: colors.surfaceSecondary,
+                            color: colors.text,
+                          },
+                        ]}
+                      >
+                        "{bid.note}"
+                      </Text>
                     ) : null}
 
                     <View style={styles.bidActions}>
                       <TouchableOpacity
-                        style={styles.chatActionBtn}
+                        style={[
+                          styles.chatActionBtn,
+                          {
+                            backgroundColor: colors.primaryLight,
+                            borderColor: colors.border,
+                          },
+                        ]}
                         onPress={() => onChat(bid)}
                       >
                         <Feather
                           name="message-circle"
                           size={moderateScale(15)}
-                          color="#0052CC"
+                          color={colors.primary}
                         />
-                        <Text style={styles.chatActionText}>Chat</Text>
+                        <Text
+                          style={[
+                            styles.chatActionText,
+                            { color: colors.primary },
+                          ]}
+                        >
+                          Chat
+                        </Text>
                       </TouchableOpacity>
 
                       <TouchableOpacity

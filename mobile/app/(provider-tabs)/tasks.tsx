@@ -15,6 +15,7 @@ import { Feather, FontAwesome } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import apiClient from "../../src/api/client";
 import { Alert } from "../../src/context/AlertContext";
+import { useTheme } from "../../src/context/ThemeContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 type TaskStatus = "In Progress" | "Completed";
@@ -50,6 +51,7 @@ const TABS: TaskStatus[] = ["In Progress", "Completed"];
 
 export default function ProviderTasksScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const [activeTab, setActiveTab] = useState<TaskStatus>("In Progress");
   const [tasks, setTasks] = useState<ProviderTask[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,39 +129,50 @@ export default function ProviderTasksScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.canvas }]} edges={["top"]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.surface} />
 
       {/* Screen Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.cardBorder }]}>
         <View style={styles.headerTextWrap}>
-          <Text style={styles.headerTitle}>My Tasks</Text>
-          <Text style={styles.headerSubtitle}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>My Tasks</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
             Manage accepted bookings and on-site appointments
           </Text>
         </View>
         <TouchableOpacity
-          style={styles.refreshIconBtn}
+          style={[
+            styles.refreshIconBtn,
+            { backgroundColor: isDark ? "rgba(37, 99, 235, 0.2)" : "#EFF6FF" },
+          ]}
           onPress={onRefresh}
           activeOpacity={0.8}
         >
-          <Feather name="refresh-cw" size={moderateScale(16)} color="#0052CC" />
+          <Feather name="refresh-cw" size={moderateScale(16)} color={colors.primary} />
         </TouchableOpacity>
       </View>
 
       {/* Segmented Status Tabs */}
-      <View style={styles.tabBar}>
+      <View style={[styles.tabBar, { backgroundColor: colors.surface, borderBottomColor: colors.cardBorder }]}>
         {TABS.map((tab) => {
           const isSelected = activeTab === tab;
           return (
             <TouchableOpacity
               key={tab}
-              style={[styles.tabItem, isSelected && styles.tabItemActive]}
+              style={[
+                styles.tabItem,
+                { backgroundColor: colors.surfaceSecondary },
+                isSelected && { backgroundColor: colors.primary },
+              ]}
               onPress={() => setActiveTab(tab)}
               activeOpacity={0.7}
             >
               <Text
-                style={[styles.tabText, isSelected && styles.tabTextActive]}
+                style={[
+                  styles.tabText,
+                  { color: colors.textSecondary },
+                  isSelected && styles.tabTextActive,
+                ]}
               >
                 {tab} ({getTabCount(tab)})
               </Text>
@@ -170,8 +183,8 @@ export default function ProviderTasksScreen() {
 
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#0052CC" />
-          <Text style={styles.loadingText}>Syncing task roster...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Syncing task roster...</Text>
         </View>
       ) : (
         <FlatList
@@ -183,14 +196,15 @@ export default function ProviderTasksScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={["#0052CC"]}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
             />
           }
           renderItem={({ item }) => (
-            <View style={styles.taskCard}>
+            <View style={[styles.taskCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
               <View style={styles.cardHeader}>
-                <View style={styles.categoryTag}>
-                  <Text style={styles.categoryTagText}>{item.category}</Text>
+                <View style={[styles.categoryTag, { backgroundColor: isDark ? "rgba(37, 99, 235, 0.2)" : "#EFF6FF" }]}>
+                  <Text style={[styles.categoryTagText, { color: colors.primary }]}>{item.category}</Text>
                 </View>
                 <View
                   style={[
@@ -213,35 +227,35 @@ export default function ProviderTasksScreen() {
                 </View>
               </View>
 
-              <Text style={styles.serviceTitle}>{item.title}</Text>
+              <Text style={[styles.serviceTitle, { color: colors.text }]}>{item.title}</Text>
 
               {/* Customer Info Card */}
-              <View style={styles.customerBox}>
+              <View style={[styles.customerBox, { backgroundColor: colors.surfaceSecondary, borderColor: colors.cardBorder }]}>
                 <View style={styles.customerInfo}>
-                  <Text style={styles.customerLabel}>Customer</Text>
-                  <Text style={styles.customerName}>
+                  <Text style={[styles.customerLabel, { color: colors.textMuted }]}>Customer</Text>
+                  <Text style={[styles.customerName, { color: colors.text }]}>
                     {item.customer?.fullName || "Verified Client"}
                   </Text>
                 </View>
                 <View style={styles.customerActions}>
                   <TouchableOpacity
-                    style={styles.actionCircleBtn}
+                    style={[styles.actionCircleBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
                     onPress={() => handleCallCustomer(item.customer?.phone)}
                   >
                     <Feather
                       name="phone"
                       size={moderateScale(14)}
-                      color="#0052CC"
+                      color={colors.primary}
                     />
                   </TouchableOpacity>
                   <TouchableOpacity
-                    style={styles.actionCircleBtn}
+                    style={[styles.actionCircleBtn, { backgroundColor: colors.surface, borderColor: colors.cardBorder }]}
                     onPress={() => handleOpenChat(item)}
                   >
                     <Feather
                       name="message-square"
                       size={moderateScale(14)}
-                      color="#0052CC"
+                      color={colors.primary}
                     />
                   </TouchableOpacity>
                 </View>
@@ -252,19 +266,27 @@ export default function ProviderTasksScreen() {
                 <Feather
                   name="map-pin"
                   size={moderateScale(13)}
-                  color="#64748B"
+                  color={colors.textSecondary}
                 />
-                <Text style={styles.detailText}>{item.subcity}</Text>
+                <Text style={[styles.detailText, { color: colors.textSecondary }]}>{item.subcity}</Text>
               </View>
 
               {item.specificLocation ? (
-                <View style={styles.landmarkBox}>
+                <View
+                  style={[
+                    styles.landmarkBox,
+                    {
+                      backgroundColor: isDark ? "rgba(2, 132, 199, 0.15)" : "#F0F9FF",
+                      borderColor: isDark ? colors.cardBorder : "#E0F2FE",
+                    },
+                  ]}
+                >
                   <Feather
                     name="navigation"
                     size={moderateScale(11)}
                     color="#0284C7"
                   />
-                  <Text style={styles.landmarkText} numberOfLines={1}>
+                  <Text style={[styles.landmarkText, { color: isDark ? "#7DD3FC" : "#0369A1" }]} numberOfLines={1}>
                     {item.specificLocation}
                   </Text>
                 </View>
@@ -272,7 +294,7 @@ export default function ProviderTasksScreen() {
 
               {/* Customer Rating & Review Display */}
               {item.status === "completed" && (
-                <View style={styles.ratingCardContainer}>
+                <View style={[styles.ratingCardContainer, { backgroundColor: colors.surfaceSecondary, borderColor: colors.cardBorder }]}>
                   <View style={styles.ratingRow}>
                     <View style={styles.starsWrapper}>
                       {[1, 2, 3, 4, 5].map((star) => (
@@ -287,21 +309,21 @@ export default function ProviderTasksScreen() {
                           }
                         />
                       ))}
-                      <Text style={styles.ratingValueText}>
+                      <Text style={[styles.ratingValueText, { color: colors.text }]}>
                         {item.review ? `${item.review.rating}.0` : "Unrated"}
                       </Text>
                     </View>
-                    <Text style={styles.clientReviewedTag}>
+                    <Text style={[styles.clientReviewedTag, { color: colors.textSecondary }]}>
                       Customer Feedback
                     </Text>
                   </View>
 
                   {item.review?.comment ? (
-                    <Text style={styles.reviewCommentText}>
+                    <Text style={[styles.reviewCommentText, { color: colors.text }]}>
                       "{item.review.comment}"
                     </Text>
                   ) : (
-                    <Text style={styles.noReviewText}>
+                    <Text style={[styles.noReviewText, { color: colors.textMuted }]}>
                       Service finalized without written comment.
                     </Text>
                   )}
@@ -309,10 +331,10 @@ export default function ProviderTasksScreen() {
               )}
 
               {/* Card Footer */}
-              <View style={styles.cardFooter}>
+              <View style={[styles.cardFooter, { borderTopColor: colors.cardBorder }]}>
                 <View>
-                  <Text style={styles.feeLabel}>Agreed Amount</Text>
-                  <Text style={styles.feeAmount}>{item.budget} ETB</Text>
+                  <Text style={[styles.feeLabel, { color: colors.textMuted }]}>Agreed Amount</Text>
+                  <Text style={[styles.feeAmount, { color: colors.text }]}>{item.budget} ETB</Text>
                 </View>
 
                 {item.status === "completed" ? (
@@ -329,9 +351,9 @@ export default function ProviderTasksScreen() {
                     <Feather
                       name="clock"
                       size={moderateScale(11)}
-                      color="#0052CC"
+                      color={colors.primary}
                     />
-                    <Text style={styles.inProgressText}>In Service</Text>
+                    <Text style={[styles.inProgressText, { color: colors.primary }]}>In Service</Text>
                   </View>
                 )}
               </View>
@@ -342,12 +364,12 @@ export default function ProviderTasksScreen() {
               <Feather
                 name="clipboard"
                 size={moderateScale(44)}
-                color="#CBD5E1"
+                color={colors.textMuted}
               />
-              <Text style={styles.emptyTitle}>
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>
                 No {activeTab.toLowerCase()} tasks
               </Text>
-              <Text style={styles.emptySubtitle}>
+              <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
                 Accepted proposals and assigned jobs will show up here.
               </Text>
             </View>

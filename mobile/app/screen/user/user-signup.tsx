@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
@@ -19,10 +20,14 @@ import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../../src/api/client";
 import { Alert } from "../../../src/context/AlertContext";
+import { useTheme } from "../../../src/context/ThemeContext";
 import UserAvatar from "../../../components/common/UserAvatar";
 
 export default function CustomerSignupScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [firstName, setFirstName] = useState("");
@@ -36,6 +41,35 @@ export default function CustomerSignupScreen() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const onShow = (e: any) => {
+      setKeyboardHeight(e.endCoordinates?.height || 320);
+    };
+    const onHide = () => {
+      setKeyboardHeight(0);
+    };
+
+    const showSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      onShow,
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      onHide,
+    );
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const scrollToInput = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 150);
+  };
 
   const handlePickAvatar = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -136,24 +170,37 @@ export default function CustomerSignupScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.canvas }]}>
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.surface}
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.flex}
       >
         <ScrollView
-          contentContainerStyle={styles.scroll}
+          ref={scrollViewRef}
+          contentContainerStyle={[
+            styles.scroll,
+            {
+              paddingBottom:
+                keyboardHeight > 0
+                  ? keyboardHeight + 80
+                  : 40,
+            },
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={true}
         >
           <TouchableOpacity
             style={styles.backBtn}
             onPress={() => router.replace("/screen/select-role")}
             activeOpacity={0.7}
           >
-            <Feather name="chevron-left" size={24} color="#0F172A" />
-            <Text style={styles.backText}>Back</Text>
+            <Feather name="chevron-left" size={24} color={colors.text} />
+            <Text style={[styles.backText, { color: colors.text }]}>Back</Text>
           </TouchableOpacity>
 
           <View style={styles.header}>
@@ -162,8 +209,8 @@ export default function CustomerSignupScreen() {
               style={styles.brandLogo}
               resizeMode="contain"
             />
-            <Text style={styles.brandTitle}>Bete</Text>
-            <Text style={styles.screenTitle}>Create new account</Text>
+            <Text style={[styles.brandTitle, { color: colors.text }]}>Bete</Text>
+            <Text style={[styles.screenTitle, { color: colors.primary }]}>Create new account</Text>
           </View>
 
           <View style={styles.form}>
@@ -177,7 +224,7 @@ export default function CustomerSignupScreen() {
                   onPress={handlePickAvatar}
                 />
                 <TouchableOpacity
-                  style={styles.cameraBadge}
+                  style={[styles.cameraBadge, { backgroundColor: colors.primary }]}
                   onPress={handlePickAvatar}
                   activeOpacity={0.8}
                 >
@@ -185,7 +232,7 @@ export default function CustomerSignupScreen() {
                 </TouchableOpacity>
               </View>
               <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
-                <Text style={styles.avatarActionText}>
+                <Text style={[styles.avatarActionText, { color: colors.primary }]}>
                   {avatarUri ? "Change Profile Picture" : "Add Profile Picture (Optional)"}
                 </Text>
               </TouchableOpacity>
@@ -193,67 +240,112 @@ export default function CustomerSignupScreen() {
 
             <View style={styles.row}>
               <View style={styles.halfCol}>
-                <Text style={styles.label}>First Name</Text>
+                <Text style={[styles.label, { color: colors.textSecondary }]}>First Name</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.inputBackground,
+                      borderColor: colors.inputBorder,
+                      color: colors.text,
+                    },
+                  ]}
                   value={firstName}
                   onChangeText={setFirstName}
                   placeholder="First name"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.textMuted}
                 />
               </View>
 
               <View style={styles.halfCol}>
-                <Text style={styles.label}>Last Name</Text>
+                <Text style={[styles.label, { color: colors.textSecondary }]}>Last Name</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.inputBackground,
+                      borderColor: colors.inputBorder,
+                      color: colors.text,
+                    },
+                  ]}
                   value={lastName}
                   onChangeText={setLastName}
                   placeholder="Last name"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.textMuted}
                 />
               </View>
             </View>
 
-            <Text style={styles.label}>Phone Number</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Phone Number</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                  color: colors.text,
+                },
+              ]}
               placeholder="0911223344 or +251 9..."
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               keyboardType="phone-pad"
               value={phone}
               onChangeText={setPhone}
             />
 
-            <Text style={styles.label}>Email Address (Optional)</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Email Address (Optional)</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                  color: colors.text,
+                },
+              ]}
               placeholder="Enter your email address"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               keyboardType="email-address"
               autoCapitalize="none"
               value={email}
               onChangeText={setEmail}
             />
 
-            <Text style={styles.label}>Location / Subcity</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Location / Subcity</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                  color: colors.text,
+                },
+              ]}
               placeholder="e.g., Bole, Addis Ababa"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               value={location}
               onChangeText={setLocation}
+              onFocus={scrollToInput}
             />
 
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.passwordBox}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Password</Text>
+            <View
+              style={[
+                styles.passwordBox,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                },
+              ]}
+            >
               <TextInput
-                style={styles.passwordInput}
+                style={[styles.passwordInput, { color: colors.text }]}
                 placeholder="Enter your password"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.textMuted}
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={setPassword}
+                onFocus={scrollToInput}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
@@ -263,20 +355,29 @@ export default function CustomerSignupScreen() {
                 <Feather
                   name={showPassword ? "eye" : "eye-off"}
                   size={20}
-                  color="#64748B"
+                  color={colors.textMuted}
                 />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.label}>Confirm Password</Text>
-            <View style={styles.passwordBox}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Confirm Password</Text>
+            <View
+              style={[
+                styles.passwordBox,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                },
+              ]}
+            >
               <TextInput
-                style={styles.passwordInput}
+                style={[styles.passwordInput, { color: colors.text }]}
                 placeholder="Enter your confirm password"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.textMuted}
                 secureTextEntry={!showConfirmPassword}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
+                onFocus={scrollToInput}
               />
               <TouchableOpacity
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -286,7 +387,7 @@ export default function CustomerSignupScreen() {
                 <Feather
                   name={showConfirmPassword ? "eye" : "eye-off"}
                   size={20}
-                  color="#64748B"
+                  color={colors.textMuted}
                 />
               </TouchableOpacity>
             </View>
@@ -294,20 +395,26 @@ export default function CustomerSignupScreen() {
             <View style={styles.checkboxRow}>
               <TouchableOpacity
                 onPress={() => setAgreed(!agreed)}
-                style={[styles.checkbox, agreed && styles.checkboxChecked]}
+                style={[
+                  styles.checkbox,
+                  {
+                    backgroundColor: agreed ? colors.primary : colors.inputBackground,
+                    borderColor: agreed ? colors.primary : colors.inputBorder,
+                  },
+                ]}
                 activeOpacity={0.8}
               >
                 {agreed && <Feather name="check" size={12} color="#FFFFFF" />}
               </TouchableOpacity>
-              <Text style={styles.agreementText}>
+              <Text style={[styles.agreementText, { color: colors.textSecondary }]}>
                 I’ve read and agreed to{" "}
-                <Text style={styles.blueText}>User Agreement</Text> and{" "}
-                <Text style={styles.blueText}>Privacy Policy</Text>
+                <Text style={[styles.blueText, { color: colors.primary }]}>User Agreement</Text> and{" "}
+                <Text style={[styles.blueText, { color: colors.primary }]}>Privacy Policy</Text>
               </Text>
             </View>
 
             <TouchableOpacity
-              style={styles.btn}
+              style={[styles.btn, { backgroundColor: colors.primary }]}
               onPress={handleRegister}
               disabled={loading}
               activeOpacity={0.85}
@@ -320,9 +427,9 @@ export default function CustomerSignupScreen() {
             </TouchableOpacity>
 
             <View style={styles.footer}>
-              <Text style={styles.footerText}>Already have an account? </Text>
+              <Text style={[styles.footerText, { color: colors.textMuted }]}>Already have an account? </Text>
               <TouchableOpacity onPress={() => router.replace("/screen/login")}>
-                <Text style={styles.footerLink}>Back to Sign In</Text>
+                <Text style={[styles.footerLink, { color: colors.primary }]}>Back to Sign In</Text>
               </TouchableOpacity>
             </View>
           </View>

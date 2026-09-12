@@ -5,10 +5,14 @@ import {
 } from 'lucide-react';
 import './Footer.css';
 
-export default function Footer({ onNavigate, setActivePage }) {
+export default function Footer({ onNavigate, setActivePage, onAdminClick }) {
   const currentYear = new Date().getFullYear();
 
   const handleNav = (page) => {
+    if (page === 'admin' && onAdminClick) {
+      onAdminClick();
+      return;
+    }
     if (onNavigate) {
       onNavigate(page);
     } else if (setActivePage) {
@@ -114,7 +118,11 @@ export default function Footer({ onNavigate, setActivePage }) {
                   Contact Support
                 </button>
               </li>
-
+              <li>
+                <button className="footer-link-btn admin-link" onClick={() => handleNav('admin')}>
+                  Admin Portal
+                </button>
+              </li>
             </ul>
           </div>
 

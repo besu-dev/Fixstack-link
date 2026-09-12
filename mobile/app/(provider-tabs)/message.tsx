@@ -573,7 +573,7 @@ export default function ProviderMessageScreen() {
       </View>
 
       {loadingChat ? (
-        <View style={styles.centerContainer}>
+        <View style={[styles.centerContainer, { backgroundColor: colors.canvas }]}>
           <ActivityIndicator size="large" color={colors.primary} />
           <Text
             style={[styles.syncText, { color: colors.textSecondary }]}
@@ -585,15 +585,16 @@ export default function ProviderMessageScreen() {
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
-          style={styles.flex}
+          style={[styles.flex, { backgroundColor: colors.canvas }]}
         >
           <FlatList
             ref={flatListRef}
             data={messages}
             keyExtractor={(item) => item._id || Math.random().toString()}
+            style={{ backgroundColor: colors.canvas }}
             contentContainerStyle={[
               styles.messageList,
-              { paddingBottom: verticalScale(16) },
+              { paddingBottom: verticalScale(16), backgroundColor: colors.canvas },
             ]}
             showsVerticalScrollIndicator={false}
             onContentSizeChange={() =>
@@ -747,7 +748,7 @@ export default function ProviderMessageScreen() {
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#FFFFFF" },
-  flex: { flex: 1, backgroundColor: "#F8FAFC" },
+  flex: { flex: 1 },
   header: {
     paddingHorizontal: scale(20),
     paddingTop: scale(8),

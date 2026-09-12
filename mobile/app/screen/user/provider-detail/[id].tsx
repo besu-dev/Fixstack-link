@@ -15,6 +15,7 @@ import { Feather, Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { usersApi } from "../../../../src/api";
 import { Alert } from "../../../../src/context/AlertContext";
+import { useTheme } from "../../../../src/context/ThemeContext";
 import {
   scale,
   moderateScale,
@@ -53,6 +54,7 @@ interface ProviderProfile {
 
 export default function ProviderDetailScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const [provider, setProvider] = useState<ProviderProfile | null>(null);
@@ -118,26 +120,49 @@ export default function ProviderDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.centerContainer} edges={["top"]}>
-        <ActivityIndicator size="large" color="#0052CC" />
+      <SafeAreaView
+        style={[styles.centerContainer, { backgroundColor: colors.canvas }]}
+        edges={["top"]}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.canvas }]}
+      edges={["top"]}
+    >
+      <StatusBar
+        barStyle={colors.statusBarStyle}
+        backgroundColor={colors.surface}
+      />
 
       {/* Top Header Navigation */}
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.border,
+          },
+        ]}
+      >
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backBtn}
           activeOpacity={0.7}
         >
-          <Feather name="arrow-left" size={moderateScale(20)} color="#0F172A" />
+          <Feather
+            name="arrow-left"
+            size={moderateScale(20)}
+            color={colors.text}
+          />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Technician Profile</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>
+          Technician Profile
+        </Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -146,7 +171,12 @@ export default function ProviderDetailScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Avatar Header Block */}
-        <View style={styles.avatarCard}>
+        <View
+          style={[
+            styles.avatarCard,
+            { backgroundColor: colors.surfaceSecondary },
+          ]}
+        >
           {showImage && resolvedAvatarUri ? (
             <Image
               source={{ uri: resolvedAvatarUri }}
@@ -167,7 +197,9 @@ export default function ProviderDetailScreen() {
         <View style={styles.nameRow}>
           <View style={styles.nameCol}>
             <View style={styles.titleWithVerify}>
-              <Text style={styles.providerName}>
+              <Text
+                style={[styles.providerName, { color: colors.text }]}
+              >
                 {provider?.fullName || "Technician"}
               </Text>
               {provider?.isVerified && (
@@ -179,19 +211,35 @@ export default function ProviderDetailScreen() {
               )}
             </View>
             <View style={styles.metaRow}>
-              <Text style={styles.providerProfession}>
+              <Text
+                style={[
+                  styles.providerProfession,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 {provider?.profession || "General Maintenance"}
               </Text>
               {provider?.subcity ? (
                 <>
-                  <Text style={styles.metaDot}>•</Text>
+                  <Text
+                    style={[styles.metaDot, { color: colors.border }]}
+                  >
+                    •
+                  </Text>
                   <View style={styles.locationContainer}>
                     <Feather
                       name="map-pin"
                       size={moderateScale(12)}
-                      color="#64748B"
+                      color={colors.textSecondary}
                     />
-                    <Text style={styles.locationText}>{provider.subcity}</Text>
+                    <Text
+                      style={[
+                        styles.locationText,
+                        { color: colors.textSecondary },
+                      ]}
+                    >
+                      {provider.subcity}
+                    </Text>
                   </View>
                 </>
               ) : null}
@@ -199,32 +247,54 @@ export default function ProviderDetailScreen() {
           </View>
 
           <TouchableOpacity
-            style={styles.phoneCallBtn}
+            style={[
+              styles.phoneCallBtn,
+              {
+                backgroundColor: colors.primaryLight,
+                borderColor: colors.border,
+              },
+            ]}
             onPress={handleCall}
             activeOpacity={0.8}
           >
-            <Feather name="phone" size={moderateScale(18)} color="#0052CC" />
+            <Feather
+              name="phone"
+              size={moderateScale(18)}
+              color={colors.primary}
+            />
           </TouchableOpacity>
         </View>
 
         {/* Stats Summary Card */}
-        <View style={styles.statsCard}>
+        <View
+          style={[
+            styles.statsCard,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.cardBorder,
+            },
+          ]}
+        >
           <View style={styles.statItem}>
             <View style={styles.statIconRow}>
               <Ionicons name="star" size={moderateScale(15)} color="#F59E0B" />
-              <Text style={styles.statNumber}>
+              <Text style={[styles.statNumber, { color: colors.text }]}>
                 {provider?.rating != null
                   ? Number(provider.rating).toFixed(1)
                   : "New"}
               </Text>
             </View>
-            <Text style={styles.statLabel}>
+            <Text
+              style={[styles.statLabel, { color: colors.textSecondary }]}
+            >
               {provider?.reviewCount && provider.reviewCount > 0
                 ? `Rating (${provider.reviewCount})`
                 : "Rating"}
             </Text>
           </View>
-          <View style={styles.statDivider} />
+          <View
+            style={[styles.statDivider, { backgroundColor: colors.border }]}
+          />
           <View style={styles.statItem}>
             <View style={styles.statIconRow}>
               <Feather
@@ -232,32 +302,61 @@ export default function ProviderDetailScreen() {
                 size={moderateScale(14)}
                 color="#16A34A"
               />
-              <Text style={styles.statNumber}>
+              <Text style={[styles.statNumber, { color: colors.text }]}>
                 {provider?.completedOrders ?? 0}
               </Text>
             </View>
-            <Text style={styles.statLabel}>Orders Completed</Text>
+            <Text
+              style={[styles.statLabel, { color: colors.textSecondary }]}
+            >
+              Orders Completed
+            </Text>
           </View>
-          <View style={styles.statDivider} />
+          <View
+            style={[styles.statDivider, { backgroundColor: colors.border }]}
+          />
           <View style={styles.statItem}>
             <View style={styles.statIconRow}>
-              <Feather name="award" size={moderateScale(14)} color="#0052CC" />
-              <Text style={styles.statNumber}>
+              <Feather
+                name="award"
+                size={moderateScale(14)}
+                color={colors.primary}
+              />
+              <Text style={[styles.statNumber, { color: colors.text }]}>
                 {provider?.experience || "General"}
               </Text>
             </View>
-            <Text style={styles.statLabel}>Experience</Text>
+            <Text
+              style={[styles.statLabel, { color: colors.textSecondary }]}
+            >
+              Experience
+            </Text>
           </View>
         </View>
 
         {/* Skills Section */}
         {displayedSkills.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionHeader}>Skills</Text>
+            <Text style={[styles.sectionHeader, { color: colors.text }]}>
+              Skills
+            </Text>
             <View style={styles.skillsGrid}>
               {displayedSkills.map((skill, index) => (
-                <View key={index} style={styles.skillPill}>
-                  <Text style={styles.skillText}>{skill}</Text>
+                <View
+                  key={index}
+                  style={[
+                    styles.skillPill,
+                    {
+                      backgroundColor: colors.surfaceSecondary,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[styles.skillText, { color: colors.text }]}
+                  >
+                    {skill}
+                  </Text>
                 </View>
               ))}
             </View>
@@ -268,14 +367,35 @@ export default function ProviderDetailScreen() {
         {provider?.reviews && provider.reviews.length > 0 && (
           <View style={styles.section}>
             <View style={styles.sectionHeaderRow}>
-              <Text style={styles.sectionHeader}>Client Reviews</Text>
-              <Text style={styles.reviewBadge}>
+              <Text
+                style={[styles.sectionHeader, { color: colors.text }]}
+              >
+                Client Reviews
+              </Text>
+              <Text
+                style={[
+                  styles.reviewBadge,
+                  {
+                    backgroundColor: colors.primaryLight,
+                    color: colors.primary,
+                  },
+                ]}
+              >
                 {provider.reviews.length}{" "}
                 {provider.reviews.length === 1 ? "review" : "reviews"}
               </Text>
             </View>
             {provider.reviews.map((rev, index) => (
-              <View key={rev._id || index} style={styles.reviewCard}>
+              <View
+                key={rev._id || index}
+                style={[
+                  styles.reviewCard,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.cardBorder,
+                  },
+                ]}
+              >
                 <View style={styles.reviewHeader}>
                   <UserAvatar
                     avatarUrl={rev.customer?.avatarUrl}
@@ -283,14 +403,21 @@ export default function ProviderDetailScreen() {
                     size={moderateScale(38)}
                   />
                   <View style={styles.reviewerMeta}>
-                    <Text style={styles.reviewerName}>
+                    <Text
+                      style={[
+                        styles.reviewerName,
+                        { color: colors.text },
+                      ]}
+                    >
                       {rev.customer?.fullName || "Verified Customer"}
                     </Text>
                     <View style={styles.starRow}>
                       {[1, 2, 3, 4, 5].map((s) => (
                         <Ionicons
                           key={s}
-                          name={s <= (rev.rating || 5) ? "star" : "star-outline"}
+                          name={
+                            s <= (rev.rating || 5) ? "star" : "star-outline"
+                          }
                           size={moderateScale(12)}
                           color="#F59E0B"
                         />
@@ -299,7 +426,17 @@ export default function ProviderDetailScreen() {
                   </View>
                 </View>
                 {rev.comment ? (
-                  <Text style={styles.reviewText}>"{rev.comment}"</Text>
+                  <Text
+                    style={[
+                      styles.reviewText,
+                      {
+                        backgroundColor: colors.surfaceSecondary,
+                        color: colors.text,
+                      },
+                    ]}
+                  >
+                    "{rev.comment}"
+                  </Text>
                 ) : null}
               </View>
             ))}
@@ -308,7 +445,10 @@ export default function ProviderDetailScreen() {
 
         {/* Message Action Button */}
         <TouchableOpacity
-          style={styles.messageBtn}
+          style={[
+            styles.messageBtn,
+            { backgroundColor: colors.primary },
+          ]}
           onPress={handleMessage}
           activeOpacity={0.85}
         >

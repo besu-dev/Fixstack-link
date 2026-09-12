@@ -16,6 +16,7 @@ import {
   scaledFont,
 } from "../../src/utils/responsive";
 import AppAlert from "../../src/context/AlertContext";
+import { useTheme } from "../../src/context/ThemeContext";
 
 export type UserRole = "customer" | "provider";
 
@@ -33,6 +34,7 @@ export default function HelpSupportSection({
   showHeader = true,
 }: HelpSupportSectionProps) {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
 
   // Active modal
   const [activeModal, setActiveModal] = useState<ModalType>(null);
@@ -79,32 +81,32 @@ export default function HelpSupportSection({
           ? "Get help from Bete Support team"
           : "Get help from Bete Support team",
       icon: "phone-call" as keyof typeof Feather.glyphMap,
-      iconColor: "#16A34A",
-      iconBg: "#DCFCE7",
+      iconColor: isDark ? "#4ADE80" : "#16A34A",
+      iconBg: isDark ? "rgba(22, 163, 74, 0.2)" : "#DCFCE7",
     },
   ];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: colors.canvas }]}>
       {showHeader && (
-        <View style={styles.header}>
+        <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.cardBorder }]}>
           {onBack ? (
             <TouchableOpacity
               onPress={onBack}
-              style={styles.backBtn}
+              style={[styles.backBtn, { backgroundColor: colors.surfaceSecondary }]}
               activeOpacity={0.7}
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               <Feather
                 name="arrow-left"
                 size={moderateScale(20)}
-                color="#0F172A"
+                color={colors.text}
               />
             </TouchableOpacity>
           ) : (
             <View style={styles.headerIconPlaceholder} />
           )}
-          <Text style={styles.headerTitle}>Help & Support</Text>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Help & Support</Text>
           <View style={styles.headerRightPlaceholder} />
         </View>
       )}
@@ -113,13 +115,13 @@ export default function HelpSupportSection({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.card}>
+        <View style={[styles.card, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
           {supportOptions.map((item, index) => {
             const isLast = index === supportOptions.length - 1;
             return (
               <TouchableOpacity
                 key={item.id}
-                style={[styles.menuItem, isLast && styles.menuItemLast]}
+                style={[styles.menuItem, isLast && styles.menuItemLast, { borderBottomColor: colors.cardBorder }]}
                 onPress={() => setActiveModal(item.id)}
                 activeOpacity={0.7}
               >
@@ -134,8 +136,8 @@ export default function HelpSupportSection({
                 </View>
 
                 <View style={styles.menuTextCol}>
-                  <Text style={styles.menuTitle}>{item.title}</Text>
-                  <Text style={styles.menuSubtitle} numberOfLines={1}>
+                  <Text style={[styles.menuTitle, { color: colors.text }]}>{item.title}</Text>
+                  <Text style={[styles.menuSubtitle, { color: colors.textSecondary }]} numberOfLines={1}>
                     {item.description}
                   </Text>
                 </View>
@@ -143,7 +145,7 @@ export default function HelpSupportSection({
                 <Feather
                   name="chevron-right"
                   size={moderateScale(18)}
-                  color="#94A3B8"
+                  color={colors.textMuted}
                 />
               </TouchableOpacity>
             );
@@ -161,19 +163,19 @@ export default function HelpSupportSection({
         onRequestClose={() => setActiveModal(null)}
       >
         <View style={styles.modalOverlay}>
-          <View style={styles.modalSheet}>
+          <View style={[styles.modalSheet, { backgroundColor: colors.surface }]}>
             <View style={styles.modalHeader}>
               <View>
-                <Text style={styles.modalTitle}>Contact Support</Text>
-                <Text style={styles.modalSubtitle}>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>Contact Support</Text>
+                <Text style={[styles.modalSubtitle, { color: colors.textSecondary }]}>
                   Choose your preferred contact channel
                 </Text>
               </View>
               <TouchableOpacity
-                style={styles.modalCloseBtn}
+                style={[styles.modalCloseBtn, { backgroundColor: colors.surfaceSecondary }]}
                 onPress={() => setActiveModal(null)}
               >
-                <Feather name="x" size={moderateScale(18)} color="#475569" />
+                <Feather name="x" size={moderateScale(18)} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
@@ -182,63 +184,63 @@ export default function HelpSupportSection({
 
               {/* Call Hotline */}
               <TouchableOpacity
-                style={styles.contactCard}
+                style={[styles.contactCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
                 onPress={handleCall}
                 activeOpacity={0.8}
               >
                 <View
                   style={[
                     styles.contactIconBox,
-                    { backgroundColor: "#DCFCE7" },
+                    { backgroundColor: isDark ? "rgba(22, 163, 74, 0.2)" : "#DCFCE7" },
                   ]}
                 >
                   <Feather
                     name="phone"
                     size={moderateScale(20)}
-                    color="#16A34A"
+                    color={isDark ? "#4ADE80" : "#16A34A"}
                   />
                 </View>
                 <View style={styles.contactInfo}>
-                  <Text style={styles.contactTitle}>Call Support Hotline</Text>
-                  <Text style={styles.contactSub}>
+                  <Text style={[styles.contactTitle, { color: colors.text }]}>Call Support Hotline</Text>
+                  <Text style={[styles.contactSub, { color: colors.textSecondary }]}>
                     +251 900 123 456 • Available 24/7
                   </Text>
                 </View>
                 <Feather
                   name="chevron-right"
                   size={moderateScale(18)}
-                  color="#94A3B8"
+                  color={colors.textMuted}
                 />
               </TouchableOpacity>
 
               {/* Email Support */}
               <TouchableOpacity
-                style={styles.contactCard}
+                style={[styles.contactCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}
                 onPress={handleEmail}
                 activeOpacity={0.8}
               >
                 <View
                   style={[
                     styles.contactIconBox,
-                    { backgroundColor: "#FEF3C7" },
+                    { backgroundColor: isDark ? "rgba(217, 119, 6, 0.2)" : "#FEF3C7" },
                   ]}
                 >
                   <Feather
                     name="mail"
                     size={moderateScale(20)}
-                    color="#D97706"
+                    color={isDark ? "#FBBF24" : "#D97706"}
                   />
                 </View>
                 <View style={styles.contactInfo}>
-                  <Text style={styles.contactTitle}>Email Us</Text>
-                  <Text style={styles.contactSub}>
+                  <Text style={[styles.contactTitle, { color: colors.text }]}>Email Us</Text>
+                  <Text style={[styles.contactSub, { color: colors.textSecondary }]}>
                     supportbete@gmail.com • Response within 24h
                   </Text>
                 </View>
                 <Feather
                   name="chevron-right"
                   size={moderateScale(18)}
-                  color="#94A3B8"
+                  color={colors.textMuted}
                 />
               </TouchableOpacity>
             </View>

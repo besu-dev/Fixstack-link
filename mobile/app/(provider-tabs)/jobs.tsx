@@ -19,6 +19,7 @@ import { useRouter } from "expo-router";
 import apiClient from "../../src/api/client";
 import BuyConnectsModal from "../../components/BuyConnectsModal";
 import { Alert } from "../../src/context/AlertContext";
+import { useTheme } from "../../src/context/ThemeContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 interface Job {
@@ -54,6 +55,7 @@ const DURATION_OPTIONS = ["1-2 hours", "Half Day", "Full Day", "2+ Days"];
 
 export default function ProviderJobsScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -201,62 +203,68 @@ export default function ProviderJobsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.canvas }]} edges={["top"]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.surface} />
 
       {/* Screen Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface }]}>
         <View style={styles.headerTitleWrap}>
-          <Text style={styles.headerTitle}>Available Jobs</Text>
-          <Text style={styles.headerSubtitle}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>Available Jobs</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
             Discover work requests near your service zone
           </Text>
         </View>
 
         {/* Connects Balance Pill */}
         <TouchableOpacity
-          style={styles.connectsPill}
+          style={[
+            styles.connectsPill,
+            {
+              backgroundColor: isDark ? "rgba(37, 99, 235, 0.2)" : "#EFF6FF",
+              borderColor: colors.cardBorder,
+            },
+          ]}
           onPress={() => setShowWalletModal(true)}
           activeOpacity={0.8}
         >
-          <Feather name="zap" size={moderateScale(13)} color="#0052CC" />
-          <Text style={styles.connectsPillText}>
+          <Feather name="zap" size={moderateScale(13)} color={colors.primary} />
+          <Text style={[styles.connectsPillText, { color: colors.primary }]}>
             {connectsBalance} Connects
           </Text>
           <Feather
             name="plus-circle"
             size={moderateScale(13)}
-            color="#0052CC"
+            color={colors.primary}
           />
         </TouchableOpacity>
       </View>
 
       {/* Search Bar */}
-      <View style={styles.searchWrapper}>
-        <View style={styles.searchBar}>
+      <View style={[styles.searchWrapper, { backgroundColor: colors.surface }]}>
+        <View style={[styles.searchBar, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder, borderWidth: 1 }]}>
           <Feather
             name="search"
             size={moderateScale(18)}
-            color="#94A3B8"
+            color={colors.textSecondary}
             style={styles.searchIcon}
           />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text }]}
             placeholder="Search by issue, woreda, or sub-city..."
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.textMuted}
             value={search}
             onChangeText={setSearch}
           />
           {search.length > 0 && (
             <TouchableOpacity onPress={() => setSearch("")}>
-              <Feather name="x" size={moderateScale(18)} color="#94A3B8" />
+              <Feather name="x" size={moderateScale(18)} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
       {/* Category Pills */}
-      <View style={styles.categoryPillsWrapper}>
+      <View style={[styles.categoryPillsWrapper, { backgroundColor: colors.surface }]}>
         <FlatList
           data={CATEGORY_PILLS}
           horizontal
@@ -269,13 +277,21 @@ export default function ProviderJobsScreen() {
               <TouchableOpacity
                 style={[
                   styles.categoryPill,
-                  isSelected && styles.categoryPillActive,
+                  {
+                    backgroundColor: colors.surfaceSecondary,
+                    borderColor: colors.cardBorder,
+                  },
+                  isSelected && {
+                    backgroundColor: colors.primary,
+                    borderColor: colors.primary,
+                  },
                 ]}
                 onPress={() => setSelectedCategory(item)}
               >
                 <Text
                   style={[
                     styles.categoryPillText,
+                    { color: colors.textSecondary },
                     isSelected && styles.categoryPillTextActive,
                   ]}
                 >
@@ -290,8 +306,8 @@ export default function ProviderJobsScreen() {
       {/* Loading State */}
       {loading ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#0052CC" />
-          <Text style={styles.loadingText}>Fetching available requests...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text style={[styles.loadingText, { color: colors.textSecondary }]}>Fetching available requests...</Text>
         </View>
       ) : (
         /* Jobs Feed */
@@ -304,17 +320,18 @@ export default function ProviderJobsScreen() {
             <RefreshControl
               refreshing={refreshing}
               onRefresh={onRefresh}
-              colors={["#0052CC"]}
+              colors={[colors.primary]}
+              tintColor={colors.primary}
             />
           }
           renderItem={({ item }) => {
             const urgencyStyle = getUrgencyBadge(item.urgency);
             return (
-              <View style={styles.jobCard}>
+              <View style={[styles.jobCard, { backgroundColor: colors.card, borderColor: colors.cardBorder }]}>
                 <View style={styles.cardHeader}>
                   <View style={styles.badgeRow}>
-                    <View style={styles.categoryBadge}>
-                      <Text style={styles.categoryBadgeText}>
+                    <View style={[styles.categoryBadge, { backgroundColor: isDark ? "rgba(37, 99, 235, 0.2)" : "#EFF6FF" }]}>
+                      <Text style={[styles.categoryBadgeText, { color: colors.primary }]}>
                         {item.category}
                       </Text>
                     </View>
@@ -337,29 +354,29 @@ export default function ProviderJobsScreen() {
                   <Text style={styles.budgetAmount}>{item.budget} ETB</Text>
                 </View>
 
-                <Text style={styles.jobTitle}>{item.title}</Text>
-                <Text style={styles.jobDescription} numberOfLines={2}>
+                <Text style={[styles.jobTitle, { color: colors.text }]}>{item.title}</Text>
+                <Text style={[styles.jobDescription, { color: colors.textSecondary }]} numberOfLines={2}>
                   {item.description}
                 </Text>
 
-                <View style={styles.metaDivider} />
+                <View style={[styles.metaDivider, { backgroundColor: colors.cardBorder }]} />
 
                 <View style={styles.metaRow}>
                   <View style={styles.metaItem}>
                     <Feather
                       name="map-pin"
                       size={moderateScale(13)}
-                      color="#64748B"
+                      color={colors.textSecondary}
                     />
-                    <Text style={styles.metaText}>{item.subcity}</Text>
+                    <Text style={[styles.metaText, { color: colors.textSecondary }]}>{item.subcity}</Text>
                   </View>
                   <View style={styles.metaItem}>
                     <Feather
                       name="clock"
                       size={moderateScale(13)}
-                      color="#94A3B8"
+                      color={colors.textMuted}
                     />
-                    <Text style={styles.metaText}>
+                    <Text style={[styles.metaText, { color: colors.textMuted }]}>
                       {formatRelativeTime(item.createdAt)}
                     </Text>
                   </View>
@@ -370,9 +387,9 @@ export default function ProviderJobsScreen() {
                     <Feather
                       name="user"
                       size={moderateScale(13)}
-                      color="#64748B"
+                      color={colors.textSecondary}
                     />
-                    <Text style={styles.metaText}>
+                    <Text style={[styles.metaText, { color: colors.textSecondary }]}>
                       {item.customer?.fullName || "Verified Customer"}
                     </Text>
                   </View>
@@ -381,9 +398,9 @@ export default function ProviderJobsScreen() {
                       <Feather
                         name="image"
                         size={moderateScale(13)}
-                        color="#0052CC"
+                        color={colors.primary}
                       />
-                      <Text style={[styles.metaText, { color: "#0052CC" }]}>
+                      <Text style={[styles.metaText, { color: colors.primary }]}>
                         {item.photos.length} attached
                       </Text>
                     </View>
@@ -393,7 +410,7 @@ export default function ProviderJobsScreen() {
                 <View style={styles.cardActions}>
                   {/* Chat Client Button */}
                   <TouchableOpacity
-                    style={styles.chatBtn}
+                    style={[styles.chatBtn, { backgroundColor: colors.surfaceSecondary, borderColor: colors.cardBorder }]}
                     onPress={() =>
                       router.push({
                         pathname: "/(provider-tabs)/message",
@@ -409,9 +426,9 @@ export default function ProviderJobsScreen() {
                     <Feather
                       name="message-square"
                       size={moderateScale(14)}
-                      color="#0052CC"
+                      color={colors.primary}
                     />
-                    <Text style={styles.chatBtnText}>Chat</Text>
+                    <Text style={[styles.chatBtnText, { color: colors.primary }]}>Chat</Text>
                   </TouchableOpacity>
 
                   {/* Send Quote Button */}
@@ -433,9 +450,9 @@ export default function ProviderJobsScreen() {
           }}
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
-              <Feather name="inbox" size={moderateScale(44)} color="#CBD5E1" />
-              <Text style={styles.emptyTitle}>No matching job requests</Text>
-              <Text style={styles.emptySubtitle}>
+              <Feather name="inbox" size={moderateScale(44)} color={colors.textMuted} />
+              <Text style={[styles.emptyTitle, { color: colors.text }]}>No matching job requests</Text>
+              <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
                 Try selecting "All" or pull down to check for newly published
                 requests.
               </Text>
@@ -455,48 +472,50 @@ export default function ProviderJobsScreen() {
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={styles.modalOverlay}
         >
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { backgroundColor: colors.surface }]}>
             <View style={styles.modalHeader}>
               <View>
-                <Text style={styles.modalTitle}>Submit Quote</Text>
-                <Text style={styles.modalSub}>{selectedJob?.title}</Text>
+                <Text style={[styles.modalTitle, { color: colors.text }]}>Submit Quote</Text>
+                <Text style={[styles.modalSub, { color: colors.textSecondary }]}>{selectedJob?.title}</Text>
               </View>
               <TouchableOpacity
                 onPress={() => setModalVisible(false)}
-                style={styles.closeModalBtn}
+                style={[styles.closeModalBtn, { backgroundColor: colors.surfaceSecondary }]}
               >
-                <Feather name="x" size={moderateScale(20)} color="#64748B" />
+                <Feather name="x" size={moderateScale(20)} color={colors.textSecondary} />
               </TouchableOpacity>
             </View>
 
             {/* Proposed Price */}
-            <Text style={styles.modalLabel}>
+            <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>
               Your Price (ETB) - Customer Budget: {selectedJob?.budget} ETB
             </Text>
             <TextInput
-              style={styles.modalInput}
+              style={[styles.modalInput, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder, color: colors.text }]}
               keyboardType="numeric"
               value={bidPrice}
               onChangeText={setBidPrice}
               placeholder="e.g., 1200"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
             />
 
             {/* Estimated Duration */}
-            <Text style={styles.modalLabel}>Estimated Time</Text>
+            <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Estimated Time</Text>
             <View style={styles.durationRow}>
               {DURATION_OPTIONS.map((d) => (
                 <TouchableOpacity
                   key={d}
                   style={[
                     styles.durationChip,
-                    bidDuration === d && styles.durationChipActive,
+                    { backgroundColor: colors.surfaceSecondary, borderColor: colors.cardBorder },
+                    bidDuration === d && { backgroundColor: colors.primary, borderColor: colors.primary },
                   ]}
                   onPress={() => setBidDuration(d)}
                 >
                   <Text
                     style={[
                       styles.durationText,
+                      { color: colors.textSecondary },
                       bidDuration === d && styles.durationTextActive,
                     ]}
                   >
@@ -507,35 +526,45 @@ export default function ProviderJobsScreen() {
             </View>
 
             {/* Note to Customer */}
-            <Text style={styles.modalLabel}>Message / Work Details</Text>
+            <Text style={[styles.modalLabel, { color: colors.textSecondary }]}>Message / Work Details</Text>
             <TextInput
-              style={[styles.modalInput, styles.modalTextArea]}
+              style={[styles.modalInput, styles.modalTextArea, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder, color: colors.text }]}
               multiline
               numberOfLines={3}
               value={bidNote}
               onChangeText={setBidNote}
               placeholder="Describe your tools, guarantee, or when you can arrive..."
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               textAlignVertical="top"
             />
 
             {/* Proposal Boost Toggle Box */}
             <TouchableOpacity
-              style={[styles.boostBox, isBoosted && styles.boostBoxActive]}
+              style={[
+                styles.boostBox,
+                {
+                  backgroundColor: isDark
+                    ? "rgba(37, 99, 235, 0.12)"
+                    : (isBoosted ? "#EFF6FF" : "#F8FAFC"),
+                  borderColor: isDark
+                    ? (isBoosted ? colors.primary : colors.cardBorder)
+                    : (isBoosted ? "#BFDBFE" : "#E2E8F0"),
+                },
+              ]}
               onPress={() => setIsBoosted(!isBoosted)}
               activeOpacity={0.8}
             >
               <Feather
                 name={isBoosted ? "check-square" : "square"}
                 size={moderateScale(20)}
-                color={isBoosted ? "#0052CC" : "#64748B"}
+                color={isBoosted ? colors.primary : colors.textSecondary}
               />
               <View style={styles.boostContent}>
                 <View style={styles.boostTitleRow}>
-                  <Text style={styles.boostTitle}>⚡ Boost Proposal</Text>
+                  <Text style={[styles.boostTitle, { color: colors.text }]}>⚡ Boost Proposal</Text>
                   <Text style={styles.boostBadge}>+5 Connects</Text>
                 </View>
-                <Text style={styles.boostSubtitle}>
+                <Text style={[styles.boostSubtitle, { color: colors.textSecondary }]}>
                   Pins your proposal directly to the top when the client reviews
                   quotes.
                 </Text>
@@ -543,11 +572,11 @@ export default function ProviderJobsScreen() {
             </TouchableOpacity>
 
             {/* Connect Deduction Info Pill */}
-            <View style={styles.deductionSummary}>
-              <Feather name="info" size={moderateScale(13)} color="#64748B" />
-              <Text style={styles.deductionText}>
+            <View style={[styles.deductionSummary, { backgroundColor: colors.surfaceSecondary }]}>
+              <Feather name="info" size={moderateScale(13)} color={colors.textSecondary} />
+              <Text style={[styles.deductionText, { color: colors.textSecondary }]}>
                 Cost:{" "}
-                <Text style={styles.boldText}>
+                <Text style={[styles.boldText, { color: colors.text }]}>
                   {totalRequiredConnects} Connects
                 </Text>{" "}
                 ({baseConnects} base{isBoosted ? " + 5 boost" : ""}).

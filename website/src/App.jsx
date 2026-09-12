@@ -8,9 +8,25 @@ import ServicesPage from './pages/ServicesPage';
 import HowItWorksPage from './pages/HowItWorksPage';
 import AboutPage from './pages/AboutPage';
 import ContactPage from './pages/ContactPage';
+
+import AdminApp from './admin/AdminApp';
 import './App.css';
 
 export default function App() {
+  // Check initial route: either pathname is /admin or hash starts with #admin or query param ?view=admin
+  const checkIsAdminPath = () => {
+    const path = window.location.pathname.toLowerCase();
+    const hash = window.location.hash.toLowerCase();
+    const search = window.location.search.toLowerCase();
+    return (
+      path.includes('/admin') ||
+      hash.startsWith('#admin') ||
+      hash.startsWith('#/admin') ||
+      search.includes('view=admin')
+    );
+  };
+
+  const [isAdminMode, setIsAdminMode] = useState(checkIsAdminPath);
   const [activeSection, setActiveSection] = useState('home');
   const [toast, setToast] = useState(null);
 
@@ -18,11 +34,37 @@ export default function App() {
     setToast({ message, type });
   };
 
+  // Sync with browser forward/back buttons
+  useEffect(() => {
+    const handlePopState = () => {
+      setIsAdminMode(checkIsAdminPath());
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
+  }, []);
+
+  const navigateToAdmin = () => {
+    window.history.pushState({ view: 'admin' }, 'Bete Admin Portal', '/admin');
+    setIsAdminMode(true);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const exitAdmin = () => {
+    window.history.pushState({ view: 'site' }, 'Bete Ethiopia', '/');
+    setIsAdminMode(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const scrollToSection = (sectionId) => {
     if (sectionId === 'home') {
       window.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
       setActiveSection('home');
       return;
@@ -34,7 +76,7 @@ export default function App() {
       const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
       window.scrollTo({
         top: Math.max(0, elementPosition - navOffset),
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
       setActiveSection(sectionId);
     }
@@ -42,6 +84,8 @@ export default function App() {
 
   // ScrollSpy: Automatically detect which section is in viewport while scrolling
   useEffect(() => {
+    if (isAdminMode) return;
+
     const sections = ['home', 'services', 'how-it-works', 'about', 'contact'];
 
     const handleScroll = () => {
@@ -67,7 +111,6 @@ export default function App() {
         const el = document.getElementById(sectionId);
         if (el) {
           const rect = el.getBoundingClientRect();
-          // When the section header reaches near the navbar (<= 140px from top)
           if (rect.top <= 140) {
             current = sectionId;
           }
@@ -77,17 +120,24 @@ export default function App() {
     };
 
     window.addEventListener('scroll', handleScroll, { passive: true });
-    handleScroll(); // Initial check on mount
+    handleScroll();
 
     return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  }, [isAdminMode]);
 
+  // If Admin Mode is active, render full Bete Admin Portal
+  if (isAdminMode) {
+    return <AdminApp onExitToSite={exitAdmin} />;
+  }
+
+  // Otherwise, render the Bete Public Website & Landing Page
   return (
     <div className="app-root">
-      {/* Sticky Top Navbar */}
+      {/* Sticky Top Navbar with Admin Portal connection */}
       <Navbar 
         activeSection={activeSection} 
-        onNavigate={scrollToSection} 
+        onNavigate={scrollToSection}
+        onAdminClick={navigateToAdmin}
       />
 
       {/* Unified Single-Page Continuous Sections */}
@@ -113,9 +163,10 @@ export default function App() {
         </section>
       </main>
 
-      {/* Global Footer */}
+      {/* Global Footer with Admin Portal link */}
       <Footer 
-        onNavigate={scrollToSection} 
+        onNavigate={scrollToSection}
+        onAdminClick={navigateToAdmin}
       />
 
       {/* Feedback Toast */}

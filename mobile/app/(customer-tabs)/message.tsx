@@ -572,15 +572,16 @@ export default function CustomerMessageScreen() {
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
-          style={styles.flex}
+          style={[styles.flex, { backgroundColor: colors.canvas }]}
         >
           <FlatList
             ref={flatListRef}
             data={messages}
             keyExtractor={(item) => item._id || Math.random().toString()}
+            style={{ backgroundColor: colors.canvas }}
             contentContainerStyle={[
               styles.messageList,
-              { paddingBottom: verticalScale(16) },
+              { paddingBottom: verticalScale(16), backgroundColor: colors.canvas },
             ]}
             showsVerticalScrollIndicator={false}
             onContentSizeChange={() =>

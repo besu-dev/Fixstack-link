@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -11,10 +11,12 @@ import {
   Platform,
   Modal,
   Image,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Alert } from "../../../src/context/AlertContext";
+import { useTheme } from "../../../src/context/ThemeContext";
 import {
   scale,
   moderateScale,
@@ -62,6 +64,9 @@ const EXPERIENCE_LEVELS = [
 export default function ProviderSignupStep2Screen() {
   const router = useRouter();
   const params = useLocalSearchParams();
+  const { colors, isDark } = useTheme();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const [phoneNumber, setPhoneNumber] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
@@ -71,6 +76,35 @@ export default function ProviderSignupStep2Screen() {
 
   const [categoryModalVisible, setCategoryModalVisible] = useState(false);
   const [experienceModalVisible, setExperienceModalVisible] = useState(false);
+
+  useEffect(() => {
+    const onShow = (e: any) => {
+      setKeyboardHeight(e.endCoordinates?.height || 320);
+    };
+    const onHide = () => {
+      setKeyboardHeight(0);
+    };
+
+    const showSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      onShow,
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      onHide,
+    );
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const scrollToInput = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 150);
+  };
 
   const handleSelectCategory = (cat: string) => {
     setSelectedCategory(cat);
@@ -128,23 +162,36 @@ export default function ProviderSignupStep2Screen() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.canvas }]} edges={["top"]}>
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.surface}
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.flex}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContainer}
+          ref={scrollViewRef}
+          contentContainerStyle={[
+            styles.scrollContainer,
+            {
+              paddingBottom:
+                keyboardHeight > 0
+                  ? keyboardHeight + 80
+                  : 40,
+            },
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={true}
         >
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => router.back()}
             activeOpacity={0.7}
           >
-            <Text style={styles.backText}>Back</Text>
+            <Text style={[styles.backText, { color: colors.text }]}>Back</Text>
           </TouchableOpacity>
 
           <View style={styles.brandHeader}>
@@ -153,27 +200,38 @@ export default function ProviderSignupStep2Screen() {
               style={styles.brandLogo}
               resizeMode="contain"
             />
-            <Text style={styles.brandName}>Bete</Text>
-            <Text style={styles.pageTitle}>Service Details (Step 2/3)</Text>
+            <Text style={[styles.brandName, { color: colors.text }]}>Bete</Text>
+            <Text style={[styles.pageTitle, { color: colors.primary }]}>Service Details (Step 2/3)</Text>
           </View>
 
           <View style={styles.form}>
-            <Text style={styles.label}>Phone Number</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Phone Number</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                  color: colors.text,
+                },
+              ]}
               placeholder="0911223344 or +251 9..."
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               keyboardType="phone-pad"
               value={phoneNumber}
               onChangeText={setPhoneNumber}
             />
 
-            <Text style={[styles.label, styles.fieldSpacing]}>
+            <Text style={[styles.label, styles.fieldSpacing, { color: colors.textSecondary }]}>
               Primary Trade / Category
             </Text>
             <TouchableOpacity
               style={[
                 styles.dropdownBox,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                },
                 selectedCategory ? styles.dropdownBoxActive : null,
               ]}
               activeOpacity={0.8}
@@ -182,20 +240,20 @@ export default function ProviderSignupStep2Screen() {
               <Text
                 style={[
                   styles.dropdownText,
-                  !selectedCategory ? styles.dropdownPlaceholder : null,
+                  { color: selectedCategory ? colors.text : colors.textMuted },
                 ]}
                 numberOfLines={1}
               >
                 {selectedCategory || "Select primary trade..."}
               </Text>
-              <Text style={styles.dropdownIndicator}>▼</Text>
+              <Text style={[styles.dropdownIndicator, { color: colors.textMuted }]}>▼</Text>
             </TouchableOpacity>
 
             {selectedCategory ? (
               <View style={styles.fieldSpacing}>
                 <View style={styles.subSkillHeader}>
-                  <Text style={styles.label}>Specific Services You Offer</Text>
-                  <Text style={styles.subLabel}>Tap to select multiple</Text>
+                  <Text style={[styles.label, { color: colors.textSecondary }]}>Specific Services You Offer</Text>
+                  <Text style={[styles.subLabel, { color: colors.textMuted }]}>Tap to select multiple</Text>
                 </View>
                 <View style={styles.pillWrap}>
                   {SERVICE_TAXONOMY[selectedCategory].map((subSkill) => {
@@ -205,7 +263,10 @@ export default function ProviderSignupStep2Screen() {
                         key={subSkill}
                         style={[
                           styles.skillPill,
-                          isSelected ? styles.skillPillActive : null,
+                          {
+                            backgroundColor: isSelected ? (isDark ? "rgba(59, 130, 246, 0.2)" : "#EFF6FF") : colors.surfaceSecondary,
+                            borderColor: isSelected ? colors.primary : colors.cardBorder,
+                          },
                         ]}
                         onPress={() => toggleSubSkill(subSkill)}
                         activeOpacity={0.8}
@@ -213,7 +274,7 @@ export default function ProviderSignupStep2Screen() {
                         <Text
                           style={[
                             styles.skillPillText,
-                            isSelected ? styles.skillPillTextActive : null,
+                            { color: isSelected ? colors.primary : colors.textSecondary },
                           ]}
                         >
                           {isSelected ? `✓ ${subSkill}` : `+ ${subSkill}`}
@@ -225,23 +286,35 @@ export default function ProviderSignupStep2Screen() {
               </View>
             ) : null}
 
-            <Text style={[styles.label, styles.fieldSpacing]}>
+            <Text style={[styles.label, styles.fieldSpacing, { color: colors.textSecondary }]}>
               Base Location / Subcity
             </Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                  color: colors.text,
+                },
+              ]}
               placeholder="e.g., Addis Ababa (Bole)"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               value={location}
               onChangeText={setLocation}
+              onFocus={scrollToInput}
             />
 
-            <Text style={[styles.label, styles.fieldSpacing]}>
+            <Text style={[styles.label, styles.fieldSpacing, { color: colors.textSecondary }]}>
               Work Experience
             </Text>
             <TouchableOpacity
               style={[
                 styles.dropdownBox,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                },
                 experience ? styles.dropdownBoxActive : null,
               ]}
               activeOpacity={0.8}
@@ -250,17 +323,17 @@ export default function ProviderSignupStep2Screen() {
               <Text
                 style={[
                   styles.dropdownText,
-                  !experience ? styles.dropdownPlaceholder : null,
+                  { color: experience ? colors.text : colors.textMuted },
                 ]}
                 numberOfLines={1}
               >
                 {experience || "Select years of experience..."}
               </Text>
-              <Text style={styles.dropdownIndicator}>▼</Text>
+              <Text style={[styles.dropdownIndicator, { color: colors.textMuted }]}>▼</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={styles.registerButton}
+              style={[styles.registerButton, { backgroundColor: colors.primary }]}
               onPress={handleContinue}
               activeOpacity={0.85}
             >
@@ -270,12 +343,12 @@ export default function ProviderSignupStep2Screen() {
             </TouchableOpacity>
 
             <View style={styles.footerRow}>
-              <Text style={styles.footerText}>Already have an account? </Text>
+              <Text style={[styles.footerText, { color: colors.textMuted }]}>Already have an account? </Text>
               <TouchableOpacity
                 onPress={() => router.replace("/screen/login")}
                 activeOpacity={0.7}
               >
-                <Text style={styles.footerLink}>Back to Sign In</Text>
+                <Text style={[styles.footerLink, { color: colors.primary }]}>Back to Sign In</Text>
               </TouchableOpacity>
             </View>
           </View>

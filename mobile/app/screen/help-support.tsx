@@ -4,12 +4,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import HelpSupportSection, { UserRole } from "../../components/common/HelpSupportSection";
+import { useTheme } from "../../src/context/ThemeContext";
 
 export default function HelpSupportScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ role?: string }>();
   const [role, setRole] = useState<UserRole>("customer");
   const [loading, setLoading] = useState(true);
+  const { colors } = useTheme();
 
   useEffect(() => {
     const resolveRole = async () => {
@@ -37,14 +39,14 @@ export default function HelpSupportScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.centerContainer}>
-        <ActivityIndicator size="large" color="#0052CC" />
+      <SafeAreaView style={[styles.centerContainer, { backgroundColor: colors.canvas }]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container} edges={["top", "bottom"]}>
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.canvas }]} edges={["top", "bottom"]}>
       <HelpSupportSection
         role={role}
         onBack={() => router.back()}

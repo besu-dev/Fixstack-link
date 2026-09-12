@@ -25,12 +25,13 @@ import {
   findCategoryByQuery,
 } from "../../src/data/servicesData";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
+import { useTheme } from "../../src/context/ThemeContext";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
-
 export default function SubServicesScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const params = useLocalSearchParams<{ category?: string }>();
 
   // Search and Filter State
@@ -144,41 +145,41 @@ export default function SubServicesScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView style={[styles.container, { backgroundColor: colors.canvas }]} edges={["top"]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.surface} />
 
       {/* Top App Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.cardBorder }]}>
         <TouchableOpacity
           onPress={() => router.back()}
-          style={styles.backButton}
+          style={[styles.backButton, { backgroundColor: colors.surfaceSecondary }]}
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           activeOpacity={0.7}
         >
-          <Feather name="arrow-left" size={moderateScale(22)} color="#1E293B" />
+          <Feather name="arrow-left" size={moderateScale(22)} color={colors.text} />
         </TouchableOpacity>
 
         <View style={styles.headerTitles}>
-          <Text style={styles.headerTitle}> Services</Text>
-          <Text style={styles.headerSubtitle}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}> Services</Text>
+          <Text style={[styles.headerSubtitle, { color: colors.textSecondary }]}>
             Certified technicians ready for on-demand booking
           </Text>
         </View>
       </View>
 
       {/* Search Input Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchBar}>
+      <View style={[styles.searchContainer, { backgroundColor: colors.surface }]}>
+        <View style={[styles.searchBar, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder, borderWidth: 1 }]}>
           <Feather
             name="search"
             size={moderateScale(18)}
-            color="#64748B"
+            color={colors.textSecondary}
             style={styles.searchIcon}
           />
           <TextInput
-            style={styles.searchInput}
+            style={[styles.searchInput, { color: colors.text }]}
             placeholder="Search house wiring, boiler, pump..."
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.textMuted}
             value={searchQuery}
             onChangeText={setSearchQuery}
             clearButtonMode="while-editing"
@@ -191,14 +192,14 @@ export default function SubServicesScreen() {
               hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
               style={styles.clearSearchBtn}
             >
-              <Feather name="x" size={moderateScale(16)} color="#64748B" />
+              <Feather name="x" size={moderateScale(16)} color={colors.textSecondary} />
             </TouchableOpacity>
           )}
         </View>
       </View>
 
       {/* Category Filter Chips */}
-      <View style={styles.filterBarWrapper}>
+      <View style={[styles.filterBarWrapper, { backgroundColor: colors.surface, borderBottomColor: colors.cardBorder }]}>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -211,7 +212,8 @@ export default function SubServicesScreen() {
                 key={chip.id}
                 style={[
                   styles.filterChip,
-                  isSelected && styles.filterChipActive,
+                  { backgroundColor: colors.surfaceSecondary },
+                  isSelected && { backgroundColor: colors.primary },
                 ]}
                 activeOpacity={0.8}
                 onPress={() => {
@@ -221,6 +223,7 @@ export default function SubServicesScreen() {
                 <Text
                   style={[
                     styles.filterChipText,
+                    { color: colors.textSecondary },
                     isSelected && styles.filterChipTextActive,
                   ]}
                 >
@@ -234,8 +237,8 @@ export default function SubServicesScreen() {
 
       {/* Results Header or Active Search Indicator */}
       {searchQuery.trim().length > 0 && (
-        <View style={styles.searchResultBar}>
-          <Text style={styles.searchResultText}>
+        <View style={[styles.searchResultBar, { backgroundColor: colors.surfaceSecondary }]}>
+          <Text style={[styles.searchResultText, { color: colors.textSecondary }]}>
             Found {totalServicesCount} service{totalServicesCount === 1 ? "" : "s"} for "{searchQuery}"
           </Text>
         </View>
@@ -248,11 +251,11 @@ export default function SubServicesScreen() {
       >
         {filteredCategoryGroups.length === 0 ? (
           <View style={styles.emptyState}>
-            <View style={styles.emptyIconCircle}>
-              <Feather name="search" size={moderateScale(32)} color="#94A3B8" />
+            <View style={[styles.emptyIconCircle, { backgroundColor: colors.surfaceSecondary }]}>
+              <Feather name="search" size={moderateScale(32)} color={colors.textMuted} />
             </View>
-            <Text style={styles.emptyTitle}>No matching services found</Text>
-            <Text style={styles.emptySubtitle}>
+            <Text style={[styles.emptyTitle, { color: colors.text }]}>No matching services found</Text>
+            <Text style={[styles.emptySubtitle, { color: colors.textSecondary }]}>
               Try searching for terms like "wiring", "leak", "tiling", or reset your category filter.
             </Text>
             <TouchableOpacity
@@ -274,7 +277,7 @@ export default function SubServicesScreen() {
               <View key={group.id} style={styles.categorySection}>
                 {/* Category Section Header */}
                 <View style={styles.categoryHeader}>
-                  <Text style={styles.categoryTitle}>{group.title}</Text>
+                  <Text style={[styles.categoryTitle, { color: colors.text }]}>{group.title}</Text>
                 </View>
 
                 {/* Single Item: Render as a Wide Featured Hero Card */}
@@ -283,7 +286,7 @@ export default function SubServicesScreen() {
                     <TouchableOpacity
                       style={[
                         styles.featuredCard,
-                        { borderColor: `${group.accentColor}30` },
+                        { backgroundColor: colors.card, borderColor: colors.cardBorder },
                       ]}
                       activeOpacity={0.88}
                       onPress={() => handleSubServicePress(group.items[0])}
@@ -304,10 +307,10 @@ export default function SubServicesScreen() {
                           </View>
                         </View>
 
-                        <Text style={styles.featuredTitle}>
+                        <Text style={[styles.featuredTitle, { color: colors.text }]}>
                           {group.items[0].name}
                         </Text>
-                        <Text style={styles.featuredDesc} numberOfLines={2}>
+                        <Text style={[styles.featuredDesc, { color: colors.textSecondary }]} numberOfLines={2}>
                         </Text>
 
                         <View style={styles.featuredActionRow}>
@@ -338,7 +341,10 @@ export default function SubServicesScreen() {
                     {group.items.map((subService) => (
                       <TouchableOpacity
                         key={subService.id}
-                        style={styles.modernCard}
+                        style={[
+                          styles.modernCard,
+                          { backgroundColor: colors.card, borderColor: colors.cardBorder },
+                        ]}
                         activeOpacity={0.82}
                         onPress={() => handleSubServicePress(subService)}
                       >
@@ -347,16 +353,16 @@ export default function SubServicesScreen() {
                         </View>
 
                         <View style={styles.cardContent}>
-                          <Text style={styles.cardName} numberOfLines={2}>
+                          <Text style={[styles.cardName, { color: colors.text }]} numberOfLines={2}>
                             {subService.name}
                           </Text>
 
                           <View style={styles.cardFooter}>
-                            <Text style={styles.cardActionHint}>Explore</Text>
+                            <Text style={[styles.cardActionHint, { color: colors.primary }]}>Explore</Text>
                             <Feather
                               name="chevron-right"
                               size={moderateScale(14)}
-                              color="#94A3B8"
+                              color={colors.textMuted}
                             />
                           </View>
                         </View>

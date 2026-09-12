@@ -19,6 +19,7 @@ import { useRouter, useLocalSearchParams } from "expo-router";
 import apiClient from "../../src/api/client";
 import BuyConnectsModal from "../../components/BuyConnectsModal";
 import { Alert } from "../../src/context/AlertContext";
+import { useTheme } from "../../src/context/ThemeContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 
 const CATEGORIES = [
@@ -31,6 +32,7 @@ const CATEGORIES = [
 
 export default function PostJobScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const params = useLocalSearchParams<{
     preferredCategory?: string;
     preferredProviderId?: string;
@@ -98,24 +100,21 @@ export default function PostJobScreen() {
     }
   }, [
     params?.preferredCategory,
-    params?.serviceTitle,
     params?.preferredProviderName,
+    params?.serviceTitle,
   ]);
 
   const handlePickImage = async () => {
     if (images.length >= 3) {
-      Alert.alert(
-        "Limit Reached",
-        "You can upload up to 3 photos of the issue.",
-      );
+      Alert.alert("Limit Reached", "You can only attach up to 3 photos.");
       return;
     }
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== "granted") {
       Alert.alert(
-        "Permission Required",
-        "Photo library access is needed to attach photos.",
+        "Permission Denied",
+        "Camera roll permissions are required to upload pictures."
       );
       return;
     }
@@ -123,35 +122,52 @@ export default function PostJobScreen() {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      quality: 0.8,
+      aspect: [4, 3],
+      quality: 0.7,
     });
 
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      setImages((prev) => [...prev, result.assets[0].uri]);
+    if (!result.canceled && result.assets[0].uri) {
+      setImages([...images, result.assets[0].uri]);
     }
   };
 
   const handleRemoveImage = (index: number) => {
-    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImages(images.filter((_, i) => i !== index));
   };
 
   const handlePostTask = async () => {
-    if (
-      !title.trim() ||
-      !description.trim() ||
-      !location.trim() ||
-      !budget.trim()
-    ) {
+    if (!title.trim()) {
+      Alert.alert("Missing Title", "Please provide a short title for the job.");
+      return;
+    }
+    if (!description.trim()) {
       Alert.alert(
-        "Missing Details",
-        "Please fill in title, description, location, and budget.",
+        "Missing Description",
+        "Please describe the repair or maintenance issue in detail."
+      );
+      return;
+    }
+    if (!location.trim()) {
+      Alert.alert(
+        "Missing Location",
+        "Please specify your location or subcity so nearby technicians can find your request."
       );
       return;
     }
 
-    // Client-side connects check
+    // Connects verification check
     if (connectsBalance < connectsRequired) {
-      setShowWalletModal(true);
+      Alert.alert(
+        "Insufficient Connects",
+        `You need ${connectsRequired} Connects to broadcast this request. Your current balance is ${connectsBalance} Connects.\n\nPlease top up your wallet to continue.`,
+        [
+          { text: "Cancel", style: "cancel" },
+          {
+            text: "Top Up Now",
+            onPress: () => setShowWalletModal(true),
+          },
+        ]
+      );
       return;
     }
 
@@ -162,14 +178,20 @@ export default function PostJobScreen() {
       formData.append("category", selectedCategory);
       formData.append("description", description.trim());
       formData.append("subcity", location.trim());
-      formData.append("budget", budget.trim());
+      if (budget.trim()) {
+        formData.append("budget", budget.trim());
+      }
       formData.append("urgency", urgency);
 
-      images.forEach((uri, index) => {
-        const filename = uri.split("/").pop() || `issue_photo_${index}.jpg`;
-        const match = /\.(\w+)$/.exec(filename);
-        const type = match ? `image/${match[1]}` : "image/jpeg";
+      // Preferred technician assignment if booked from technician profile
+      if (params?.preferredProviderId) {
+        formData.append("preferredProviderId", params.preferredProviderId);
+      }
 
+      images.forEach((uri, idx) => {
+        const filename = uri.split("/").pop() || `photo_${idx}.jpg`;
+        const match = /\.(\w+)$/.exec(filename);
+        const type = match ? `image/${match[1]}` : `image/jpeg`;
         formData.append("photos", {
           uri,
           name: filename,
@@ -177,68 +199,109 @@ export default function PostJobScreen() {
         } as any);
       });
 
-      await apiClient.post("/jobs", formData);
+      const response = await apiClient.post("/jobs/create", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
 
-      setConnectsBalance((prev) => Math.max(0, prev - connectsRequired));
+      const updatedBalance = response.data?.newConnectsBalance;
+      if (typeof updatedBalance === "number") {
+        setConnectsBalance(updatedBalance);
+      } else {
+        setConnectsBalance((prev) => Math.max(0, prev - connectsRequired));
+      }
 
       Alert.alert(
-        "Task Published! 🎉",
-        `Broadcasted to certified technicians. (${connectsRequired} Connects used)`,
+        "Request Posted! 🚀",
+        "Your service request has been broadcasted to verified technicians. You will receive quotes shortly.",
         [
           {
-            text: "View Orders",
-            onPress: () => router.replace("/(customer-tabs)/orders"),
+            text: "View My Orders",
+            onPress: () => router.push("/(customer-tabs)/orders"),
           },
-        ],
+        ]
       );
+
+      // Reset form
+      setTitle("");
+      setDescription("");
+      setLocation("");
+      setBudget("");
+      setImages([]);
+      setUrgency("Today");
     } catch (err: any) {
-      if (err.response?.status === 402) {
-        setShowWalletModal(true);
-      } else {
-        Alert.alert(
-          "Failed to Post",
-          err.response?.data?.message ||
-          "Could not publish your job request. Try again.",
-        );
-      }
+      console.error("Job posting error:", err.response?.data || err.message);
+      const errMsg =
+        err.response?.data?.message ||
+        "Could not publish your service request. Please check your connection and try again.";
+      Alert.alert("Posting Failed", errMsg);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.canvas }]}
+      edges={["top"]}
+    >
+      <StatusBar
+        barStyle={colors.statusBarStyle}
+        backgroundColor={colors.surface}
+      />
 
       {/* Screen Header */}
-      <View style={styles.header}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.border,
+          },
+        ]}
+      >
         <View style={styles.headerTitleWrap}>
-          <Text style={styles.headerTitle}>Post a Service Request</Text>
-          <Text style={styles.headerSubtitle}>
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            Post a Service Request
+          </Text>
+          <Text
+            style={[styles.headerSubtitle, { color: colors.textSecondary }]}
+          >
             Broadcast to certified technicians in minutes
           </Text>
         </View>
 
         {/* Connects Balance Card */}
         <TouchableOpacity
-          style={styles.connectsPill}
+          style={[
+            styles.connectsPill,
+            {
+              backgroundColor: colors.primaryLight,
+              borderColor: colors.border,
+            },
+          ]}
           onPress={() => setShowWalletModal(true)}
           activeOpacity={0.8}
         >
-          <Feather name="zap" size={moderateScale(13)} color="#0052CC" />
-          <Text style={styles.connectsPillText}>
+          <Feather
+            name="zap"
+            size={moderateScale(13)}
+            color={colors.primary}
+          />
+          <Text
+            style={[styles.connectsPillText, { color: colors.primary }]}
+          >
             {connectsBalance} Connects
           </Text>
           <Feather
             name="plus-circle"
             size={moderateScale(13)}
-            color="#0052CC"
+            color={colors.primary}
           />
         </TouchableOpacity>
       </View>
 
       <KeyboardAvoidingView
-        style={styles.flex}
+        style={[styles.flex, { backgroundColor: colors.canvas }]}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView
@@ -246,16 +309,27 @@ export default function PostJobScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.label}>Job Title</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            Job Title
+          </Text>
           <TextInput
-            style={styles.input}
+            style={[
+              styles.input,
+              {
+                backgroundColor: colors.inputBackground,
+                borderColor: colors.inputBorder,
+                color: colors.text,
+              },
+            ]}
             placeholder="e.g., Leaking kitchen sink pipe"
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.textMuted}
             value={title}
             onChangeText={setTitle}
           />
 
-          <Text style={styles.label}>Select Category</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            Select Category
+          </Text>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -268,7 +342,14 @@ export default function PostJobScreen() {
                   key={cat}
                   style={[
                     styles.categoryPill,
-                    isSelected && styles.categoryPillActive,
+                    {
+                      backgroundColor: isSelected
+                        ? colors.primary
+                        : colors.surface,
+                      borderColor: isSelected
+                        ? colors.primary
+                        : colors.border,
+                    },
                   ]}
                   onPress={() => setSelectedCategory(cat)}
                   activeOpacity={0.8}
@@ -276,7 +357,9 @@ export default function PostJobScreen() {
                   <Text
                     style={[
                       styles.categoryText,
-                      isSelected && styles.categoryTextActive,
+                      {
+                        color: isSelected ? "#FFFFFF" : colors.textSecondary,
+                      },
                     ]}
                   >
                     {cat}
@@ -286,11 +369,21 @@ export default function PostJobScreen() {
             })}
           </ScrollView>
 
-          <Text style={styles.label}>Describe the Issue</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            Describe the Issue
+          </Text>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={[
+              styles.input,
+              styles.textArea,
+              {
+                backgroundColor: colors.inputBackground,
+                borderColor: colors.inputBorder,
+                color: colors.text,
+              },
+            ]}
             placeholder="Provide clear details (what happened, required materials, timing)..."
-            placeholderTextColor="#94A3B8"
+            placeholderTextColor={colors.textMuted}
             multiline
             numberOfLines={4}
             value={description}
@@ -299,7 +392,9 @@ export default function PostJobScreen() {
           />
 
           {/* Urgency Selection */}
-          <Text style={styles.label}>Priority / Urgency</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            Priority / Urgency
+          </Text>
           <View style={styles.urgencyRow}>
             {(["Today", "Emergency"] as const).map((level) => {
               const isSelected = urgency === level;
@@ -309,9 +404,20 @@ export default function PostJobScreen() {
                   key={level}
                   style={[
                     styles.urgencyPill,
-                    isSelected && styles.urgencyPillActive,
-                    isEmergency && styles.urgencyEmergency,
-                    isEmergency && isSelected && styles.urgencyEmergencyActive,
+                    {
+                      backgroundColor: isSelected
+                        ? isEmergency
+                          ? colors.danger
+                          : colors.primary
+                        : isEmergency
+                        ? colors.dangerLight
+                        : colors.surface,
+                      borderColor: isEmergency
+                        ? colors.danger
+                        : isSelected
+                        ? colors.primary
+                        : colors.border,
+                    },
                   ]}
                   onPress={() => setUrgency(level)}
                   activeOpacity={0.8}
@@ -319,8 +425,13 @@ export default function PostJobScreen() {
                   <Text
                     style={[
                       styles.urgencyText,
-                      isSelected && styles.urgencyTextActive,
-                      isEmergency && !isSelected && styles.urgencyEmergencyText,
+                      {
+                        color: isSelected
+                          ? "#FFFFFF"
+                          : isEmergency
+                          ? colors.danger
+                          : colors.textSecondary,
+                      },
                     ]}
                   >
                     {isEmergency ? "🚨 Emergency (+5)" : level}
@@ -332,22 +443,40 @@ export default function PostJobScreen() {
 
           <View style={styles.row}>
             <View style={styles.halfCol}>
-              <Text style={styles.label}>Location / Subcity</Text>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
+                Location / Subcity
+              </Text>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.inputBackground,
+                    borderColor: colors.inputBorder,
+                    color: colors.text,
+                  },
+                ]}
                 placeholder="e.g., Bole"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.textMuted}
                 value={location}
                 onChangeText={setLocation}
               />
             </View>
 
             <View style={styles.halfCol}>
-              <Text style={styles.label}>Budget (ETB)</Text>
+              <Text style={[styles.label, { color: colors.textSecondary }]}>
+                Budget (ETB)
+              </Text>
               <TextInput
-                style={styles.input}
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: colors.inputBackground,
+                    borderColor: colors.inputBorder,
+                    color: colors.text,
+                  },
+                ]}
                 placeholder="e.g., 1000"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.textMuted}
                 keyboardType="numeric"
                 value={budget}
                 onChangeText={setBudget}
@@ -355,7 +484,9 @@ export default function PostJobScreen() {
             </View>
           </View>
 
-          <Text style={styles.label}>Attach Photos (Optional)</Text>
+          <Text style={[styles.label, { color: colors.textSecondary }]}>
+            Attach Photos (Optional)
+          </Text>
           <View style={styles.attachmentRow}>
             {images.map((uri, index) => (
               <View key={index} style={styles.imagePreviewWrapper}>
@@ -364,33 +495,63 @@ export default function PostJobScreen() {
                   style={styles.removeBadge}
                   onPress={() => handleRemoveImage(index)}
                 >
-                  <Feather name="x" size={moderateScale(12)} color="#FFFFFF" />
+                  <Feather
+                    name="x"
+                    size={moderateScale(12)}
+                    color="#FFFFFF"
+                  />
                 </TouchableOpacity>
               </View>
             ))}
 
             {images.length < 3 && (
               <TouchableOpacity
-                style={styles.uploadBox}
+                style={[
+                  styles.uploadBox,
+                  {
+                    backgroundColor: colors.surfaceSecondary,
+                    borderColor: colors.primary,
+                  },
+                ]}
                 onPress={handlePickImage}
                 activeOpacity={0.7}
               >
                 <Feather
                   name="camera"
                   size={moderateScale(20)}
-                  color="#0052CC"
+                  color={colors.primary}
                 />
-                <Text style={styles.uploadText}>Add Photo</Text>
+                <Text
+                  style={[styles.uploadText, { color: colors.primary }]}
+                >
+                  Add Photo
+                </Text>
               </TouchableOpacity>
             )}
           </View>
 
           {/* Cost Summary Notice */}
-          <View style={styles.costSummary}>
-            <Feather name="info" size={moderateScale(14)} color="#64748B" />
-            <Text style={styles.costSummaryText}>
+          <View
+            style={[
+              styles.costSummary,
+              { backgroundColor: colors.surfaceSecondary },
+            ]}
+          >
+            <Feather
+              name="info"
+              size={moderateScale(14)}
+              color={colors.textSecondary}
+            />
+            <Text
+              style={[
+                styles.costSummaryText,
+                { color: colors.textSecondary },
+              ]}
+            >
               Publishing this task will deduct{" "}
-              <Text style={styles.costHighlight}>
+              <Text
+                style={[styles.costHighlight, { color: colors.text }]}
+              >
                 {connectsRequired} Connects
               </Text>{" "}
               from your virtual wallet.
@@ -398,7 +559,11 @@ export default function PostJobScreen() {
           </View>
 
           <TouchableOpacity
-            style={[styles.postBtn, loading && styles.postBtnDisabled]}
+            style={[
+              styles.postBtn,
+              { backgroundColor: colors.primary },
+              loading && styles.postBtnDisabled,
+            ]}
             onPress={handlePostTask}
             disabled={loading}
             activeOpacity={0.85}

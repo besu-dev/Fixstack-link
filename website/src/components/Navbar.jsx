@@ -6,7 +6,8 @@ export default function Navbar({
   activeSection,
   activePage,
   onNavigate,
-  setActivePage
+  setActivePage,
+  onAdminClick,
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -88,7 +89,7 @@ export default function Navbar({
             title="Administrator Portal"
             id="admin-login-nav-btn"
             type="button"
-
+            onClick={onAdminClick}
           >
             <span>Admin Login</span>
           </button>
@@ -136,9 +137,8 @@ export default function Navbar({
               type="button"
               className="btn btn-primary w-full"
               onClick={() => {
-                const adminDashboardUrl = import.meta.env.VITE_ADMIN_DASHBOARD_URL || 'http://localhost:5173/admin';
-                window.open(adminDashboardUrl, '_blank', 'noopener,noreferrer');
                 setMobileMenuOpen(false);
+                if (onAdminClick) onAdminClick();
               }}
             >
               <span>Admin Login</span>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -10,12 +10,14 @@ import {
   KeyboardAvoidingView,
   Platform,
   Image,
+  Keyboard,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
 import { Alert } from "../../../src/context/AlertContext";
+import { useTheme } from "../../../src/context/ThemeContext";
 import {
   scale,
   moderateScale,
@@ -25,6 +27,9 @@ import UserAvatar from "../../../components/common/UserAvatar";
 
 export default function ProviderSignupStep1() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
+  const scrollViewRef = useRef<ScrollView>(null);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
 
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [firstName, setFirstName] = useState("");
@@ -34,6 +39,35 @@ export default function ProviderSignupStep1() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
+  useEffect(() => {
+    const onShow = (e: any) => {
+      setKeyboardHeight(e.endCoordinates?.height || 320);
+    };
+    const onHide = () => {
+      setKeyboardHeight(0);
+    };
+
+    const showSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      onShow,
+    );
+    const hideSub = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      onHide,
+    );
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  const scrollToInput = () => {
+    setTimeout(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    }, 150);
+  };
 
   const handlePickAvatar = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -95,16 +129,29 @@ export default function ProviderSignupStep1() {
   };
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.canvas }]} edges={["top"]}>
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.surface}
+      />
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.flex}
       >
         <ScrollView
-          contentContainerStyle={styles.scrollContainer}
+          ref={scrollViewRef}
+          contentContainerStyle={[
+            styles.scrollContainer,
+            {
+              paddingBottom:
+                keyboardHeight > 0
+                  ? keyboardHeight + 80
+                  : 40,
+            },
+          ]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets={true}
         >
           <TouchableOpacity
             style={styles.backButton}
@@ -114,9 +161,9 @@ export default function ProviderSignupStep1() {
             <Feather
               name="chevron-left"
               size={moderateScale(22)}
-              color="#0F172A"
+              color={colors.text}
             />
-            <Text style={styles.backText}>Back</Text>
+            <Text style={[styles.backText, { color: colors.text }]}>Back</Text>
           </TouchableOpacity>
 
           <View style={styles.brandHeader}>
@@ -125,8 +172,8 @@ export default function ProviderSignupStep1() {
               style={styles.brandLogo}
               resizeMode="contain"
             />
-            <Text style={styles.brandName}>Bete</Text>
-            <Text style={styles.pageTitle}>Provider Account (Step 1/3)</Text>
+            <Text style={[styles.brandName, { color: colors.text }]}>Bete</Text>
+            <Text style={[styles.pageTitle, { color: colors.primary }]}>Provider Account (Step 1/3)</Text>
           </View>
 
           <View style={styles.form}>
@@ -140,7 +187,7 @@ export default function ProviderSignupStep1() {
                   onPress={handlePickAvatar}
                 />
                 <TouchableOpacity
-                  style={styles.cameraBadge}
+                  style={[styles.cameraBadge, { backgroundColor: colors.primary }]}
                   onPress={handlePickAvatar}
                   activeOpacity={0.8}
                 >
@@ -152,7 +199,7 @@ export default function ProviderSignupStep1() {
                 </TouchableOpacity>
               </View>
               <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
-                <Text style={styles.avatarActionText}>
+                <Text style={[styles.avatarActionText, { color: colors.primary }]}>
                   {avatarUri ? "Change Profile Picture" : "Add Profile Picture (Required)"}
                   {!avatarUri && <Text style={styles.requiredStar}> </Text>}
                 </Text>
@@ -161,48 +208,78 @@ export default function ProviderSignupStep1() {
 
             <View style={styles.nameRow}>
               <View style={styles.halfInputContainer}>
-                <Text style={styles.label}>First Name</Text>
+                <Text style={[styles.label, { color: colors.textSecondary }]}>First Name</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.inputBackground,
+                      borderColor: colors.inputBorder,
+                      color: colors.text,
+                    },
+                  ]}
                   value={firstName}
                   onChangeText={setFirstName}
                   placeholder="First name"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.textMuted}
                 />
               </View>
 
               <View style={styles.halfInputContainer}>
-                <Text style={styles.label}>Last Name</Text>
+                <Text style={[styles.label, { color: colors.textSecondary }]}>Last Name</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[
+                    styles.input,
+                    {
+                      backgroundColor: colors.inputBackground,
+                      borderColor: colors.inputBorder,
+                      color: colors.text,
+                    },
+                  ]}
                   value={lastName}
                   onChangeText={setLastName}
                   placeholder="Last name"
-                  placeholderTextColor="#94A3B8"
+                  placeholderTextColor={colors.textMuted}
                 />
               </View>
             </View>
 
-            <Text style={styles.label}>Email Address</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Email Address</Text>
             <TextInput
-              style={styles.input}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                  color: colors.text,
+                },
+              ]}
               placeholder="Enter your email address"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               keyboardType="email-address"
               autoCapitalize="none"
               value={email}
               onChangeText={setEmail}
             />
 
-            <Text style={styles.label}>Password</Text>
-            <View style={styles.passwordWrapper}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Password</Text>
+            <View
+              style={[
+                styles.passwordWrapper,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                },
+              ]}
+            >
               <TextInput
-                style={styles.passwordInput}
+                style={[styles.passwordInput, { color: colors.text }]}
                 placeholder="Enter your password"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.textMuted}
                 secureTextEntry={!showPassword}
                 value={password}
                 onChangeText={setPassword}
+                onFocus={scrollToInput}
               />
               <TouchableOpacity
                 onPress={() => setShowPassword(!showPassword)}
@@ -212,20 +289,29 @@ export default function ProviderSignupStep1() {
                 <Feather
                   name={showPassword ? "eye" : "eye-off"}
                   size={moderateScale(18)}
-                  color="#64748B"
+                  color={colors.textMuted}
                 />
               </TouchableOpacity>
             </View>
 
-            <Text style={styles.label}>Confirm Password</Text>
-            <View style={styles.passwordWrapper}>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Confirm Password</Text>
+            <View
+              style={[
+                styles.passwordWrapper,
+                {
+                  backgroundColor: colors.inputBackground,
+                  borderColor: colors.inputBorder,
+                },
+              ]}
+            >
               <TextInput
-                style={styles.passwordInput}
+                style={[styles.passwordInput, { color: colors.text }]}
                 placeholder="Confirm your password"
-                placeholderTextColor="#94A3B8"
+                placeholderTextColor={colors.textMuted}
                 secureTextEntry={!showConfirmPassword}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
+                onFocus={scrollToInput}
               />
               <TouchableOpacity
                 onPress={() => setShowConfirmPassword(!showConfirmPassword)}
@@ -235,13 +321,13 @@ export default function ProviderSignupStep1() {
                 <Feather
                   name={showConfirmPassword ? "eye" : "eye-off"}
                   size={moderateScale(18)}
-                  color="#64748B"
+                  color={colors.textMuted}
                 />
               </TouchableOpacity>
             </View>
 
             <TouchableOpacity
-              style={styles.continueButton}
+              style={[styles.continueButton, { backgroundColor: colors.primary }]}
               onPress={handleContinue}
               activeOpacity={0.85}
             >
@@ -249,9 +335,9 @@ export default function ProviderSignupStep1() {
             </TouchableOpacity>
 
             <View style={styles.footerRow}>
-              <Text style={styles.footerText}>Already have an account? </Text>
+              <Text style={[styles.footerText, { color: colors.textMuted }]}>Already have an account? </Text>
               <TouchableOpacity onPress={() => router.replace("/screen/login")}>
-                <Text style={styles.footerLink}>Back to Sign In</Text>
+                <Text style={[styles.footerLink, { color: colors.primary }]}>Back to Sign In</Text>
               </TouchableOpacity>
             </View>
           </View>

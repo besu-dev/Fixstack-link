@@ -19,6 +19,7 @@ import * as ImagePicker from "expo-image-picker";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../../src/api/client";
 import { Alert } from "../../../src/context/AlertContext";
+import { useTheme } from "../../../src/context/ThemeContext";
 import {
   scale,
   moderateScale,
@@ -28,6 +29,7 @@ import UserAvatar from "../../../components/common/UserAvatar";
 
 export default function EditProfileScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
 
   const [avatarUri, setAvatarUri] = useState<string | null>(null);
   const [avatarPicked, setAvatarPicked] = useState(false);
@@ -155,26 +157,26 @@ export default function EditProfileScreen() {
 
   if (initialLoading) {
     return (
-      <SafeAreaView style={styles.centerContainer} edges={["top"]}>
-        <ActivityIndicator size="large" color="#0052CC" />
+      <SafeAreaView style={[styles.centerContainer, { backgroundColor: colors.canvas }]} edges={["top"]}>
+        <ActivityIndicator size="large" color={colors.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView style={[styles.safeArea, { backgroundColor: colors.canvas }]} edges={["top"]}>
+      <StatusBar barStyle={isDark ? "light-content" : "dark-content"} backgroundColor={colors.surface} />
 
       {/* Screen Header */}
-      <View style={styles.header}>
+      <View style={[styles.header, { backgroundColor: colors.surface, borderBottomColor: colors.cardBorder }]}>
         <TouchableOpacity
           onPress={() => router.back()}
           style={styles.backBtn}
           activeOpacity={0.7}
         >
-          <Feather name="arrow-left" size={moderateScale(22)} color="#0F172A" />
+          <Feather name="arrow-left" size={moderateScale(22)} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Edit Profile</Text>
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Edit Profile</Text>
         <View style={styles.placeholder} />
       </View>
 
@@ -209,13 +211,13 @@ export default function EditProfileScreen() {
             </View>
             <View style={styles.photoActionsRow}>
               <TouchableOpacity onPress={handlePickAvatar} activeOpacity={0.7}>
-                <Text style={styles.changePhotoText}>
+                <Text style={[styles.changePhotoText, { color: colors.primary }]}>
                   {avatarUri ? "Change Profile Picture" : "Add Profile Picture"}
                 </Text>
               </TouchableOpacity>
               {avatarUri ? (
                 <>
-                  <Text style={styles.actionDot}>•</Text>
+                  <Text style={[styles.actionDot, { color: colors.textMuted }]}>•</Text>
                   <TouchableOpacity onPress={handleRemoveAvatar} activeOpacity={0.7}>
                     <Text style={styles.removePhotoText}>Remove</Text>
                   </TouchableOpacity>
@@ -226,41 +228,49 @@ export default function EditProfileScreen() {
 
           {/* Form Fields */}
           <View style={styles.form}>
-            <Text style={styles.label}>Full Name</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Full Name</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder, color: colors.text }]}
               value={fullName}
               onChangeText={setFullName}
               placeholder="e.g. Alex Tefera"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
             />
 
-            <Text style={styles.label}>Email Address (Read-Only)</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Email Address (Read-Only)</Text>
             <TextInput
-              style={[styles.input, styles.readOnlyInput]}
+              style={[
+                styles.input,
+                styles.readOnlyInput,
+                {
+                  backgroundColor: colors.surfaceSecondary,
+                  borderColor: colors.cardBorder,
+                  color: colors.textSecondary,
+                },
+              ]}
               value={email}
               editable={false}
               placeholder="Email Address"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
             />
 
-            <Text style={styles.label}>Phone Number</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Phone Number</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder, color: colors.text }]}
               value={phoneNumber}
               onChangeText={setPhoneNumber}
               keyboardType="phone-pad"
               placeholder="+251 91 234 5678"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
             />
 
-            <Text style={styles.label}>Location / Subcity</Text>
+            <Text style={[styles.label, { color: colors.textSecondary }]}>Location / Subcity</Text>
             <TextInput
-              style={styles.input}
+              style={[styles.input, { backgroundColor: colors.inputBackground, borderColor: colors.inputBorder, color: colors.text }]}
               value={address}
               onChangeText={setAddress}
               placeholder="e.g., Bole, Addis Ababa"
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
             />
 
             {/* Save Button */}

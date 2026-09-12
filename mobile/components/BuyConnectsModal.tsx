@@ -12,6 +12,7 @@ import * as WebBrowser from "expo-web-browser";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../src/api/client";
 import { Alert } from "../src/context/AlertContext";
+import { useTheme } from "../src/context/ThemeContext";
 
 interface BuyConnectsModalProps {
   visible: boolean;
@@ -37,6 +38,7 @@ export default function BuyConnectsModal({
   onSuccess,
   currentBalance = 0,
 }: BuyConnectsModalProps) {
+  const { colors, isDark } = useTheme();
   const [selectedPkg, setSelectedPkg] = useState<string>("standard");
   const [paymentMethod, setPaymentMethod] = useState<"chapa" | "telebirr">(
     "chapa",
@@ -98,29 +100,34 @@ export default function BuyConnectsModal({
           verifyRes.data.newBalance ?? verifyRes.data.user?.connectsBalance;
         if (typeof newBal === "number") {
           setSyncedBalance(newBal);
+          onSuccess(newBal);
         }
-        onSuccess(newBal);
         onClose();
       } else {
-        // Direct simulation / local fallback
-        const response = await apiClient.post("/wallet/buy-connects", {
+        // Direct Telebirr Flow (Simulator / Instant USSD)
+        const telebirrRes = await apiClient.post("/wallet/telebirr/purchase", {
           packageId: selectedPkg,
-          paymentMethod,
-          paymentReference: `TX-${Date.now()}`,
         });
 
-        Alert.alert("Payment Successful", response.data.message);
-        if (typeof response.data.connectsBalance === "number") {
-          setSyncedBalance(response.data.connectsBalance);
+        Alert.alert(
+          "Purchase Successful! 🎉",
+          telebirrRes.data.message || "Connects added via Telebirr.",
+        );
+        const newBal =
+          telebirrRes.data.newBalance ??
+          telebirrRes.data.user?.connectsBalance;
+        if (typeof newBal === "number") {
+          setSyncedBalance(newBal);
+          onSuccess(newBal);
         }
-        onSuccess(response.data.connectsBalance);
         onClose();
       }
     } catch (err: any) {
+      console.error("Purchase error:", err.response?.data || err.message);
       Alert.alert(
-        "Payment Incomplete",
+        "Payment Failed",
         err.response?.data?.message ||
-          "Payment could not be confirmed. Please check your transaction.",
+          "Could not complete purchase. Please try again.",
       );
     } finally {
       setLoading(false);
@@ -135,25 +142,47 @@ export default function BuyConnectsModal({
       onRequestClose={onClose}
     >
       <View style={styles.backdrop}>
-        <View style={styles.sheet}>
+        <View style={[styles.sheet, { backgroundColor: colors.surface }]}>
           {/* Header */}
           <View style={styles.header}>
             <View>
-              <Text style={styles.title}>Top Up Connects</Text>
-              <Text style={styles.balanceSubtitle}>
+              <Text style={[styles.title, { color: colors.text }]}>
+                Top Up Connects
+              </Text>
+              <Text
+                style={[
+                  styles.balanceSubtitle,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 Current Balance:{" "}
-                <Text style={styles.balanceHighlight}>
+                <Text
+                  style={[
+                    styles.balanceHighlight,
+                    { color: colors.primary },
+                  ]}
+                >
                   {syncedBalance} Connects
                 </Text>
               </Text>
             </View>
-            <TouchableOpacity onPress={onClose} style={styles.closeBtn}>
-              <Feather name="x" size={20} color="#64748B" />
+            <TouchableOpacity
+              onPress={onClose}
+              style={[
+                styles.closeBtn,
+                { backgroundColor: colors.surfaceSecondary },
+              ]}
+            >
+              <Feather name="x" size={20} color={colors.textSecondary} />
             </TouchableOpacity>
           </View>
 
           {/* Package Options */}
-          <Text style={styles.sectionLabel}>Select Package</Text>
+          <Text
+            style={[styles.sectionLabel, { color: colors.textSecondary }]}
+          >
+            Select Package
+          </Text>
           <View style={styles.packagesContainer}>
             {PACKAGES.map((pkg) => {
               const isSelected = selectedPkg === pkg.id;
@@ -162,7 +191,14 @@ export default function BuyConnectsModal({
                   key={pkg.id}
                   style={[
                     styles.packageCard,
-                    isSelected && styles.packageCardSelected,
+                    {
+                      backgroundColor: isSelected
+                        ? colors.primaryLight
+                        : colors.card,
+                      borderColor: isSelected
+                        ? colors.primary
+                        : colors.cardBorder,
+                    },
                   ]}
                   onPress={() => setSelectedPkg(pkg.id)}
                   activeOpacity={0.8}
@@ -170,7 +206,9 @@ export default function BuyConnectsModal({
                   <Text
                     style={[
                       styles.packageConnects,
-                      isSelected && styles.textSelected,
+                      {
+                        color: isSelected ? colors.primary : colors.text,
+                      },
                     ]}
                   >
                     +{pkg.connects} Connects
@@ -178,7 +216,11 @@ export default function BuyConnectsModal({
                   <Text
                     style={[
                       styles.packagePrice,
-                      isSelected && styles.textSelected,
+                      {
+                        color: isSelected
+                          ? colors.primary
+                          : colors.textSecondary,
+                      },
                     ]}
                   >
                     {pkg.priceETB} ETB
@@ -189,62 +231,120 @@ export default function BuyConnectsModal({
           </View>
 
           {/* Payment Method Selector */}
-          <Text style={styles.sectionLabel}>Payment Provider</Text>
+          <Text
+            style={[styles.sectionLabel, { color: colors.textSecondary }]}
+          >
+            Payment Provider
+          </Text>
           <View style={styles.paymentMethods}>
             <TouchableOpacity
               style={[
                 styles.methodCard,
-                paymentMethod === "chapa" && styles.methodCardSelected,
+                {
+                  backgroundColor:
+                    paymentMethod === "chapa"
+                      ? colors.primaryLight
+                      : colors.card,
+                  borderColor:
+                    paymentMethod === "chapa"
+                      ? colors.primary
+                      : colors.cardBorder,
+                },
               ]}
               onPress={() => setPaymentMethod("chapa")}
             >
               <FontAwesome5
                 name="credit-card"
                 size={16}
-                color={paymentMethod === "chapa" ? "#0052CC" : "#64748B"}
+                color={
+                  paymentMethod === "chapa"
+                    ? colors.primary
+                    : colors.textSecondary
+                }
               />
               <View>
                 <Text
                   style={[
                     styles.methodText,
-                    paymentMethod === "chapa" && styles.methodTextSelected,
+                    {
+                      color:
+                        paymentMethod === "chapa"
+                          ? colors.primary
+                          : colors.text,
+                    },
                   ]}
                 >
                   Chapa Gateway
                 </Text>
-                <Text style={styles.methodSubtext}>Telebirr, CBE, Cards</Text>
+                <Text
+                  style={[
+                    styles.methodSubtext,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  Telebirr, CBE, Cards
+                </Text>
               </View>
             </TouchableOpacity>
 
             <TouchableOpacity
               style={[
                 styles.methodCard,
-                paymentMethod === "telebirr" && styles.methodCardSelected,
+                {
+                  backgroundColor:
+                    paymentMethod === "telebirr"
+                      ? colors.primaryLight
+                      : colors.card,
+                  borderColor:
+                    paymentMethod === "telebirr"
+                      ? colors.primary
+                      : colors.cardBorder,
+                },
               ]}
               onPress={() => setPaymentMethod("telebirr")}
             >
               <FontAwesome5
                 name="mobile-alt"
                 size={16}
-                color={paymentMethod === "telebirr" ? "#0052CC" : "#64748B"}
+                color={
+                  paymentMethod === "telebirr"
+                    ? colors.primary
+                    : colors.textSecondary
+                }
               />
               <View>
                 <Text
                   style={[
                     styles.methodText,
-                    paymentMethod === "telebirr" && styles.methodTextSelected,
+                    {
+                      color:
+                        paymentMethod === "telebirr"
+                          ? colors.primary
+                          : colors.text,
+                    },
                   ]}
                 >
                   Direct Telebirr
                 </Text>
-                <Text style={styles.methodSubtext}>Instant USSD Push</Text>
+                <Text
+                  style={[
+                    styles.methodSubtext,
+                    { color: colors.textSecondary },
+                  ]}
+                >
+                  Instant USSD Push
+                </Text>
               </View>
             </TouchableOpacity>
           </View>
 
           {/* Checkout CTA */}
           <TouchableOpacity
-            style={[styles.checkoutBtn, loading && styles.checkoutBtnDisabled]}
+            style={[
+              styles.checkoutBtn,
+              { backgroundColor: colors.primary },
+              loading && styles.checkoutBtnDisabled,
+            ]}
             onPress={handlePurchase}
             disabled={loading}
             activeOpacity={0.85}
