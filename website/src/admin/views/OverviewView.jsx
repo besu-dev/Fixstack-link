@@ -11,15 +11,16 @@ import {
 
 export default function OverviewView({ stats, onNavigateTo }) {
   const users = stats?.users || {
-    customers: 86,
-    providers: 42,
-    pendingVerifications: 7,
+    customers: 0,
+    providers: 0,
+    pendingVerifications: 0,
+    verifiedProviders: 0,
   };
   const jobs = stats?.jobs || {
-    open: 14,
-    assigned: 18,
-    completed: 58,
-    totalVolumeETB: 432500,
+    open: 0,
+    assigned: 0,
+    completed: 0,
+    totalVolumeETB: 0,
   };
   const breakdowns = stats?.breakdowns || {
     byCategory: [],

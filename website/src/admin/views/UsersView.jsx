@@ -43,9 +43,9 @@ export default function UsersView({ onDataChanged }) {
     setLoading(true);
     try {
       const data = await adminApi.getUsers({
-        role: roleFilter,
+        role: roleFilter !== 'all' ? roleFilter : undefined,
         subcity: subcityFilter !== 'All' ? subcityFilter : undefined,
-        search: searchQuery || undefined,
+        search: searchQuery.trim() || undefined,
       });
       setUsers(data.users || []);
     } catch (err) {

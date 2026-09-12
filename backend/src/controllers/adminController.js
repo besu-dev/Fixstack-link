@@ -167,19 +167,19 @@ export const getUsers = async (req, res) => {
 
     const query = {};
 
-    if (role && role !== "all") {
+    if (role && role !== "all" && role !== "undefined" && role !== "null") {
       query.role = role;
     }
 
-    if (isVerified !== undefined && isVerified !== "all") {
+    if (isVerified !== undefined && isVerified !== "all" && isVerified !== "undefined" && isVerified !== "null") {
       query.isVerified = isVerified === "true";
     }
 
-    if (subcity && subcity !== "all") {
+    if (subcity && subcity !== "all" && subcity !== "All" && subcity !== "undefined" && subcity !== "null") {
       query.subcity = subcity;
     }
 
-    if (search && search.trim()) {
+    if (search && search.trim() && search.trim() !== "undefined" && search.trim() !== "null") {
       const searchRegex = new RegExp(search.trim(), "i");
       query.$or = [
         { fullName: searchRegex },
@@ -435,11 +435,11 @@ export const getJobs = async (req, res) => {
     const { status, category, urgency, search, page = 1, limit = 20 } = req.query;
 
     const query = {};
-    if (status && status !== "all") query.status = status;
-    if (category && category !== "all") query.category = category;
-    if (urgency && urgency !== "all") query.urgency = urgency;
+    if (status && status !== "all" && status !== "undefined" && status !== "null") query.status = status;
+    if (category && category !== "all" && category !== "undefined" && category !== "null") query.category = category;
+    if (urgency && urgency !== "all" && urgency !== "undefined" && urgency !== "null") query.urgency = urgency;
 
-    if (search && search.trim()) {
+    if (search && search.trim() && search.trim() !== "undefined" && search.trim() !== "null") {
       const regex = new RegExp(search.trim(), "i");
       query.$or = [
         { title: regex },

@@ -12,10 +12,42 @@ const getAuthHeaders = () => {
   };
 };
 
+const buildQuery = (params = {}) => {
+  const clean = {};
+  for (const [key, val] of Object.entries(params)) {
+    if (
+      val !== undefined &&
+      val !== null &&
+      val !== '' &&
+      val !== 'undefined' &&
+      val !== 'null' &&
+      val !== 'all' &&
+      val !== 'All'
+    ) {
+      clean[key] = val;
+    }
+  }
+  return new URLSearchParams(clean).toString();
+};
+
 /**
  * Handle API responses with proper error extraction
  */
 async function handleResponse(response) {
+  if (response.status === 401) {
+    localStorage.removeItem('fixlink_admin_token');
+    localStorage.removeItem('fixlink_admin_user');
+    window.dispatchEvent(new Event('admin-session-expired'));
+    let errorMsg = 'Administrator session expired or unauthorized. Please log in again.';
+    try {
+      const data = await response.json();
+      errorMsg = data.message || errorMsg;
+    } catch {}
+    const err = new Error(errorMsg);
+    err.status = 401;
+    throw err;
+  }
+
   if (!response.ok) {
     let errorMsg = `Server error (${response.status})`;
     try {
@@ -24,7 +56,9 @@ async function handleResponse(response) {
     } catch {
       // response was not JSON
     }
-    throw new Error(errorMsg);
+    const err = new Error(errorMsg);
+    err.status = response.status;
+    throw err;
   }
   return await response.json();
 }
@@ -209,18 +243,22 @@ export const adminApi = {
       });
       return await handleResponse(res);
     } catch (err) {
-      // If server is unreachable or offline, allow demo login with default credentials
+      // If server responded with an HTTP status (like 401 or 403), rethrow to show real error
+      if (err.status) {
+        throw err;
+      }
+      // If server is unreachable (offline/connection refused), allow demo login with default credentials
       const cleanId = (identifier || '').trim().toLowerCase();
       if (
         (cleanId === 'admin@bete.et' || cleanId === 'admin' || cleanId === '+251911000000') &&
         password === 'Admin@123456'
       ) {
-        console.warn('Backend offline; using resilient fallback admin session for demo/presentation');
+        console.warn('Backend server unreachable; using demo fallback session');
         return {
           token: 'demo-admin-session-token-' + Date.now(),
           admin: {
             id: 'admin-root-id',
-            fullName: 'Bete Administrator (Demo Mode)',
+            fullName: 'Bete Administrator (Demo Sandbox)',
             email: 'admin@bete.et',
             phone: '+251911000000',
             role: 'admin',
@@ -239,8 +277,12 @@ export const adminApi = {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch {
-      return MOCK_DATA.stats;
+    } catch (err) {
+      const token = localStorage.getItem('fixlink_admin_token');
+      if (!token || token.startsWith('demo-')) {
+        return MOCK_DATA.stats;
+      }
+      throw err;
     }
   },
 
@@ -251,8 +293,12 @@ export const adminApi = {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch {
-      return { providers: MOCK_DATA.verifications };
+    } catch (err) {
+      const token = localStorage.getItem('fixlink_admin_token');
+      if (!token || token.startsWith('demo-')) {
+        return { providers: MOCK_DATA.verifications };
+      }
+      throw err;
     }
   },
 
@@ -264,14 +310,17 @@ export const adminApi = {
         body: JSON.stringify(payload),
       });
       return await handleResponse(res);
-    } catch {
-      // Optimistic local update
-      const target = MOCK_DATA.verifications.find((p) => p._id === id);
-      if (target) {
-        target.isVerified = Boolean(payload.isVerified);
-        if (payload.isVerified) target.connectsBalance = (target.connectsBalance || 0) + 10;
+    } catch (err) {
+      const token = localStorage.getItem('fixlink_admin_token');
+      if (!token || token.startsWith('demo-')) {
+        const target = MOCK_DATA.verifications.find((p) => p._id === id);
+        if (target) {
+          target.isVerified = Boolean(payload.isVerified);
+          if (payload.isVerified) target.connectsBalance = (target.connectsBalance || 0) + 10;
+        }
+        return { message: 'Provider updated (Demo Mode)', provider: target };
       }
-      return { message: 'Provider updated (Demo Mode)', provider: target };
+      throw err;
     }
   },
 
@@ -282,31 +331,39 @@ export const adminApi = {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch {
-      const user = MOCK_DATA.users.find((u) => u._id === id);
-      if (user) user.isFeatured = !user.isFeatured;
-      return { message: 'Status toggled', provider: user };
+    } catch (err) {
+      const token = localStorage.getItem('fixlink_admin_token');
+      if (!token || token.startsWith('demo-')) {
+        const user = MOCK_DATA.users.find((u) => u._id === id);
+        if (user) user.isFeatured = !user.isFeatured;
+        return { message: 'Status toggled', provider: user };
+      }
+      throw err;
     }
   },
 
   // Users
   async getUsers(params = {}) {
-    const query = new URLSearchParams(params).toString();
+    const query = buildQuery(params);
     try {
       const res = await fetch(`${API_BASE_URL}/admin/users?${query}`, {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch {
-      let filtered = [...MOCK_DATA.users];
-      if (params.role && params.role !== 'all') {
-        filtered = filtered.filter((u) => u.role === params.role);
+    } catch (err) {
+      const token = localStorage.getItem('fixlink_admin_token');
+      if (!token || token.startsWith('demo-')) {
+        let filtered = [...MOCK_DATA.users];
+        if (params.role && params.role !== 'all') {
+          filtered = filtered.filter((u) => u.role === params.role);
+        }
+        if (params.search) {
+          const s = params.search.toLowerCase();
+          filtered = filtered.filter((u) => u.fullName.toLowerCase().includes(s) || u.phone.includes(s));
+        }
+        return { users: filtered, pagination: { total: filtered.length, page: 1, pages: 1 } };
       }
-      if (params.search) {
-        const s = params.search.toLowerCase();
-        filtered = filtered.filter((u) => u.fullName.toLowerCase().includes(s) || u.phone.includes(s));
-      }
-      return { users: filtered, pagination: { total: filtered.length, page: 1, pages: 1 } };
+      throw err;
     }
   },
 
@@ -318,10 +375,14 @@ export const adminApi = {
         body: JSON.stringify(data),
       });
       return await handleResponse(res);
-    } catch {
-      const user = MOCK_DATA.users.find((u) => u._id === id);
-      if (user) Object.assign(user, data);
-      return { message: 'User updated (Demo Mode)', user };
+    } catch (err) {
+      const token = localStorage.getItem('fixlink_admin_token');
+      if (!token || token.startsWith('demo-')) {
+        const user = MOCK_DATA.users.find((u) => u._id === id);
+        if (user) Object.assign(user, data);
+        return { message: 'User updated (Demo Mode)', user };
+      }
+      throw err;
     }
   },
 
@@ -332,26 +393,34 @@ export const adminApi = {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch {
-      MOCK_DATA.users = MOCK_DATA.users.filter((u) => u._id !== id);
-      return { message: 'User deleted (Demo Mode)' };
+    } catch (err) {
+      const token = localStorage.getItem('fixlink_admin_token');
+      if (!token || token.startsWith('demo-')) {
+        MOCK_DATA.users = MOCK_DATA.users.filter((u) => u._id !== id);
+        return { message: 'User deleted (Demo Mode)' };
+      }
+      throw err;
     }
   },
 
   // Jobs
   async getJobs(params = {}) {
-    const query = new URLSearchParams(params).toString();
+    const query = buildQuery(params);
     try {
       const res = await fetch(`${API_BASE_URL}/admin/jobs?${query}`, {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch {
-      let filtered = [...MOCK_DATA.jobs];
-      if (params.status && params.status !== 'all') {
-        filtered = filtered.filter((j) => j.status === params.status);
+    } catch (err) {
+      const token = localStorage.getItem('fixlink_admin_token');
+      if (!token || token.startsWith('demo-')) {
+        let filtered = [...MOCK_DATA.jobs];
+        if (params.status && params.status !== 'all') {
+          filtered = filtered.filter((j) => j.status === params.status);
+        }
+        return { jobs: filtered, pagination: { total: filtered.length, page: 1, pages: 1 } };
       }
-      return { jobs: filtered, pagination: { total: filtered.length, page: 1, pages: 1 } };
+      throw err;
     }
   },
 
@@ -363,36 +432,48 @@ export const adminApi = {
         body: JSON.stringify(payload),
       });
       return await handleResponse(res);
-    } catch {
-      const job = MOCK_DATA.jobs.find((j) => j._id === id);
-      if (job) job.status = payload.status;
-      return { message: 'Job status updated (Demo Mode)', job };
+    } catch (err) {
+      const token = localStorage.getItem('fixlink_admin_token');
+      if (!token || token.startsWith('demo-')) {
+        const job = MOCK_DATA.jobs.find((j) => j._id === id);
+        if (job) job.status = payload.status;
+        return { message: 'Job status updated (Demo Mode)', job };
+      }
+      throw err;
     }
   },
 
   // Bids
   async getBids(params = {}) {
-    const query = new URLSearchParams(params).toString();
+    const query = buildQuery(params);
     try {
       const res = await fetch(`${API_BASE_URL}/admin/bids?${query}`, {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch {
-      return { bids: MOCK_DATA.bids, pagination: { total: MOCK_DATA.bids.length, page: 1, pages: 1 } };
+    } catch (err) {
+      const token = localStorage.getItem('fixlink_admin_token');
+      if (!token || token.startsWith('demo-')) {
+        return { bids: MOCK_DATA.bids, pagination: { total: MOCK_DATA.bids.length, page: 1, pages: 1 } };
+      }
+      throw err;
     }
   },
 
   // Transactions
   async getTransactions(params = {}) {
-    const query = new URLSearchParams(params).toString();
+    const query = buildQuery(params);
     try {
       const res = await fetch(`${API_BASE_URL}/admin/transactions?${query}`, {
         headers: getAuthHeaders(),
       });
       return await handleResponse(res);
-    } catch {
-      return { transactions: MOCK_DATA.transactions, pagination: { total: MOCK_DATA.transactions.length, page: 1, pages: 1 } };
+    } catch (err) {
+      const token = localStorage.getItem('fixlink_admin_token');
+      if (!token || token.startsWith('demo-')) {
+        return { transactions: MOCK_DATA.transactions, pagination: { total: MOCK_DATA.transactions.length, page: 1, pages: 1 } };
+      }
+      throw err;
     }
   },
 

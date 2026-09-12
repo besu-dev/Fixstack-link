@@ -23,8 +23,8 @@ export default function JobsView({ onDataChanged }) {
     setLoading(true);
     try {
       const data = await adminApi.getJobs({
-        status: statusFilter,
-        search: searchQuery || undefined,
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        search: searchQuery.trim() || undefined,
       });
       setJobs(data.jobs || []);
     } catch (err) {

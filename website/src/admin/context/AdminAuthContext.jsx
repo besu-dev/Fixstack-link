@@ -15,9 +15,17 @@ export function AdminAuthProvider({ children }) {
     const savedUser = localStorage.getItem('fixlink_admin_user');
 
     if (savedToken && savedUser) {
+      // If token is an old demo placeholder, clear it so user signs in to the live database
+      if (savedToken.startsWith('demo-admin-session-token')) {
+        localStorage.removeItem('fixlink_admin_token');
+        localStorage.removeItem('fixlink_admin_user');
+        setLoading(false);
+        return;
+      }
       try {
         setToken(savedToken);
         setAdminUser(JSON.parse(savedUser));
+        setIsDemoMode(false);
       } catch (err) {
         console.error('Failed to parse saved admin session', err);
         localStorage.removeItem('fixlink_admin_token');
@@ -25,6 +33,12 @@ export function AdminAuthProvider({ children }) {
       }
     }
     setLoading(false);
+
+    const handleSessionExpired = () => {
+      logout();
+    };
+    window.addEventListener('admin-session-expired', handleSessionExpired);
+    return () => window.removeEventListener('admin-session-expired', handleSessionExpired);
   }, []);
 
   const login = async (identifier, password) => {
