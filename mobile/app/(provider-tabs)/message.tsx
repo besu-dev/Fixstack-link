@@ -14,10 +14,16 @@ import {
   Linking,
   Image,
   Keyboard,
+  BackHandler,
 } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { Feather } from "@expo/vector-icons";
-import { useLocalSearchParams, useRouter, useFocusEffect } from "expo-router";
+import {
+  useLocalSearchParams,
+  useRouter,
+  useFocusEffect,
+  useNavigation,
+} from "expo-router";
 import { io, Socket } from "socket.io-client";
 import * as SecureStore from "expo-secure-store";
 import apiClient from "../../src/api/client";
@@ -96,11 +102,43 @@ export default function ProviderMessageScreen() {
   }, [jobId, receiverId]);
 
   const isDirectChatActive = Boolean((jobId || receiverId) && !closedChatManually);
+  const navigation = useNavigation();
+
+  // Hide bottom tab bar during direct chat so chat uses full screen height
+  useFocusEffect(
+    useCallback(() => {
+      navigation.setOptions({
+        tabBarStyle: isDirectChatActive ? { display: "none" } : undefined,
+      });
+      return () => {
+        navigation.setOptions({
+          tabBarStyle: undefined,
+        });
+      };
+    }, [isDirectChatActive, navigation])
+  );
+
+  useEffect(() => {
+    navigation.setOptions({
+      tabBarStyle: isDirectChatActive ? { display: "none" } : undefined,
+    });
+  }, [isDirectChatActive, navigation]);
 
   const handleBackToInbox = () => {
     setClosedChatManually(true);
     router.replace("/(provider-tabs)/message");
   };
+
+  // Hardware back press returns to inbox
+  useEffect(() => {
+    if (!isDirectChatActive) return;
+    const onBackPress = () => {
+      handleBackToInbox();
+      return true;
+    };
+    const sub = BackHandler.addEventListener("hardwareBackPress", onBackPress);
+    return () => sub.remove();
+  }, [isDirectChatActive]);
 
   const socketRef = useRef<Socket | null>(null);
   const flatListRef = useRef<FlatList>(null);
@@ -515,11 +553,6 @@ export default function ProviderMessageScreen() {
                       isMine ? styles.bubbleRight : styles.bubbleLeft,
                     ]}
                   >
-                    {!isMine && (
-                      <Text style={styles.senderNameLabel}>
-                        {item.sender?.fullName || recipientName}
-                      </Text>
-                    )}
                     <Text
                       style={[
                         styles.messageText,
@@ -551,14 +584,14 @@ export default function ProviderMessageScreen() {
             }
           />
 
-          {/* Chat Input Dock - elevated above floating bottom navbar */}
+          {/* Chat Input Dock */}
           <View
             style={[
               styles.inputBar,
               {
                 paddingBottom: isKeyboardVisible
                   ? scale(8)
-                  : verticalScale(92) + insets.bottom,
+                  : Math.max(insets.bottom, scale(10)),
               },
             ]}
           >

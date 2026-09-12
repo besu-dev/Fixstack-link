@@ -102,8 +102,13 @@ export default function CustomNavBar({
     };
   }, []);
 
-  // Hide the floating tab bar completely when the virtual keyboard is open
-  if (isKeyboardVisible) {
+  // Hide the floating tab bar completely when keyboard is open or when screen requests tabBarStyle: { display: 'none' }
+  const focusedRoute = state.routes[state.index];
+  const focusedDescriptor = descriptors[focusedRoute.key];
+  const focusedOptions = focusedDescriptor?.options;
+  const tabBarStyle = StyleSheet.flatten(focusedOptions?.tabBarStyle) as any;
+
+  if (isKeyboardVisible || tabBarStyle?.display === "none") {
     return null;
   }
 
