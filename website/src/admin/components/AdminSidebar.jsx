@@ -21,7 +21,7 @@ export default function AdminSidebar({
     {
       category: 'Core Operations',
       items: [
-        { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+        { id: 'overview', label: 'Dashboard', icon: LayoutDashboard },
         {
           id: 'verifications',
           label: 'Verification Queue',
@@ -51,7 +51,6 @@ export default function AdminSidebar({
             <div className="admin-sidebar-logo-icon">B</div>
             <div className="admin-sidebar-logo-text">
               <span className="admin-sidebar-logo-title">Bete Admin</span>
-              <span className="admin-sidebar-logo-subtitle">Ethiopia Portal</span>
             </div>
           </div>
 

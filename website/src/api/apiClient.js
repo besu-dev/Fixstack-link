@@ -3,7 +3,13 @@
  * Connects directly to the existing Express/MongoDB backend API
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const normalizeApiUrl = (url) => {
+  if (!url) return 'http://localhost:5000/api';
+  const trimmed = url.trim().replace(/\/+$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
+
+const API_BASE_URL = normalizeApiUrl(import.meta.env.VITE_API_BASE_URL);
 
 export async function fetchWithTimeout(url, options = {}, timeoutMs = 8000) {
   const controller = new AbortController();

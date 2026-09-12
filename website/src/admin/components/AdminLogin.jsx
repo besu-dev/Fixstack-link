@@ -29,11 +29,6 @@ export default function AdminLogin({ onExitToSite }) {
     }
   };
 
-  const handleQuickFill = () => {
-    setIdentifier('admin@bete.et');
-    setPassword('Admin@123456');
-    setError(null);
-  };
 
   return (
     <div className="admin-login-screen">
@@ -121,17 +116,6 @@ export default function AdminLogin({ onExitToSite }) {
           </button>
         </form>
 
-        {/* Quick Demo Helper */}
-        <div className="admin-quick-demo-box">
-          <p>Quick Evaluation Credentials:</p>
-          <button
-            type="button"
-            className="admin-quick-fill-btn"
-            onClick={handleQuickFill}
-          >
-            Use Demo Admin (admin@bete.et / Admin@123456)
-          </button>
-        </div>
 
         {/* Return to Public Website */}
         <div className="admin-login-footer">

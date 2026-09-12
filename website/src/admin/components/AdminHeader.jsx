@@ -3,7 +3,7 @@ import { Menu } from 'lucide-react';
 
 const VIEW_TITLES = {
   overview: {
-    title: 'Platform Overview',
+    title: 'Dashboard',
     subtitle: 'Real-time performance metrics and marketplace health',
   },
   verifications: {

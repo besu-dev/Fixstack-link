@@ -2,7 +2,13 @@
  * Bete / FixLink Admin Portal API Client
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+const normalizeApiUrl = (url) => {
+  if (!url) return 'http://localhost:5000/api';
+  const trimmed = url.trim().replace(/\/+$/, '');
+  return trimmed.endsWith('/api') ? trimmed : `${trimmed}/api`;
+};
+
+const API_BASE_URL = normalizeApiUrl(import.meta.env.VITE_API_BASE_URL);
 
 const getAuthHeaders = () => {
   const token = localStorage.getItem('fixlink_admin_token');
