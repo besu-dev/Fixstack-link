@@ -34,6 +34,7 @@ import {
   scaledFont,
 } from "../../src/utils/responsive";
 import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
+import { useTheme } from "../../src/context/ThemeContext";
 import UserAvatar from "../../components/common/UserAvatar";
 
 interface MessageItem {
@@ -73,6 +74,7 @@ import { SOCKET_URL } from "../../src/config/api";
 export default function CustomerMessageScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { colors, isDark } = useTheme();
   const { markConversationRead, fetchUnreadCount: refreshGlobalUnread } =
     useUnreadMessages();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
@@ -343,19 +345,41 @@ export default function CustomerMessageScreen() {
   // -------------------------------------------------------------
   if (!isDirectChatActive) {
     return (
-      <SafeAreaView style={styles.safeArea} edges={["top"]}>
-        <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Messages</Text>
-          <Text style={styles.headerSubtitle}>
+      <SafeAreaView
+        style={[styles.safeArea, { backgroundColor: colors.canvas }]}
+        edges={["top"]}
+      >
+        <StatusBar
+          barStyle={isDark ? "light-content" : "dark-content"}
+          backgroundColor={colors.surface}
+        />
+        <View
+          style={[
+            styles.header,
+            {
+              backgroundColor: colors.surface,
+              borderBottomColor: colors.border,
+            },
+          ]}
+        >
+          <Text style={[styles.headerTitle, { color: colors.text }]}>
+            Messages
+          </Text>
+          <Text
+            style={[styles.headerSubtitle, { color: colors.textSecondary }]}
+          >
             Direct chat with verified technicians
           </Text>
         </View>
 
         {loadingList ? (
           <View style={styles.centerContainer}>
-            <ActivityIndicator size="large" color="#0052CC" />
-            <Text style={styles.syncText}>Syncing chats...</Text>
+            <ActivityIndicator size="large" color={colors.primary} />
+            <Text
+              style={[styles.syncText, { color: colors.textSecondary }]}
+            >
+              Syncing chats...
+            </Text>
           </View>
         ) : (
           <FlatList
@@ -366,12 +390,18 @@ export default function CustomerMessageScreen() {
               <RefreshControl
                 refreshing={loadingList}
                 onRefresh={fetchConversations}
-                colors={["#0052CC"]}
+                colors={[colors.primary]}
               />
             }
             renderItem={({ item }) => (
               <TouchableOpacity
-                style={styles.chatCard}
+                style={[
+                  styles.chatCard,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.cardBorder,
+                  },
+                ]}
                 onPress={() => {
                   setClosedChatManually(false);
                   router.push({
@@ -396,10 +426,10 @@ export default function CustomerMessageScreen() {
 
                 <View style={styles.chatInfo}>
                   <View style={styles.cardTopRow}>
-                    <Text style={styles.chatName}>
+                    <Text style={[styles.chatName, { color: colors.text }]}>
                       {item.provider.fullName}
                     </Text>
-                    <Text style={styles.timeTag}>
+                    <Text style={[styles.timeTag, { color: colors.textMuted }]}>
                       {formatTimestamp(item.lastMessageTime)}
                     </Text>
                   </View>
@@ -408,6 +438,11 @@ export default function CustomerMessageScreen() {
                     <Text
                       style={[
                         styles.lastMsgText,
+                        {
+                          color: item.unreadCount
+                            ? colors.text
+                            : colors.textSecondary,
+                        },
                         item.unreadCount ? styles.lastMsgUnread : null,
                       ]}
                       numberOfLines={1}
@@ -424,14 +459,29 @@ export default function CustomerMessageScreen() {
                   </View>
                 </View>
 
-                <Feather name="chevron-right" size={18} color="#CBD5E1" />
+                <Feather
+                  name="chevron-right"
+                  size={18}
+                  color={colors.textMuted}
+                />
               </TouchableOpacity>
             )}
             ListEmptyComponent={
               <View style={styles.centerContainer}>
-                <Feather name="message-square" size={48} color="#CBD5E1" />
-                <Text style={styles.emptyTitle}>No active conversations</Text>
-                <Text style={styles.emptySubtitle}>
+                <Feather
+                  name="message-square"
+                  size={48}
+                  color={colors.textMuted}
+                />
+                <Text style={[styles.emptyTitle, { color: colors.text }]}>
+                  No active conversations
+                </Text>
+                <Text
+                  style={[
+                    styles.emptySubtitle,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   Chats will appear automatically once a provider accepts your
                   job or submits a quote.
                 </Text>
@@ -447,16 +497,30 @@ export default function CustomerMessageScreen() {
   // VIEW 2: LIVE CHAT ROOM WITH PROFILE AVATARS
   // -------------------------------------------------------------
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.canvas }]}
+      edges={["top"]}
+    >
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.surface}
+      />
 
       {/* Top Header */}
-      <View style={styles.chatHeader}>
+      <View
+        style={[
+          styles.chatHeader,
+          {
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.border,
+          },
+        ]}
+      >
         <TouchableOpacity
           onPress={handleBackToInbox}
           style={styles.backBtn}
         >
-          <Feather name="chevron-left" size={24} color="#0F172A" />
+          <Feather name="chevron-left" size={24} color={colors.text} />
         </TouchableOpacity>
 
         <UserAvatar
@@ -467,7 +531,9 @@ export default function CustomerMessageScreen() {
         />
 
         <View style={styles.headerInfo}>
-          <Text style={styles.recipientName}>
+          <Text
+            style={[styles.recipientName, { color: colors.text }]}
+          >
             {recipientName || "Service Provider"}
           </Text>
           <View style={styles.statusWrap}>
@@ -478,18 +544,29 @@ export default function CustomerMessageScreen() {
 
         {recipientPhone ? (
           <TouchableOpacity
-            style={styles.headerCallBtn}
+            style={[
+              styles.headerCallBtn,
+              {
+                backgroundColor: isDark
+                  ? colors.surfaceSecondary
+                  : "#EFF6FF",
+              },
+            ]}
             onPress={() => Linking.openURL(`tel:${recipientPhone}`)}
           >
-            <Feather name="phone" size={16} color="#0052CC" />
+            <Feather name="phone" size={16} color={colors.primary} />
           </TouchableOpacity>
         ) : null}
       </View>
 
       {loadingChat ? (
         <View style={styles.centerContainer}>
-          <ActivityIndicator size="large" color="#0052CC" />
-          <Text style={styles.syncText}>Loading conversation...</Text>
+          <ActivityIndicator size="large" color={colors.primary} />
+          <Text
+            style={[styles.syncText, { color: colors.textSecondary }]}
+          >
+            Loading conversation...
+          </Text>
         </View>
       ) : (
         <KeyboardAvoidingView
@@ -525,7 +602,11 @@ export default function CustomerMessageScreen() {
                   {!isMine && (
                     <UserAvatar
                       avatarUrl={item.sender?.avatarUrl || recipientAvatar}
-                      name={item.sender?.fullName || recipientName || "Service Provider"}
+                      name={
+                        item.sender?.fullName ||
+                        recipientName ||
+                        "Service Provider"
+                      }
                       size={moderateScale(28)}
                       style={styles.msgAvatar}
                     />
@@ -534,13 +615,22 @@ export default function CustomerMessageScreen() {
                   <View
                     style={[
                       styles.bubble,
-                      isMine ? styles.bubbleRight : styles.bubbleLeft,
+                      isMine
+                        ? [styles.bubbleRight, { backgroundColor: colors.primary }]
+                        : [
+                            styles.bubbleLeft,
+                            {
+                              backgroundColor: isDark
+                                ? colors.surfaceSecondary
+                                : "#E2E8F0",
+                            },
+                          ],
                     ]}
                   >
                     <Text
                       style={[
                         styles.messageText,
-                        isMine ? styles.textRight : styles.textLeft,
+                        isMine ? styles.textRight : [styles.textLeft, { color: colors.text }],
                       ]}
                     >
                       {item.text}
@@ -548,7 +638,9 @@ export default function CustomerMessageScreen() {
                     <Text
                       style={[
                         styles.timeText,
-                        isMine ? styles.timeRight : styles.timeLeft,
+                        isMine
+                          ? styles.timeRight
+                          : [styles.timeLeft, { color: colors.textMuted }],
                       ]}
                     >
                       {formatTimestamp(item.createdAt)}
@@ -558,9 +650,27 @@ export default function CustomerMessageScreen() {
               );
             }}
             ListEmptyComponent={
-              <View style={styles.emptyChatBox}>
-                <Feather name="message-circle" size={20} color="#0052CC" />
-                <Text style={styles.emptyChatText}>
+              <View
+                style={[
+                  styles.emptyChatBox,
+                  {
+                    backgroundColor: isDark
+                      ? colors.surfaceSecondary
+                      : "#F1F5F9",
+                  },
+                ]}
+              >
+                <Feather
+                  name="message-circle"
+                  size={20}
+                  color={colors.primary}
+                />
+                <Text
+                  style={[
+                    styles.emptyChatText,
+                    { color: colors.textSecondary },
+                  ]}
+                >
                   {jobId
                     ? "Messages are end-to-end coordinated for this service order."
                     : `Start a direct conversation with ${recipientName || "this service provider"}. Ask questions, discuss issues, or request quotes.`}
@@ -574,6 +684,8 @@ export default function CustomerMessageScreen() {
             style={[
               styles.inputBar,
               {
+                backgroundColor: colors.surface,
+                borderTopColor: colors.border,
                 paddingBottom: isKeyboardVisible
                   ? scale(8)
                   : Math.max(insets.bottom, scale(10)),
@@ -581,9 +693,19 @@ export default function CustomerMessageScreen() {
             ]}
           >
             <TextInput
-              style={styles.textInput}
+              style={[
+                styles.textInput,
+                {
+                  backgroundColor: isDark
+                    ? colors.inputBackground
+                    : "#F1F5F9",
+                  color: colors.text,
+                  borderColor: colors.inputBorder,
+                  borderWidth: isDark ? 1 : 0,
+                },
+              ]}
               placeholder="Write a message..."
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               value={inputText}
               onChangeText={setInputText}
               onSubmitEditing={handleSendMessage}
@@ -592,7 +714,11 @@ export default function CustomerMessageScreen() {
             <TouchableOpacity
               style={[
                 styles.sendButton,
-                !inputText.trim() && styles.sendButtonDisabled,
+                { backgroundColor: colors.primary },
+                !inputText.trim() &&
+                  (isDark
+                    ? { backgroundColor: colors.surfaceSecondary }
+                    : styles.sendButtonDisabled),
               ]}
               onPress={handleSendMessage}
               disabled={!inputText.trim()}

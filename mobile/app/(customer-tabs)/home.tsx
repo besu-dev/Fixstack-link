@@ -31,6 +31,7 @@ import { Link, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { io, Socket } from "socket.io-client";
 import apiClient from "../../src/api/client";
+import { useTheme } from "../../src/context/ThemeContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 import UserAvatar from "../../components/common/UserAvatar";
 import { SOCKET_URL } from "../../src/config/api";
@@ -186,6 +187,7 @@ const POPULAR_SERVICES = [
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const [searchQuery, setSearchQuery] = useState("");
   const [userName, setUserName] = useState("Customer");
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -279,15 +281,24 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.centerContainer} edges={["top"]}>
-        <ActivityIndicator size="large" color="#0052CC" />
+      <SafeAreaView
+        style={[styles.centerContainer, { backgroundColor: colors.canvas }]}
+        edges={["top"]}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.canvas }]}
+      edges={["top"]}
+    >
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.surface}
+      />
 
       <ScrollView
         contentContainerStyle={styles.scrollContainer}
@@ -296,7 +307,7 @@ export default function HomeScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#0052CC"]}
+            colors={[colors.primary]}
           />
         }
       >
@@ -310,10 +321,10 @@ export default function HomeScreen() {
             />
           </View>
           <View style={styles.greetingTextGroup}>
-            <Text style={styles.greetingTitle}>
-              Hi, <Text style={styles.greetingName}>{userName}</Text> 👋
+            <Text style={[styles.greetingTitle, { color: colors.text }]}>
+              Hi, <Text style={[styles.greetingName, { color: colors.primary }]}>{userName}</Text> 👋
             </Text>
-            <Text style={styles.greetingSubtitle}>
+            <Text style={[styles.greetingSubtitle, { color: colors.textSecondary }]}>
               What service do you need for your home today?
             </Text>
           </View>
@@ -321,17 +332,25 @@ export default function HomeScreen() {
 
         {/* Search Bar with Filter Trigger */}
         <View style={styles.searchSection}>
-          <View style={styles.searchBar}>
+          <View
+            style={[
+              styles.searchBar,
+              {
+                backgroundColor: colors.card,
+                borderColor: colors.cardBorder,
+              },
+            ]}
+          >
             <Feather
               name="search"
               size={moderateScale(18)}
-              color="#64748B"
+              color={colors.textMuted}
               style={styles.searchIcon}
             />
             <TextInput
-              style={styles.searchInput}
+              style={[styles.searchInput, { color: colors.text }]}
               placeholder="Search plumber, electrician, technician..."
-              placeholderTextColor="#94A3B8"
+              placeholderTextColor={colors.textMuted}
               value={searchQuery}
               onChangeText={setSearchQuery}
               clearButtonMode="while-editing"
@@ -341,7 +360,7 @@ export default function HomeScreen() {
                 onPress={() => setSearchQuery("")}
                 style={styles.clearSearchBtn}
               >
-                <Feather name="x" size={moderateScale(16)} color="#94A3B8" />
+                <Feather name="x" size={moderateScale(16)} color={colors.textMuted} />
               </TouchableOpacity>
             )}
           </View>
@@ -350,7 +369,14 @@ export default function HomeScreen() {
         {/* Hero Promotional Banner with Verified Technician */}
         <View style={styles.bannerWrapper}>
           <TouchableOpacity
-            style={styles.heroBanner}
+            style={[
+              styles.heroBanner,
+              {
+                backgroundColor: isDark ? colors.surface : "#0052CC",
+                borderWidth: isDark ? 1 : 0,
+                borderColor: colors.cardBorder,
+              },
+            ]}
             activeOpacity={0.92}
             onPress={() => router.push("/screen/sub-services" as any)}
           >
@@ -382,11 +408,13 @@ export default function HomeScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* POPULAR CATEGORIES SECTION (Pure, clean photo cards) */}
+        {/* POPULAR CATEGORIES SECTION */}
         <View style={styles.sectionHeader}>
           <View>
-            <Text style={styles.sectionTitle}>Popular Categories</Text>
-            <Text style={styles.sectionSub}>Find the right trade specialist for your job</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Popular Categories</Text>
+            <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
+              Find the right trade specialist for your job
+            </Text>
           </View>
           <TouchableOpacity
             activeOpacity={0.7}
@@ -398,8 +426,8 @@ export default function HomeScreen() {
             }
           >
             <View style={styles.viewAllBtn}>
-              <Text style={styles.viewAllText}>View all</Text>
-              <Feather name="chevron-right" size={moderateScale(15)} color="#0052CC" />
+              <Text style={[styles.viewAllText, { color: colors.primary }]}>View all</Text>
+              <Feather name="chevron-right" size={moderateScale(15)} color={colors.primary} />
             </View>
           </TouchableOpacity>
         </View>
@@ -412,7 +440,13 @@ export default function HomeScreen() {
           {POPULAR_SERVICES.map((service) => (
             <TouchableOpacity
               key={service.id}
-              style={styles.categoryCard}
+              style={[
+                styles.categoryCard,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.cardBorder,
+                },
+              ]}
               activeOpacity={0.88}
               onPress={() =>
                 router.push({
@@ -421,8 +455,16 @@ export default function HomeScreen() {
                 } as any)
               }
             >
-              {/* Clean Category Photo Visual (No badges, no overlay icons) */}
-              <View style={styles.categoryImageContainer}>
+              <View
+                style={[
+                  styles.categoryImageContainer,
+                  {
+                    backgroundColor: isDark
+                      ? colors.surfaceSecondary
+                      : "#F1F5F9",
+                  },
+                ]}
+              >
                 <Image
                   source={service.image}
                   style={styles.categoryImage}
@@ -430,16 +472,29 @@ export default function HomeScreen() {
                 />
               </View>
 
-              {/* Category Details */}
               <View style={styles.categoryCardBody}>
-                <Text style={styles.categoryCardTitle} numberOfLines={1}>
+                <Text
+                  style={[styles.categoryCardTitle, { color: colors.text }]}
+                  numberOfLines={1}
+                >
                   {service.title}
                 </Text>
-                <Text style={styles.categoryCardSubtitle} numberOfLines={1}>
+                <Text
+                  style={[
+                    styles.categoryCardSubtitle,
+                    { color: colors.textSecondary },
+                  ]}
+                  numberOfLines={1}
+                >
                   {service.subtitle}
                 </Text>
 
-                <View style={styles.categoryCardFooter}>
+                <View
+                  style={[
+                    styles.categoryCardFooter,
+                    { borderTopColor: colors.borderSubtle },
+                  ]}
+                >
                   <Text style={[styles.categoryActionText, { color: service.accentColor }]}>
                     Find Pros
                   </Text>
@@ -464,8 +519,10 @@ export default function HomeScreen() {
         {/* Top Technicians (Filtered Database Results) */}
         <View style={styles.sectionHeader}>
           <View>
-            <Text style={styles.sectionTitle}>Top Technicians</Text>
-            <Text style={styles.sectionSub}>Verified local providers ready to hire</Text>
+            <Text style={[styles.sectionTitle, { color: colors.text }]}>Top Technicians</Text>
+            <Text style={[styles.sectionSub, { color: colors.textSecondary }]}>
+              Verified local providers ready to hire
+            </Text>
           </View>
           <TouchableOpacity
             activeOpacity={0.7}
@@ -479,10 +536,10 @@ export default function HomeScreen() {
             }
           >
             <View style={styles.viewAllBtn}>
-              <Text style={styles.viewAllText}>
+              <Text style={[styles.viewAllText, { color: colors.primary }]}>
                 View all ({filteredProviders.length})
               </Text>
-              <Feather name="chevron-right" size={moderateScale(15)} color="#0052CC" />
+              <Feather name="chevron-right" size={moderateScale(15)} color={colors.primary} />
             </View>
           </TouchableOpacity>
         </View>
@@ -500,7 +557,16 @@ export default function HomeScreen() {
                 key={chip.id}
                 style={[
                   styles.quickChip,
-                  isActive && styles.quickChipActive,
+                  {
+                    backgroundColor: isActive
+                      ? colors.primary
+                      : isDark
+                        ? colors.surfaceSecondary
+                        : "#F8FAFC",
+                    borderColor: isActive
+                      ? colors.primary
+                      : colors.border,
+                  },
                 ]}
                 activeOpacity={0.75}
                 onPress={() => handleTechFilterPress(chip.id)}
@@ -508,7 +574,10 @@ export default function HomeScreen() {
                 <Text
                   style={[
                     styles.quickChipText,
-                    isActive && styles.quickChipTextActive,
+                    {
+                      color: isActive ? "#FFFFFF" : colors.textSecondary,
+                      fontWeight: isActive ? "700" : "600",
+                    },
                   ]}
                 >
                   {chip.label}
@@ -525,15 +594,38 @@ export default function HomeScreen() {
         >
           {filteredProviders.length > 0 ? (
             filteredProviders.map((provider) => (
-              <View key={provider._id} style={styles.providerCard}>
-                <View style={styles.providerImageContainer}>
+              <View
+                key={provider._id}
+                style={[
+                  styles.providerCard,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: colors.cardBorder,
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    styles.providerImageContainer,
+                    {
+                      backgroundColor: isDark
+                        ? colors.surfaceSecondary
+                        : "#F8FAFC",
+                    },
+                  ]}
+                >
                   <UserAvatar
                     avatarUrl={provider.avatarUrl}
                     name={provider.fullName}
                     size={moderateScale(68)}
                   />
                   {provider.isVerified && (
-                    <View style={styles.verifiedTag}>
+                    <View
+                      style={[
+                        styles.verifiedTag,
+                        { backgroundColor: colors.surface },
+                      ]}
+                    >
                       <Ionicons
                         name="shield-checkmark"
                         size={moderateScale(12)}
@@ -544,38 +636,76 @@ export default function HomeScreen() {
                 </View>
 
                 <View style={styles.providerDetails}>
-                  <Text style={styles.providerName} numberOfLines={1}>
+                  <Text
+                    style={[styles.providerName, { color: colors.text }]}
+                    numberOfLines={1}
+                  >
                     {provider.fullName}
                   </Text>
-                  <View style={styles.providerProfessionBadge}>
-                    <Text style={styles.providerProfession} numberOfLines={1}>
+                  <View
+                    style={[
+                      styles.providerProfessionBadge,
+                      {
+                        backgroundColor: isDark
+                          ? colors.surfaceSecondary
+                          : "#EFF6FF",
+                      },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.providerProfession,
+                        { color: colors.primary },
+                      ]}
+                      numberOfLines={1}
+                    >
                       {provider.profession || "General Technician"}
                     </Text>
                   </View>
 
                   {provider.subcity && (
                     <View style={styles.providerLocationRow}>
-                      <Ionicons name="location-outline" size={moderateScale(11)} color="#64748B" />
-                      <Text style={styles.providerLocationText} numberOfLines={1}>
+                      <Ionicons
+                        name="location-outline"
+                        size={moderateScale(11)}
+                        color={colors.textMuted}
+                      />
+                      <Text
+                        style={[
+                          styles.providerLocationText,
+                          { color: colors.textSecondary },
+                        ]}
+                        numberOfLines={1}
+                      >
                         {provider.subcity}
                       </Text>
                     </View>
                   )}
 
-                  <View style={styles.providerFooter}>
+                  <View
+                    style={[
+                      styles.providerFooter,
+                      { borderTopColor: colors.borderSubtle },
+                    ]}
+                  >
                     <View style={styles.ratingBadge}>
                       <FontAwesome
                         name="star"
                         size={moderateScale(12)}
                         color="#F59E0B"
                       />
-                      <Text style={styles.ratingText}>
+                      <Text
+                        style={[styles.ratingText, { color: colors.text }]}
+                      >
                         {provider.rating ? provider.rating.toFixed(1) : "5.0"}
                       </Text>
                     </View>
 
                     <TouchableOpacity
-                      style={styles.detailsButton}
+                      style={[
+                        styles.detailsButton,
+                        { backgroundColor: colors.primary },
+                      ]}
                       activeOpacity={0.8}
                       onPress={() =>
                         router.push(
@@ -590,13 +720,21 @@ export default function HomeScreen() {
               </View>
             ))
           ) : (
-            <View style={styles.emptyProviderCard}>
-              <Feather name="user-x" size={moderateScale(28)} color="#94A3B8" />
-              <Text style={styles.emptyProviderText}>
+            <View
+              style={[
+                styles.emptyProviderCard,
+                {
+                  backgroundColor: colors.card,
+                  borderColor: colors.cardBorder,
+                },
+              ]}
+            >
+              <Feather name="user-x" size={moderateScale(28)} color={colors.textMuted} />
+              <Text style={[styles.emptyProviderText, { color: colors.textSecondary }]}>
                 No technicians found for {selectedTechFilter !== "All" ? selectedTechFilter : "this category"}.
               </Text>
               <TouchableOpacity
-                style={styles.emptyResetBtn}
+                style={[styles.emptyResetBtn, { backgroundColor: colors.primary }]}
                 onPress={() => {
                   handleTechFilterPress("All");
                   setSearchQuery("");
@@ -608,7 +746,6 @@ export default function HomeScreen() {
           )}
         </ScrollView>
       </ScrollView>
-
 
     </SafeAreaView>
   );

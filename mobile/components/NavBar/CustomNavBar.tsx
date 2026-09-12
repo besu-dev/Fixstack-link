@@ -8,9 +8,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
+import { useTheme } from "../../src/context/ThemeContext";
 
-const PRIMARY_COLOR = "#0052CC";
-const SECONDARY_COLOR = "#FFFFFF";
 const TAB_ITEM_SIZE = 44;
 
 function getIcon(name: string, color: string) {
@@ -36,6 +35,10 @@ interface TabButtonProps {
   isFocused: boolean;
   onPress: () => void;
   badgeCount?: number;
+  activeColor: string;
+  inactiveColor: string;
+  bubbleColor: string;
+  badgeBorderColor: string;
 }
 
 function TabButton({
@@ -43,6 +46,10 @@ function TabButton({
   isFocused,
   onPress,
   badgeCount,
+  activeColor,
+  inactiveColor,
+  bubbleColor,
+  badgeBorderColor,
 }: TabButtonProps) {
   const rTabItemViewStyle = useAnimatedStyle(() => ({
     transform: [{ scale: withTiming(isFocused ? 1 : 0) }],
@@ -59,12 +66,18 @@ function TabButton({
       style={styles.tabItem}
       activeOpacity={0.8}
     >
-      <Animated.View style={[styles.tabItemView, rTabItemViewStyle]} />
+      <Animated.View
+        style={[
+          styles.tabItemView,
+          { backgroundColor: bubbleColor },
+          rTabItemViewStyle,
+        ]}
+      />
       <Animated.View style={rIconStyle}>
-        {getIcon(routeName, isFocused ? PRIMARY_COLOR : SECONDARY_COLOR)}
+        {getIcon(routeName, isFocused ? activeColor : inactiveColor)}
       </Animated.View>
       {badgeCount !== undefined && badgeCount > 0 && (
-        <View style={styles.badge}>
+        <View style={[styles.badge, { borderColor: badgeBorderColor }]}>
           <Text style={styles.badgeText}>
             {badgeCount > 9 ? "9+" : badgeCount}
           </Text>
@@ -81,7 +94,13 @@ export default function CustomNavBar({
 }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const { unreadMessageCount } = useUnreadMessages();
+  const { colors, isDark } = useTheme();
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  const activeColor = isDark ? "#FFFFFF" : colors.primary;
+  const inactiveColor = isDark ? colors.textSecondary : "#FFFFFF";
+  const bubbleColor = isDark ? colors.primary : "#FFFFFF";
+  const badgeBorderColor = colors.navBar;
 
   useEffect(() => {
     const showEvent =
@@ -115,7 +134,17 @@ export default function CustomNavBar({
   const bottomOffset = insets.bottom > 0 ? insets.bottom + 8 : 20;
 
   return (
-    <View style={[styles.container, { bottom: bottomOffset }]}>
+    <View
+      style={[
+        styles.container,
+        {
+          bottom: bottomOffset,
+          backgroundColor: colors.navBar,
+          borderColor: colors.navBarBorder,
+          borderWidth: isDark ? 1 : 0,
+        },
+      ]}
+    >
       {state.routes.map((route, index) => {
         if (["_sitemap", "+not-found", "services"].includes(route.name)) {
           return null;
@@ -141,6 +170,10 @@ export default function CustomNavBar({
             routeName={route.name}
             isFocused={isFocused}
             onPress={onPress}
+            activeColor={activeColor}
+            inactiveColor={inactiveColor}
+            bubbleColor={bubbleColor}
+            badgeBorderColor={badgeBorderColor}
             badgeCount={
               route.name === "message" ? unreadMessageCount : undefined
             }
@@ -156,7 +189,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     position: "absolute",
     bottom: 24,
-    backgroundColor: PRIMARY_COLOR,
+    backgroundColor: "#0052CC",
     width: "92%",
     alignSelf: "center",
     paddingHorizontal: 8,
@@ -182,7 +215,7 @@ const styles = StyleSheet.create({
     width: TAB_ITEM_SIZE,
     height: TAB_ITEM_SIZE,
     borderRadius: TAB_ITEM_SIZE / 2,
-    backgroundColor: SECONDARY_COLOR,
+    backgroundColor: "#FFFFFF",
   },
   badge: {
     position: "absolute",
@@ -196,7 +229,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1.5,
-    borderColor: PRIMARY_COLOR,
+    borderColor: "#0052CC",
   },
   badgeText: {
     color: "#FFFFFF",

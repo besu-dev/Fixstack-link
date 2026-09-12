@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from "react";
 import { Stack, useRouter } from "expo-router";
+import { StatusBar } from "react-native";
 import * as Notifications from "expo-notifications";
 import * as SecureStore from "expo-secure-store";
+import { ThemeProvider, useTheme } from "../src/context/ThemeContext";
 import { AlertProvider } from "../src/context/AlertContext";
 import { UnreadMessagesProvider } from "../src/context/UnreadMessagesContext";
 import {
@@ -9,8 +11,9 @@ import {
   syncPushTokenWithBackend,
 } from "../src/utils/pushNotifications";
 
-export default function RootLayout() {
+function RootLayoutContent() {
   const router = useRouter();
+  const { colors, isDark } = useTheme();
   const notificationListener = useRef<Notifications.Subscription | null>(null);
   const responseListener = useRef<Notifications.Subscription | null>(null);
 
@@ -71,23 +74,42 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <AlertProvider>
-      <UnreadMessagesProvider>
-        <Stack screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="screen/splash" />
-          <Stack.Screen name="screen/login" />
-          <Stack.Screen name="screen/select-role" />
-          <Stack.Screen name="screen/signup" />
-          <Stack.Screen name="screen/forgot-password" />
-          <Stack.Screen name="screen/service-providers" />
-          <Stack.Screen name="screen/sub-services" />
-          <Stack.Screen name="screen/user/provider-detail/[id]" />
-          <Stack.Screen name="screen/help-support" />
-          <Stack.Screen name="(customer-tabs)" />
-          <Stack.Screen name="(provider-tabs)" />
-        </Stack>
-      </UnreadMessagesProvider>
-    </AlertProvider>
+    <>
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.background}
+      />
+      <AlertProvider>
+        <UnreadMessagesProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+              contentStyle: { backgroundColor: colors.background },
+            }}
+          >
+            <Stack.Screen name="index" />
+            <Stack.Screen name="screen/splash" />
+            <Stack.Screen name="screen/login" />
+            <Stack.Screen name="screen/select-role" />
+            <Stack.Screen name="screen/signup" />
+            <Stack.Screen name="screen/forgot-password" />
+            <Stack.Screen name="screen/service-providers" />
+            <Stack.Screen name="screen/sub-services" />
+            <Stack.Screen name="screen/user/provider-detail/[id]" />
+            <Stack.Screen name="screen/help-support" />
+            <Stack.Screen name="(customer-tabs)" />
+            <Stack.Screen name="(provider-tabs)" />
+          </Stack>
+        </UnreadMessagesProvider>
+      </AlertProvider>
+    </>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ThemeProvider>
+      <RootLayoutContent />
+    </ThemeProvider>
   );
 }

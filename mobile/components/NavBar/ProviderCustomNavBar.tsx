@@ -10,12 +10,10 @@ import Animated, {
   LinearTransition,
 } from "react-native-reanimated";
 import { useUnreadMessages } from "../../src/context/UnreadMessagesContext";
+import { useTheme } from "../../src/context/ThemeContext";
 
 const AnimatedTouchableOpacity =
   Animated.createAnimatedComponent(TouchableOpacity);
-
-const PRIMARY_COLOR = "#0052CC";
-const SECONDARY_COLOR = "#fff";
 
 const ProviderCustomNavBar: React.FC<BottomTabBarProps> = ({
   state,
@@ -23,7 +21,13 @@ const ProviderCustomNavBar: React.FC<BottomTabBarProps> = ({
   navigation,
 }) => {
   const { unreadMessageCount } = useUnreadMessages();
+  const { colors, isDark } = useTheme();
   const [isKeyboardVisible, setKeyboardVisible] = useState(false);
+
+  const activeColor = isDark ? "#FFFFFF" : colors.primary;
+  const inactiveColor = isDark ? colors.textSecondary : "#FFFFFF";
+  const bubbleColor = isDark ? colors.primary : "#FFFFFF";
+  const activeTextColor = isDark ? "#FFFFFF" : colors.primary;
 
   useEffect(() => {
     const showEvent =
@@ -55,7 +59,16 @@ const ProviderCustomNavBar: React.FC<BottomTabBarProps> = ({
   }
 
   return (
-    <View style={styles.container}>
+    <View
+      style={[
+        styles.container,
+        {
+          backgroundColor: colors.navBar,
+          borderColor: colors.navBarBorder,
+          borderWidth: isDark ? 1 : 0,
+        },
+      ]}
+    >
       {state.routes.map((route, index) => {
         if (["_sitemap", "+not-found"].includes(route.name)) return null;
 
@@ -88,16 +101,16 @@ const ProviderCustomNavBar: React.FC<BottomTabBarProps> = ({
             onPress={onPress}
             style={[
               styles.tabItem,
-              { backgroundColor: isFocused ? SECONDARY_COLOR : "transparent" },
+              { backgroundColor: isFocused ? bubbleColor : "transparent" },
             ]}
           >
             <View style={styles.iconWrapper}>
               {getIconByRouteName(
                 route.name,
-                isFocused ? PRIMARY_COLOR : SECONDARY_COLOR,
+                isFocused ? activeColor : inactiveColor,
               )}
               {route.name === "message" && unreadMessageCount > 0 && (
-                <View style={styles.badge}>
+                <View style={[styles.badge, { borderColor: colors.navBar }]}>
                   <Text style={styles.badgeText}>
                     {unreadMessageCount > 9 ? "9+" : unreadMessageCount}
                   </Text>
@@ -108,7 +121,7 @@ const ProviderCustomNavBar: React.FC<BottomTabBarProps> = ({
               <Animated.Text
                 entering={FadeIn.duration(200)}
                 exiting={FadeOut.duration(200)}
-                style={styles.text}
+                style={[styles.text, { color: activeTextColor }]}
               >
                 {label as string}
               </Animated.Text>
@@ -141,7 +154,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: PRIMARY_COLOR,
+    backgroundColor: "#0052CC",
     width: "88%",
     alignSelf: "center",
     bottom: 30,
@@ -168,7 +181,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   text: {
-    color: PRIMARY_COLOR,
+    color: "#0052CC",
     marginLeft: 6,
     fontWeight: "700",
     fontSize: 12,
@@ -185,7 +198,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     borderWidth: 1.5,
-    borderColor: PRIMARY_COLOR,
+    borderColor: "#0052CC",
   },
   badgeText: {
     color: "#FFFFFF",

@@ -23,6 +23,7 @@ import BuyConnectsModal from "../../components/BuyConnectsModal";
 import CustomerNotificationsModal from "../../components/customer/CustomerNotificationsModal";
 import UserAvatar from "../../components/common/UserAvatar";
 import { AppAlert } from "../../src/context/AlertContext";
+import { useTheme } from "../../src/context/ThemeContext";
 import { scale, moderateScale, scaledFont } from "../../src/utils/responsive";
 import { SOCKET_URL } from "../../src/config/api";
 
@@ -45,6 +46,7 @@ interface JobStats {
 
 export default function CustomerProfileScreen() {
   const router = useRouter();
+  const { colors, isDark, toggleTheme } = useTheme();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [profile, setProfile] = useState<CustomerData | null>(null);
   const [stats, setStats] = useState<JobStats>({
@@ -171,29 +173,62 @@ export default function CustomerProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.centerContainer} edges={["top"]}>
-        <ActivityIndicator size="large" color="#0052CC" />
+      <SafeAreaView
+        style={[styles.centerContainer, { backgroundColor: colors.canvas }]}
+        edges={["top"]}
+      >
+        <ActivityIndicator size="large" color={colors.primary} />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+    <SafeAreaView
+      style={[styles.safeArea, { backgroundColor: colors.canvas }]}
+      edges={["top"]}
+    >
+      <StatusBar
+        barStyle={isDark ? "light-content" : "dark-content"}
+        backgroundColor={colors.surface}
+      />
 
       {/* Top Header with Notifications & Edit Shortcut */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: colors.surface,
+            borderBottomColor: colors.border,
+          },
+        ]}
+      >
+        <Text style={[styles.headerTitle, { color: colors.text }]}>Profile</Text>
 
         <View style={styles.headerActions}>
           <TouchableOpacity
-            style={styles.notificationHeaderBtn}
+            style={[
+              styles.notificationHeaderBtn,
+              {
+                backgroundColor: isDark
+                  ? colors.surfaceSecondary
+                  : "#EFF6FF",
+              },
+            ]}
             onPress={() => setNotificationsModalVisible(true)}
             activeOpacity={0.8}
           >
-            <Feather name="bell" size={moderateScale(18)} color="#0052CC" />
+            <Feather
+              name="bell"
+              size={moderateScale(18)}
+              color={colors.primary}
+            />
             {unreadNotificationCount > 0 && (
-              <View style={styles.headerBadge}>
+              <View
+                style={[
+                  styles.headerBadge,
+                  { borderColor: colors.surface },
+                ]}
+              >
                 <Text style={styles.headerBadgeText}>
                   {unreadNotificationCount > 9 ? "9+" : unreadNotificationCount}
                 </Text>
@@ -202,11 +237,22 @@ export default function CustomerProfileScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.editBtn}
+            style={[
+              styles.editBtn,
+              {
+                backgroundColor: isDark
+                  ? colors.surfaceSecondary
+                  : "#EFF6FF",
+              },
+            ]}
             onPress={() => router.push("/screen/user/edit-profile" as any)}
             activeOpacity={0.8}
           >
-            <Feather name="edit-3" size={moderateScale(16)} color="#0052CC" />
+            <Feather
+              name="edit-3"
+              size={moderateScale(16)}
+              color={colors.primary}
+            />
           </TouchableOpacity>
         </View>
       </View>
@@ -218,7 +264,7 @@ export default function CustomerProfileScreen() {
           <RefreshControl
             refreshing={refreshing}
             onRefresh={onRefresh}
-            colors={["#0052CC"]}
+            colors={[colors.primary]}
           />
         }
       >
@@ -231,41 +277,86 @@ export default function CustomerProfileScreen() {
               size={moderateScale(84)}
             />
             <TouchableOpacity
-              style={styles.cameraBadge}
+              style={[
+                styles.cameraBadge,
+                {
+                  backgroundColor: colors.primary,
+                  borderColor: colors.surface,
+                },
+              ]}
               activeOpacity={0.8}
               onPress={() => router.push("/screen/user/edit-profile" as any)}
             >
               <Feather name="camera" size={moderateScale(11)} color="#FFFFFF" />
             </TouchableOpacity>
           </View>
-          <Text style={styles.userName}>
+          <Text style={[styles.userName, { color: colors.text }]}>
             {profile?.fullName || "Alex Tefera"}
           </Text>
-          <Text style={styles.userEmail}>
+          <Text style={[styles.userEmail, { color: colors.textSecondary }]}>
             {profile?.email || profile?.phone || "No contact info set"}
           </Text>
         </View>
 
         {/* Live Metrics */}
-        <View style={styles.statsRow}>
+        <View
+          style={[
+            styles.statsRow,
+            {
+              backgroundColor: colors.card,
+              borderColor: colors.cardBorder,
+            },
+          ]}
+        >
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{stats.posted}</Text>
-            <Text style={styles.statLabel}>Jobs Posted</Text>
+            <Text style={[styles.statNumber, { color: colors.primary }]}>
+              {stats.posted}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              Jobs Posted
+            </Text>
           </View>
-          <View style={styles.statDivider} />
+          <View
+            style={[
+              styles.statDivider,
+              { backgroundColor: colors.border },
+            ]}
+          />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{stats.completed}</Text>
-            <Text style={styles.statLabel}>Completed</Text>
+            <Text style={[styles.statNumber, { color: colors.primary }]}>
+              {stats.completed}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              Completed
+            </Text>
           </View>
-          <View style={styles.statDivider} />
+          <View
+            style={[
+              styles.statDivider,
+              { backgroundColor: colors.border },
+            ]}
+          />
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{stats.active}</Text>
-            <Text style={styles.statLabel}>Active</Text>
+            <Text style={[styles.statNumber, { color: colors.primary }]}>
+              {stats.active}
+            </Text>
+            <Text style={[styles.statLabel, { color: colors.textSecondary }]}>
+              Active
+            </Text>
           </View>
         </View>
 
         {/* Connects / Wallet Balance Card */}
-        <View style={styles.walletCard}>
+        <View
+          style={[
+            styles.walletCard,
+            {
+              backgroundColor: isDark ? colors.surface : "#0052CC",
+              borderWidth: isDark ? 1 : 0,
+              borderColor: colors.cardBorder,
+            },
+          ]}
+        >
           <View style={styles.walletDetails}>
             <Text style={styles.walletLabel}>Available Balance</Text>
             <Text style={styles.walletAmount}>
@@ -292,53 +383,152 @@ export default function CustomerProfileScreen() {
 
         {/* Account Details & Edit */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>Account Settings</Text>
+          <Text style={[styles.sectionHeader, { color: colors.textMuted }]}>
+            Account Settings
+          </Text>
 
           <TouchableOpacity
-            style={styles.menuItem}
+            style={[
+              styles.menuItem,
+              { borderBottomColor: colors.borderSubtle },
+            ]}
             onPress={() => router.push("/screen/user/edit-profile" as any)}
           >
-            <View style={[styles.menuIconBox, { backgroundColor: "#EFF6FF" }]}>
-              <Feather name="user" size={moderateScale(17)} color="#0052CC" />
+            <View
+              style={[
+                styles.menuIconBox,
+                {
+                  backgroundColor: isDark
+                    ? colors.surfaceSecondary
+                    : "#EFF6FF",
+                },
+              ]}
+            >
+              <Feather
+                name="user"
+                size={moderateScale(17)}
+                color={colors.primary}
+              />
             </View>
             <View style={styles.menuTextCol}>
-              <Text style={styles.menuTitle}>Edit Profile Information</Text>
-              <Text style={styles.menuSubtitle}>
+              <Text style={[styles.menuTitle, { color: colors.text }]}>
+                Edit Profile Information
+              </Text>
+              <Text
+                style={[
+                  styles.menuSubtitle,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 Name, phone number, and location
               </Text>
             </View>
             <Feather
               name="chevron-right"
               size={moderateScale(17)}
-              color="#94A3B8"
+              color={colors.textMuted}
             />
           </TouchableOpacity>
         </View>
 
         {/* Preferences & Support */}
         <View style={styles.section}>
-          <Text style={styles.sectionHeader}>Preferences & Support</Text>
+          <Text style={[styles.sectionHeader, { color: colors.textMuted }]}>
+            Preferences & Support
+          </Text>
 
-          <View style={styles.menuItem}>
-            <View style={[styles.menuIconBox, { backgroundColor: "#F3E8FF" }]}>
-              <Feather name="bell" size={moderateScale(17)} color="#7C3AED" />
+          {/* Dark Mode Switch */}
+          <View
+            style={[
+              styles.menuItem,
+              { borderBottomColor: colors.borderSubtle },
+            ]}
+          >
+            <View
+              style={[
+                styles.menuIconBox,
+                {
+                  backgroundColor: isDark
+                    ? colors.surfaceSecondary
+                    : "#FEF3C7",
+                },
+              ]}
+            >
+              <Feather
+                name={isDark ? "moon" : "sun"}
+                size={moderateScale(17)}
+                color={isDark ? "#818CF8" : "#D97706"}
+              />
             </View>
             <View style={styles.menuTextCol}>
-              <Text style={styles.menuTitle}>Push Notifications</Text>
-              <Text style={styles.menuSubtitle}>
+              <Text style={[styles.menuTitle, { color: colors.text }]}>
+                Dark Mode
+              </Text>
+              <Text
+                style={[
+                  styles.menuSubtitle,
+                  { color: colors.textSecondary },
+                ]}
+              >
+                {isDark ? "Dark theme active" : "Light theme active"}
+              </Text>
+            </View>
+            <Switch
+              value={isDark}
+              onValueChange={toggleTheme}
+              trackColor={{ false: "#CBD5E1", true: colors.primary }}
+              thumbColor="#FFFFFF"
+            />
+          </View>
+
+          <View
+            style={[
+              styles.menuItem,
+              { borderBottomColor: colors.borderSubtle },
+            ]}
+          >
+            <View
+              style={[
+                styles.menuIconBox,
+                {
+                  backgroundColor: isDark
+                    ? colors.surfaceSecondary
+                    : "#F3E8FF",
+                },
+              ]}
+            >
+              <Feather
+                name="bell"
+                size={moderateScale(17)}
+                color={isDark ? "#A78BFA" : "#7C3AED"}
+              />
+            </View>
+            <View style={styles.menuTextCol}>
+              <Text style={[styles.menuTitle, { color: colors.text }]}>
+                Push Notifications
+              </Text>
+              <Text
+                style={[
+                  styles.menuSubtitle,
+                  { color: colors.textSecondary },
+                ]}
+              >
                 Proposal alerts & technician messages
               </Text>
             </View>
             <Switch
               value={notificationsEnabled}
               onValueChange={setNotificationsEnabled}
-              trackColor={{ false: "#CBD5E1", true: "#0052CC" }}
+              trackColor={{ false: "#CBD5E1", true: colors.primary }}
               thumbColor="#FFFFFF"
             />
           </View>
 
           <TouchableOpacity
-            style={styles.menuItem}
+            style={[
+              styles.menuItem,
+              { borderBottomColor: colors.borderSubtle },
+            ]}
             onPress={() =>
               router.push({
                 pathname: "/screen/help-support",
@@ -347,34 +537,63 @@ export default function CustomerProfileScreen() {
             }
             activeOpacity={0.7}
           >
-            <View style={[styles.menuIconBox, { backgroundColor: "#DCFCE7" }]}>
+            <View
+              style={[
+                styles.menuIconBox,
+                {
+                  backgroundColor: isDark
+                    ? colors.surfaceSecondary
+                    : "#DCFCE7",
+                },
+              ]}
+            >
               <Feather
                 name="phone-call"
                 size={moderateScale(17)}
-                color="#16A34A"
+                color={isDark ? "#4ADE80" : "#16A34A"}
               />
             </View>
             <View style={styles.menuTextCol}>
-              <Text style={styles.menuTitle}>Contact Support</Text>
-              <Text style={styles.menuSubtitle}>
-                Get help from  Bete customer support team
+              <Text style={[styles.menuTitle, { color: colors.text }]}>
+                Contact Support
+              </Text>
+              <Text
+                style={[
+                  styles.menuSubtitle,
+                  { color: colors.textSecondary },
+                ]}
+              >
+                Get help from Bete customer support team
               </Text>
             </View>
             <Feather
               name="chevron-right"
               size={moderateScale(17)}
-              color="#94A3B8"
+              color={colors.textMuted}
             />
           </TouchableOpacity>
         </View>
 
         <TouchableOpacity
-          style={styles.logoutBtn}
+          style={[
+            styles.logoutBtn,
+            {
+              backgroundColor: isDark
+                ? colors.dangerLight
+                : "#FEF2F2",
+            },
+          ]}
           onPress={handleLogout}
           activeOpacity={0.8}
         >
-          <Feather name="log-out" size={moderateScale(17)} color="#EF4444" />
-          <Text style={styles.logoutText}>Log Out</Text>
+          <Feather
+            name="log-out"
+            size={moderateScale(17)}
+            color={colors.danger}
+          />
+          <Text style={[styles.logoutText, { color: colors.danger }]}>
+            Log Out
+          </Text>
         </TouchableOpacity>
       </ScrollView>
 
