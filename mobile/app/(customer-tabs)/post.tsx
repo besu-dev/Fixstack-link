@@ -43,9 +43,7 @@ export default function PostJobScreen() {
   const [description, setDescription] = useState("");
   const [location, setLocation] = useState("");
   const [budget, setBudget] = useState("");
-  const [urgency, setUrgency] = useState<"Today" | "Emergency" | "Flexible">(
-    "Today",
-  );
+  const [urgency, setUrgency] = useState<"Today" | "Emergency">("Today");
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -303,7 +301,7 @@ export default function PostJobScreen() {
           {/* Urgency Selection */}
           <Text style={styles.label}>Priority / Urgency</Text>
           <View style={styles.urgencyRow}>
-            {(["Flexible", "Today", "Emergency"] as const).map((level) => {
+            {(["Today", "Emergency"] as const).map((level) => {
               const isSelected = urgency === level;
               const isEmergency = level === "Emergency";
               return (
